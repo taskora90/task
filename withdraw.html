@@ -119,5 +119,46 @@
             }
         }
     </script>
+    <script>
+  // উইথড্র ফরম সাবমিটের সময় ডাটা সেভ করার কোড
+  document.getElementById('withdrawForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const method = document.getElementById('method').value;
+    const accountNumber = document.getElementById('accountNumber').value;
+    const amount = parseInt(document.getElementById('amount').value);
+
+    // তারিখ ও সময় তৈরি
+    const now = new Date();
+    const formattedDate = now.getFullYear() + '-' +
+      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+      String(now.getDate()).padStart(2, '0') + ' ' +
+      String(now.getHours()).padStart(2, '0') + ':' +
+      String(now.getMinutes()).padStart(2, '0') + ':' +
+      String(now.getSeconds()).padStart(2, '0');
+
+    // নতুন উত্তোলনের ডাটা অবজেক্ট
+    const newRecord = {
+      id: 'NO: ' + Date.now(),
+      amount: amount,
+      method: method,
+      accountNumber: accountNumber,
+      createdAt: Date.now(), // ২০ মিনিটের ট্র্যাকিংয়ের সময়
+      dateTimeStr: formattedDate,
+      adminStatus: 'pending'
+    };
+
+    // localStorage-এ ডাটা সেভ করা
+    let records = JSON.parse(localStorage.getItem('withdrawRecords')) || [];
+    records.unshift(newRecord);
+    localStorage.setItem('withdrawRecords', JSON.stringify(records));
+
+    alert('উত্তোলনের অনুরোধ জমা দেওয়া হয়েছে!');
+    
+    // উইথড্র রেকর্ড পেজে পাঠিয়ে দেওয়া
+    window.location.href = 'withdraw-record.html';
+  });
+    </script>
+    
 </body>
 </html>
