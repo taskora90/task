@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>টাকা উত্তোলন</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="ash-theme">
+
+    <header class="top-banner">
+        <a href="profile.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>টাকা উত্তোলন করুন</h2>
+    </header>
+
+    <div class="withdraw-container">
+        <!-- টাস্ক ক্যাশ ব্যালেন্স -->
+        <div class="balance-card">
+            <p>উত্তোলনযোগ্য ব্যালেন্স (টাস্ক ক্যাশ):</p>
+            <h2 id="task-balance-display">৳ <span id="task-cash">23693.40</span></h2>
+        </div>
+
+        <form id="withdraw-form" onsubmit="handleWithdraw(event)">
+            <!-- পেমেন্ট মেথড (বিকাশ / নগদ) -->
+            <label class="section-label">পেমেন্ট মাধ্যম নির্বাচন করুন</label>
+            <div class="method-selector">
+                <div class="method-option active" id="method-bkash" onclick="selectMethod('bkash')">
+                    <i class="fa-solid fa-circle-check check-icon"></i>
+                    <span>বিকাশ (bKash)</span>
+                </div>
+                <div class="method-option" id="method-nagad" onclick="selectMethod('nagad')">
+                    <i class="fa-solid fa-circle-check check-icon"></i>
+                    <span>নগদ (Nagad)</span>
+                </div>
+            </div>
+            <input type="hidden" id="selected-method" value="bkash">
+
+            <!-- অ্যাকাউন্ট নম্বর -->
+            <div class="form-group">
+                <label>অ্যাউন্ট নম্বর</label>
+                <input type="number" id="account-number" placeholder="আপনার বিকাশ বা নগদ নম্বর লিখুন" required>
+            </div>
+
+            <!-- উত্তোলনের পরিমাণ ও নোট -->
+            <div class="form-group">
+                <label>উত্তোলনের পরিমাণ</label>
+                <p class="note-text">* সর্বনিম্ন ৫০০ টাকা এবং ৫০০ এর গুণিতক (যেমন: ৫০০, ১০০০, ১৫০০...)</p>
+                
+                <!-- টাকার অ্যামাউন্ট সিলেক্ট বাটন -->
+                <div class="amount-buttons">
+                    <button type="button" class="amount-btn" onclick="selectAmount(500, this)">৳ ৫০০</button>
+                    <button type="button" class="amount-btn" onclick="selectAmount(1000, this)">৳ ১০০০</button>
+                    <button type="button" class="amount-btn" onclick="selectAmount(1500, this)">৳ ১৫০০</button>
+                    <button type="button" class="amount-btn" onclick="selectAmount(2000, this)">৳ ২০০০</button>
+                    <button type="button" class="amount-btn" onclick="selectAmount(2500, this)">৳ ২৫০০</button>
+                    <button type="button" class="amount-btn" onclick="selectAmount(3000, this)">৳ ৩০০০</button>
+                </div>
+
+                <!-- সিলেক্টেড টাকা প্রদর্শনের রিড-অনলি ইনপুট -->
+                <input type="number" id="selected-amount" placeholder="উপরে থেকে টাকার পরিমাণ সিলেক্ট করুন" readonly required>
+            </div>
+
+            <button type="submit" class="submit-btn">উত্তোলন</button>
+        </form>
+    </div>
+
+    <script>
+        let selectedMethodVal = 'bkash';
+
+        // বিকাশ / নগদ সিলেক্ট করা
+        function selectMethod(method) {
+            selectedMethodVal = method;
+            document.getElementById('selected-method').value = method;
+            
+            document.getElementById('method-bkash').classList.remove('active');
+            document.getElementById('method-nagad').classList.remove('active');
+            
+            document.getElementById('method-' + method).classList.add('active');
+        }
+
+        // ফিক্সড অ্যামাউন্ট বাটন ক্লিক
+        function selectAmount(amount, element) {
+            document.getElementById('selected-amount').value = amount;
+            
+            let buttons = document.querySelectorAll('.amount-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            element.classList.add('active');
+        }
+
+        // উত্তোলন সাবমিট ও ব্যালেন্স চেক
+        function handleWithdraw(event) {
+            event.preventDefault();
+            
+            let currentTaskCash = parseFloat(document.getElementById('task-cash').innerText);
+            let requestedAmount = parseFloat(document.getElementById('selected-amount').value);
+            let accNumber = document.getElementById('account-number').value;
+
+            if (!requestedAmount) {
+                alert("অনুগ্রহ করে উত্তোলনের পরিমাণ সিলেক্ট করুন।");
+                return;
+            }
+
+            // ব্যালেন্স চেক logic
+            if (requestedAmount > currentTaskCash) {
+                alert("পর্যাপ্ত পরিমাণ ব্যালেন্স নেই!");
+            } else {
+                // ব্যালেন্স থেকে টাকা কাটা
+                let newBalance = currentTaskCash - requestedAmount;
+                document.getElementById('task-cash').innerText = newBalance.toFixed(2);
+                
+                alert("আপনার ৳ " + requestedAmount + " উত্তোলনের আবেদন সফলভাবে জমা হয়েছে!");
+                
+                // রিসেট
+                document.getElementById('withdraw-form').reset();
+                let buttons = document.querySelectorAll('.amount-btn');
+                buttons.forEach(btn => btn.classList.remove('active'));
+            }
+        }
+    </script>
+</body>
+</html>
