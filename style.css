@@ -130,3 +130,97 @@ marquee {
     color: #2d3748;
     font-weight: bold;
 }
+/* রিচার্জ পেজ স্টাইল */
+.back-btn {
+    color: white;
+    font-size: 1.2rem;
+    position: absolute;
+    left: 15px;
+    top: 20px;
+    text-decoration: none;
+}
+
+.recharge-container {
+    padding: 20px 15px;
+}
+
+.payment-methods {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.method-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #cbd5e0;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #4a5568;
+}
+
+.method-btn.active {
+    background: #4a5568;
+    color: #fff;
+    border-color: #4a5568;
+}
+
+.number-box {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.copy-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    background: #edf2f7;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.copy-box button {
+    background: #718096;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.recharge-form .form-group {
+    margin-bottom: 15px;
+}
+
+.recharge-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.recharge-form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    outline: none;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: #2d3748;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    }
