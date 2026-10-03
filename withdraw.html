@@ -38,7 +38,7 @@
 
             <!-- অ্যাকাউন্ট নম্বর -->
             <div class="form-group">
-                <label>অ্যাউন্ট নম্বর</label>
+                <label>অ্যাকাউন্ট নম্বর</label>
                 <input type="number" id="account-number" placeholder="আপনার বিকাশ বা নগদ নম্বর লিখুন" required>
             </div>
 
@@ -89,13 +89,14 @@
             element.classList.add('active');
         }
 
-        // উত্তোলন সাবমিট ও ব্যালেন্স চেক
+        // উত্তোলন সাবমিট, ব্যালেন্স চেক ও রেকর্ড সেভ
         function handleWithdraw(event) {
             event.preventDefault();
             
             let currentTaskCash = parseFloat(document.getElementById('task-cash').innerText);
             let requestedAmount = parseFloat(document.getElementById('selected-amount').value);
             let accNumber = document.getElementById('account-number').value;
+            let methodVal = document.getElementById('selected-method').value;
 
             if (!requestedAmount) {
                 alert("অনুগ্রহ করে উত্তোলনের পরিমাণ সিলেক্ট করুন।");
@@ -106,58 +107,41 @@
             if (requestedAmount > currentTaskCash) {
                 alert("পর্যাপ্ত পরিমাণ ব্যালেন্স নেই!");
             } else {
-                // ব্যালেন্স থেকে টাকা কাটা
+                // ১. ব্যালেন্স থেকে টাকা কাটা
                 let newBalance = currentTaskCash - requestedAmount;
                 document.getElementById('task-cash').innerText = newBalance.toFixed(2);
                 
+                // ২. তারিখ ও সময় তৈরি
+                const now = new Date();
+                const formattedDate = now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0') + ' ' +
+                    String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0') + ':' +
+                    String(now.getSeconds()).padStart(2, '0');
+
+                // ৩. নতুন উত্তোলনের ডাটা অবজেক্ট তৈরি
+                const newRecord = {
+                    id: 'NO: ' + Date.now(),
+                    amount: requestedAmount,
+                    method: methodVal === 'bkash' ? 'bKash' : 'Nagad',
+                    accountNumber: accNumber,
+                    createdAt: Date.now(), // ২০ মিনিটের টাইমার ট্র্যাকিংয়ের জন্য
+                    dateTimeStr: formattedDate,
+                    adminStatus: 'pending' // ডিফল্ট স্ট্যাটাস
+                };
+
+                // ৪. localStorage-এ ডাটা সেভ করা
+                let records = JSON.parse(localStorage.getItem('withdrawRecords')) || [];
+                records.unshift(newRecord);
+                localStorage.setItem('withdrawRecords', JSON.stringify(records));
+
                 alert("আপনার ৳ " + requestedAmount + " উত্তোলনের আবেদন সফলভাবে জমা হয়েছে!");
                 
-                // রিসেট
-                document.getElementById('withdraw-form').reset();
-                let buttons = document.querySelectorAll('.amount-btn');
-                buttons.forEach(btn => btn.classList.remove('active'));
+                // ৫. উইথড্র রেকর্ড পেজে রিডাইরেক্ট করা
+                window.location.href = 'withdraw-record.html';
             }
         }
-    </script>
-    <script>
-  // উইথড্র ফরম সাবমিটের সময় ডাটা সেভ করার কোড
-  document.getElementById('withdrawForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const method = document.getElementById('method').value;
-    const accountNumber = document.getElementById('accountNumber').value;
-    const amount = parseInt(document.getElementById('amount').value);
-
-    // তারিখ ও সময় তৈরি
-    const now = new Date();
-    const formattedDate = now.getFullYear() + '-' +
-      String(now.getMonth() + 1).padStart(2, '0') + '-' +
-      String(now.getDate()).padStart(2, '0') + ' ' +
-      String(now.getHours()).padStart(2, '0') + ':' +
-      String(now.getMinutes()).padStart(2, '0') + ':' +
-      String(now.getSeconds()).padStart(2, '0');
-
-    // নতুন উত্তোলনের ডাটা অবজেক্ট
-    const newRecord = {
-      id: 'NO: ' + Date.now(),
-      amount: amount,
-      method: method,
-      accountNumber: accountNumber,
-      createdAt: Date.now(), // ২০ মিনিটের ট্র্যাকিংয়ের সময়
-      dateTimeStr: formattedDate,
-      adminStatus: 'pending'
-    };
-
-    // localStorage-এ ডাটা সেভ করা
-    let records = JSON.parse(localStorage.getItem('withdrawRecords')) || [];
-    records.unshift(newRecord);
-    localStorage.setItem('withdrawRecords', JSON.stringify(records));
-
-    alert('উত্তোলনের অনুরোধ জমা দেওয়া হয়েছে!');
-    
-    // উইথড্র রেকর্ড পেজে পাঠিয়ে দেওয়া
-    window.location.href = 'withdraw-record.html';
-  });
     </script>
     
 </body>
