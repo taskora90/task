@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>রিচার্জ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- টপ হেডার -->
+    <header class="top-banner">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>টাকা রিচার্জ করুন</h2>
+    </header>
+
+    <div class="recharge-container">
+        <!-- পেমেন্ট মেথড নির্বাচন -->
+        <h3>পেমেন্ট মাধ্যম সিলেক্ট করুন</h3>
+        <div class="payment-methods">
+            <button class="method-btn active" onclick="selectMethod('bKash')">
+                <i class="fa-solid fa-mobile-screen-button"></i> বিকাশ (bKash)
+            </button>
+            <button class="method-btn" onclick="selectMethod('Nagad')">
+                <i class="fa-solid fa-mobile-screen-button"></i> নগদ (Nagad)
+            </button>
+        </div>
+
+        <!-- ফিক্সড নম্বর কার্ড -->
+        <div class="number-box">
+            <p><span id="method-name">বিকাশ</span> পার্সোনাল নম্বর:</p>
+            <div class="copy-box">
+                <strong id="agent-number">01700000000</strong>
+                <button onclick="copyNumber()"><i class="fa-regular fa-copy"></i> কপি</button>
+            </div>
+        </div>
+
+        <!-- ফর্ম -->
+        <form class="recharge-form" onsubmit="event.preventDefault(); alert('আপনার আবেদন জমা হয়েছে!');">
+            <div class="form-group">
+                <label>টাকার পরিমাণ (BDT)</label>
+                <input type="number" placeholder="সর্বনিম্ন ৫০০ টাকা" required>
+            </div>
+
+            <div class="form-group">
+                <label>ট্রানজেকশন আইডি (TrxID)</label>
+                <input type="text" placeholder="যেমন: 8N7A6D5E" required>
+            </div>
+
+            <button type="submit" class="submit-btn">জমা দিন</button>
+        </form>
+    </div>
+
+    <script>
+        function selectMethod(method) {
+            document.getElementById('method-name').innerText = method;
+            let btns = document.querySelectorAll('.method-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if(method === 'bKash') {
+                document.getElementById('agent-number').innerText = '01700000000'; // আপনার বিকাশ নম্বর
+            } else {
+                document.getElementById('agent-number').innerText = '01800000000'; // আপনার নগদ নম্বর
+            }
+        }
+
+        function copyNumber() {
+            let num = document.getElementById('agent-number').innerText;
+            navigator.clipboard.writeText(num);
+            alert('নম্বর কপি হয়েছে: ' + num);
+        }
+    </script>
+</body>
+</html>
