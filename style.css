@@ -363,3 +363,63 @@ marquee {
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(229,62,62,0.3);
     }
+.package-container {
+    padding: 20px 15px;
+    margin-bottom: 70px;
+}
+
+.package-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.package-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.package-header h3 {
+    font-size: 1.1rem;
+    color: #2d3748;
+}
+
+.package-header .badge {
+    background: #718096;
+    color: #ffffff;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.package-body p {
+    font-size: 0.9rem;
+    color: #4a5568;
+    margin-bottom: 8px;
+}
+
+.buy-btn {
+    width: 100%;
+    background: #4a5568;
+    color: #ffffff;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 15px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.buy-btn:hover {
+    background: #2d3748;
+}
