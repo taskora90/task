@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আমার প্রতিষ্ঠান</title>
+    <!-- FontAwesome Font for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+    <!-- ১. প্রতিষ্ঠানের নাম ও ব্যানার -->
+    <header class="top-banner">
+        <h1>আমার প্রতিষ্ঠানের নাম</h1>
+    </header>
+
+    <!-- ২. নোটিশ বোর্ড -->
+    <div class="notice-board">
+        <i class="fa-solid fa-bullhorn notice-icon"></i>
+        <marquee id="notice-text">স্বাগতম! আমাদের অ্যাপে যোগ দেওয়ার জন্য আপনাকে ধন্যবাদ।</marquee>
+    </div>
+
+    <!-- ৩. কুইক অ্যাকশন গ্রিড (৭টি নির্দিষ্ট বাটন) -->
+    <section class="quick-actions">
+        <div class="action-card">
+            <i class="fa-solid fa-wallet"></i>
+            <span>রিচার্জ</span>
+        </div>
+        <div class="action-card">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+            <span>টাকা উত্তোলন</span>
+        </div>
+        <div class="action-card">
+            <i class="fa-solid fa-download"></i>
+            <span>ডাউনলোড</span>
+        </div>
+        <div class="action-card">
+            <i class="fa-solid fa-arrows-spin"></i>
+            <span>লাকি স্পিন</span>
+        </div>
+        <div class="action-card">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>আমন্ত্রণ</span>
+        </div>
+        <div class="action-card">
+            <i class="fa-solid fa-circle-question"></i>
+            <span>FAQ</span>
+        </div>
+        <div class="action-card">
+            <i class="fa-solid fa-headset"></i>
+            <span>ম্যানেজার</span>
+        </div>
+    </section>
+
+    <!-- ৪. প্রমো ব্যানার (স্লাইডার/কারোসেল) -->
+    <section class="promo-slider">
+        <div class="slider-container">
+            <img id="slider-img" src="https://via.placeholder.com/600x250/808080/ffffff?text=প্রচারণার+ছবি+১" alt="Promo Banner">
+        </div>
+    </section>
+
+    <!-- ৫. বটম নেভিগেশন বার (৫টি মেনু) -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active">
+            <i class="fa-solid fa-house"></i>
+            <span>হোম</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fa-solid fa-list-check"></i>
+            <span>টাস্ক</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>টিম</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fa-solid fa-box"></i>
+            <span>প্যাকেজ</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fa-solid fa-user"></i>
+            <span>প্রোফাইল</span>
+        </a>
+    </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>
