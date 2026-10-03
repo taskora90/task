@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>টাকা উত্তোলনের রেকর্ড</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f5f7; padding: 15px; margin: 0; }
+        .top-banner { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .back-btn { font-size: 18px; color: #333; text-decoration: none; }
+        
+        .record-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .card-top { display: flex; justify-content: space-between; align-items: center; }
+        .title-area { display: flex; align-items: center; gap: 8px; }
+        .title { font-size: 16px; font-weight: bold; color: #1a0dab; }
+        .tag { background: #e8f0fe; color: #1967d2; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .amount { color: #d93025; font-size: 18px; font-weight: bold; }
+        .date-time { font-size: 12px; color: #5f6368; margin: 6px 0 2px 0; }
+        .transaction-id { font-size: 11px; color: #80868b; margin-bottom: 12px; }
+        
+        /* Stepper Process UI */
+        .stepper { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 12px; position: relative; }
+        .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center; }
+        .step-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; background: #dadce0; margin-bottom: 4px; }
+        .step-label { font-size: 11px; color: #5f6368; }
+        
+        /* Dynamic Colors */
+        .bg-waiting { background: #f9ab00; }
+        .bg-bank { background: #d93025; }
+        .bg-approved { background: #1e8e3e; }
+        .bg-rejected { background: #d93025; }
+
+        .text-waiting { color: #f9ab00; font-weight: bold; }
+        .text-bank { color: #d93025; font-weight: bold; }
+        .text-approved { color: #1e8e3e; font-weight: bold; }
+        .text-rejected { color: #d93025; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header class="top-banner">
+        <a href="profile.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>টাকা উত্তোলনের রেকর্ড</h2>
+    </header>
+
+    <div id="recordsContainer"></div>
+
+    <script>
+        function renderRecords() {
+            const container = document.getElementById('recordsContainer');
+            const records = JSON.parse(localStorage.getItem('withdrawRecords')) || [];
+
+            if (records.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#777; margin-top: 30px;">কোনো উত্তোলনের রেকর্ড পাওয়া যায়নি।</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            const currentTime = Date.now();
+            const twentyMinutesInMs = 20 * 60 * 1000; // ২০ মিনিট = ১২০০০০০ মিলি-সেকেন্ড
+
+            records.forEach(record => {
+                // ২০ মিনিট পার হয়েছে কিনা পরীক্ষা করা
+                let isBankProcess = (currentTime - record.createdAt) >= twentyMinutesInMs;
+                
+                let bankIconBg = isBankProcess ? 'bg-bank' : '';
+                let bankStyle = isBankProcess ? 'text-bank' : '';
+
+                // এডমিন ডিসিশন (অ্যাপ্রুভ / রিজেক্ট)
+                let finalStepLabel = 'সিদ্ধান্তের অপেক্ষায়';
+                let finalIconBg = '';
+                let finalTextStyle = '';
+                let finalIcon = '⚙';
+
+                if (record.adminStatus === 'approved') {
+                    finalStepLabel = 'অ্যাপ্রুভড';
+                    finalIconBg = 'bg-approved';
+                    finalTextStyle = 'text-approved';
+                    finalIcon = '✓';
+                } else if (record.adminStatus === 'rejected') {
+                    finalStepLabel = 'রিজেক্টেড';
+                    finalIconBg = 'bg-rejected';
+                    finalTextStyle = 'text-rejected';
+                    finalIcon = '✕';
+                }
+
+                const cardHtml = `
+                    <div class="record-card">
+                        <div class="card-top">
+                            <div class="title-area">
+                                <span class="title">টাকা উত্তোলন</span>
+                                <span class="tag">টাস্ক ক্যাশ</span>
+                            </div>
+                            <div class="amount">-${record.amount}.00</div>
+                        </div>
+                        <div class="date-time">${record.dateTimeStr} (${record.method})</div>
+                        <div class="transaction-id">${record.id}</div>
+
+                        <div class="stepper">
+                            <!-- ওয়েটিং -->
+                            <div class="step-item">
+                                <div class="step-icon bg-waiting">⏳</div>
+                                <div class="step-label text-waiting">ওয়েটিং</div>
+                            </div>
+
+                            <!-- ব্যাংক প্রসেস (২০ মিনিট পর লাল হবে) -->
+                            <div class="step-item">
+                                <div class="step-icon ${bankIconBg}">🏦</div>
+                                <div class="step-label ${bankStyle}">ব্যাংক প্রসেস</div>
+                            </div>
+
+                            <!-- অ্যাপ্রুভ / রিজেক্ট -->
+                            <div class="step-item">
+                                <div class="step-icon ${finalIconBg}">${finalIcon}</div>
+                                <div class="step-label ${finalTextStyle}">${finalStepLabel}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        // পেজ লোড হলে ও প্রতি ১০ সেকেন্ড পর পর আপডেট চেক করবে
+        renderRecords();
+        setInterval(renderRecords, 10000);
+    </script>
+</body>
+</html>
