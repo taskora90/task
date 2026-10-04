@@ -1,3 +1,4 @@
+<!-- withdraw.html -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -5,37 +6,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>টাকা উত্তোলন</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #dcdcdc; margin: 0; padding: 20px; color: #333; }
+        .withdraw-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .header { text-align: center; margin-bottom: 20px; color: #2b2d42; }
+        .balance-box { background: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 16px; font-weight: bold; }
+        .payment-methods { display: flex; gap: 15px; margin-bottom: 20px; }
+        .method-btn { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; background: #fff; transition: 0.3s; }
+        .method-btn.active { background-color: #007bff; color: white; border-color: #007bff; }
+        .amount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .amount-btn { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; background: #fbfbfb; transition: 0.3s; }
+        .amount-btn.active { background-color: #28a745; color: white; border-color: #28a745; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #eef2f5; }
+        .form-group input:focus { outline: none; border-color: #007bff; }
+        .submit-btn { width: 100%; background: #28a745; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .submit-btn:hover { background-color: #218838; }
+    </style>
 </head>
 <body>
 
     <div class="withdraw-container">
-        <h2><i class="fa-solid fa-money-bill-transfer"></i> টাকা উত্তোলন</h2>
-        <p>টাস্ক ক্যাশ থেকে আপনার বিকাশ/নগদ নম্বরে টাকা তুলুন।</p>
+        <h2 class="header"><i class="fa-solid fa-money-bill-transfer"></i> টাকা উত্তোলন</h2>
         
-        <div style="background: #eef2f5; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
-            বর্তমান টাস্ক ক্যাশ: <strong id="availableTaskCash">৳ 0</strong>
+        <div class="balance-box">
+            বর্তমান টাস্ক ক্যাশ: <strong id="availableTaskCash" style="color: #007bff;">৳ 0</strong>
+        </div>
+
+        <h3>পেমেন্ট মাধ্যম সিলেক্ট করুন:</h3>
+        <div class="payment-methods">
+            <button class="method-btn active" id="bKashBtn" onclick="selectMethod('bKash')">বিকাশ</button>
+            <button class="method-btn" id="NagadBtn" onclick="selectMethod('Nagad')">নগদ</button>
+        </div>
+
+        <h3>উত্তোলনের পরিমাণ সিলেক্ট করুন:</h3>
+        <div class="amount-grid">
+            <button class="amount-btn" onclick="selectAmount(500)">500</button>
+            <button class="amount-btn" onclick="selectAmount(1000)">1000</button>
+            <button class="amount-btn" onclick="selectAmount(1500)">1500</button>
+            <button class="amount-btn" onclick="selectAmount(2000)">2000</button>
+            <button class="amount-btn" onclick="selectAmount(2500)">2500</button>
+            <button class="amount-btn" onclick="selectAmount(3000)">3000</button>
         </div>
 
         <div class="form-group">
-            <label>উত্তোলনের পরিমাণ (টাকা)</label>
-            <input type="number" id="withdrawAmount" placeholder="পরিমাণ লিখুন">
+            <label>নির্বাচিত পরিমাণ (৳)</label>
+            <!-- এখানে readonly দেওয়া হয়েছে যাতে কেউ টাইপ করতে না পারে -->
+            <input type="number" id="withdrawAmount" placeholder="উপরের বাটন থেকে সিলেক্ট করুন" readonly>
         </div>
         <div class="form-group">
-            <label>পেমেন্ট মেথড</label>
-            <input type="text" id="paymentMethod" placeholder="বিকাশ / নগদ">
-        </div>
-        <div class="form-group">
-            <label>অ্যাকাউন্ট নম্বর</label>
-            <input type="text" id="accountNo" placeholder="আপনার নম্বর">
+            <label>রিসিভ করার অ্যাকাউন্ট নম্বর</label>
+            <input type="text" id="accountNo" placeholder="আপনার বিকাশ/নগদ নম্বর দিন">
         </div>
 
-        <button class="btn" id="withdrawBtn">উত্তোলন রিকোয়েস্ট পাঠান</button>
+        <button class="btn submit-btn" id="withdrawBtn">উত্তোলন রিকোয়েস্ট পাঠান</button>
         
         <br><br>
-        <a href="profile.html" style="text-decoration: none; color: #007bff;"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
+        <a href="profile.html" style="text-decoration: none; color: #6c757d;"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
     </div>
 
+    <!-- Firebase ও উইথড্র লজিক -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -57,14 +88,29 @@
 
       let currentTaskCash = 0;
       let currentUser = null;
+      let selectedMethod = 'bKash';
+      let selectedAmount = 0;
+
+      window.selectMethod = function(method) {
+        selectedMethod = method;
+        document.getElementById('bKashBtn').classList.remove('active');
+        document.getElementById('NagadBtn').classList.remove('active');
+        document.getElementById(method + 'Btn').classList.add('active');
+      };
+
+      window.selectAmount = function(amount) {
+        selectedAmount = amount;
+        document.querySelectorAll('.amount-grid .amount-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('withdrawAmount').value = amount;
+      };
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
-            const userData = userDoc.data();
-            currentTaskCash = userData.taskCash || 0;
+            currentTaskCash = userDoc.data().taskCash || 0;
             document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
           }
         } else {
@@ -73,26 +119,32 @@
       });
 
       document.getElementById('withdrawBtn').onclick = async () => {
-        const amount = parseFloat(document.getElementById('withdrawAmount').value);
-        const method = document.getElementById('paymentMethod').value;
-        const account = document.getElementById('accountNo').value;
+        const amount = selectedAmount;
+        const account = document.getElementById('accountNo').value.trim();
 
-        if (!amount || amount <= 0 || !method || !account) {
-          alert("দয়া করে সব তথ্য সঠিকভাবে পূরণ করুন!");
+        if (!amount || amount <= 0) {
+          alert("অনুগ্রহ করে ওপরের বাটন থেকে উত্তোলনের একটি নির্দিষ্ট পরিমাণ নির্বাচন করুন!");
+          return;
+        }
+        if (!account) {
+          alert("অনুগ্রহ করে আপনার অ্যাকাউন্ট নম্বর দিন!");
           return;
         }
 
         if (amount > currentTaskCash) {
-          alert("আপনার টাস্ক ক্যাশে পর্যাপ্ত পরিমাণ টাকা নেই!");
+          alert("আপনার টাস্ক ক্যাশে পর্যাপ্ত টাকা নেই!");
           return;
         }
+
+        document.getElementById('withdrawBtn').disabled = true;
+        document.getElementById('withdrawBtn').innerText = "প্রসেসিং...";
 
         try {
           await addDoc(collection(db, "withdrawals"), {
             userId: currentUser.uid,
             userEmail: currentUser.email,
             amount: amount,
-            method: method,
+            method: selectedMethod,
             account: account,
             status: "waiting",
             timestamp: serverTimestamp()
@@ -103,6 +155,9 @@
         } catch (error) {
           console.error("Error:", error);
           alert("সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+        } finally {
+          document.getElementById('withdrawBtn').disabled = false;
+          document.getElementById('withdrawBtn').innerText = "উত্তোলন রিকোয়েস্ট পাঠান";
         }
       };
     </script>
