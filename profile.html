@@ -62,7 +62,13 @@
             </div>
         </div>
 
-        <button class="nav-links" onclick="alert('কাজের বিবরণ পেজ')">কাজের বিবরণ</button>
+        <!-- কাজের বিবরণ সেকশন এবং তালিকা দেখানোর জন্য মডাল বা বক্স -->
+        <button class="nav-links" id="taskDetailsBtn">কাজের বিবরণ</button>
+        <div id="taskHistoryContainer" style="display:none; background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd;">
+            <h4 style="margin-top: 0; color: #333;">আজকের কাজের বিবরণ</h4>
+            <div id="taskHistoryList">কোনো কাজ সম্পন্ন হয়নি</div>
+        </div>
+
         <button type="button" class="nav-links" onclick="location.href='withdraw-record.html'">
             টাকা উত্তোলনের রেকর্ড
         </button>
@@ -97,7 +103,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -143,6 +149,24 @@
               // ৫. টাস্ক ক্যাশ (উইথড্র করার জন্য ব্যবহৃত সক্রিয় ব্যালেন্স)
               if (document.getElementById('taskCash')) document.getElementById('taskCash').innerText = (userData.taskCash || 0) + " ৳";
             }
+
+            // ৬. কাজের বিবরণ বা টাস্ক হিস্ট্রি লোড করার লজিক
+            const taskHistoryRef = collection(db, "users", user.uid, "taskHistory");
+            const historySnap = await getDocs(taskHistoryRef);
+            const historyListEl = document.getElementById('taskHistoryList');
+
+            if (!historySnap.empty) {
+              let htmlContent = "";
+              let count = 1;
+              historySnap.forEach((docSnap) => {
+                const data = docSnap.data();
+                // ধরে নিচ্ছি প্রতিটি টাস্ক ডকুমেন্টে amount বা reward এবং taskName বা similar ফিল্ড আছে
+                const reward = data.reward || data.amount || 10; 
+                htmlContent += `<p style="margin: 5px 0; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 4px;">কাজ #${count++}: সফলভাবে সম্পন্ন হয়েছে (+${reward} ৳)</p>`;
+              });
+              historyListEl.innerHTML = htmlContent;
+            }
+
           } catch (error) {
             console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
           }
@@ -150,6 +174,19 @@
           window.location.href = "login.html";
         }
       });
+
+      // কাজের বিবরণ টগল করার বাটন ইভেন্ট
+      const taskDetailsBtn = document.getElementById('taskDetailsBtn');
+      const taskHistoryContainer = document.getElementById('taskHistoryContainer');
+      if (taskDetailsBtn) {
+        taskDetailsBtn.addEventListener('click', () => {
+          if (taskHistoryContainer.style.display === "none") {
+            taskHistoryContainer.style.display = "block";
+          } else {
+            taskHistoryContainer.style.display = "none";
+          }
+        });
+      }
 
       // লগআউট হ্যান্ডলার
       const logoutBtn = document.getElementById('logoutBtn');
