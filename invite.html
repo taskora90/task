@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>আমন্ত্রণ - Invite Friends</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 450px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    .header h2 {
+      color: #2b2d42;
+      margin-bottom: 10px;
+    }
+    .referral-box {
+      background: #f8f9fa;
+      border: 1px dashed #6c757d;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .ref-code {
+      font-size: 20px;
+      font-weight: bold;
+      color: #007bff;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+    .input-group input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .copy-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .copy-btn:hover {
+      background: #218838;
+    }
+    .back-btn {
+      display: inline-block;
+      margin-top: 15px;
+      color: #6c757d;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h2>বন্ধুদের আমন্ত্রণ জানান</h2>
+      <p style="color: #6c757d; font-size: 14px;">আপনার রেফারেল লিংক ব্যবহার করে বন্ধুদের একাউন্ট খোলাতে শেয়ার করুন।</p>
+    </div>
+
+    <div class="referral-box">
+      <div style="font-size: 14px; color: #555;">আপনার রেফারেল কোড:</div>
+      <div class="ref-code" id="userRefCode">---</div>
+      
+      <div class="input-group">
+        <input type="text" id="refLink" readonly value="লিংক লোড হচ্ছে...">
+        <button class="copy-btn" onclick="copyLink()">কপি</button>
+      </div>
+    </div>
+
+    <a href="index.html" class="back-btn">← হোম পেজে ফিরে যান</a>
+  </div>
+
+  <script>
+    // ১. লোকাল স্টোরেজ থেকে ইউজারের রেফারেল আইডি পড়া (অথবা ব্যাকএন্ড থেকে আসা ID)
+    // উদাহরণ হিসেবে যদি ইউজারের আইডি না থাকে তবে একটি র‍্যান্ডম আইডি তৈরি করা হচ্ছে
+    let currentUserCode = localStorage.getItem('userReferralCode');
+
+    if (!currentUserCode) {
+      // ৬ ডিজিটের একটি ইউনিক রেফারেল কোড তৈরি
+      currentUserCode = 'REF' + Math.floor(100000 + Math.random() * 900000);
+      localStorage.setItem('userReferralCode', currentUserCode);
+    }
+
+    // স্ক্রিনে কোড বসানো
+    document.getElementById('userRefCode').innerText = currentUserCode;
+
+    // সম্পূর্ণ রেজিস্ট্রেশন লিংক তৈরি করা (যেমন: .../register.html?ref=REF123456)
+    const baseUrl = window.location.origin + window.location.pathname.replace('invite.html', 'register.html');
+    const fullInviteLink = baseUrl + '?ref=' + currentUserCode;
+
+    document.getElementById('refLink').value = fullInviteLink;
+
+    // ক্লিপবোর্ডে কপি করার ফাংশন
+    function copyLink() {
+      const linkInput = document.getElementById('refLink');
+      linkInput.select();
+      linkInput.setSelectionRange(0, 99999); // মোবাইল ডিভাইসের জন্য
+      navigator.clipboard.writeText(linkInput.value);
+      alert('রেফারেল লিংক কপি করা হয়েছে!');
+    }
+  </script>
+
+</body>
+</html>
