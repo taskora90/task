@@ -3,226 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>অ্যাডমিন প্যানেল - সুরক্ষিত</title>
+    <title>অ্যাডমিন ড্যাশবোর্ড</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #f4f6f9;
-            padding: 20px;
-        }
-        .admin-card {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            display: none; /* শুরুতে হাইড থাকবে */
-        }
-        h2 {
-            margin-bottom: 20px;
-            color: #333;
-            border-bottom: 2px solid #28a745;
-            padding-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            text-align: left;
-            padding: 12px 15px;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #28a745;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-        .approve-btn {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-        .approve-btn:hover {
-            background-color: #218838;
-        }
-        .no-data {
-            text-align: center;
-            padding: 20px;
-            color: #777;
-        }
-        .login-box {
-            text-align: center;
-            padding-top: 50px;
-            max-width: 400px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-        .login-input {
-            width: 100%;
-            padding: 10px;
-            margin: 15px 0;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-        .login-btn {
-            width: 100%;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-        }
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+        .admin-container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+        .tab-btn { flex: 1; padding: 12px; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .tab-btn.active { border-bottom: 3px solid #007bff; color: #007bff; }
+        .request-card { background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 6px; margin-bottom: 10px; }
+        .btn-approve { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-reject { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <!-- পাসওয়ার্ড প্রমট বক্স -->
-    <div class="login-box" id="loginBox">
-        <h2 style="border: none; padding-bottom: 0;">অ্যাডমিন লগইন</h2>
-        <p style="margin-top: 10px; color: #666;">প্রবেশ করতে পাসওয়ার্ড দিন</p>
-        <input type="password" class="login-input" id="passwordInput" placeholder="পাসওয়ার্ড লিখুন">
-        <button class="login-btn" onclick="checkPassword()">প্রবেশ করুন</button>
-    </div>
+    <div class="admin-container">
+        <h2>অ্যাডমিন ড্যাশবোর্ড</h2>
 
-    <!-- অ্যাডমিন ড্যাশবোর্ড -->
-    <div class="admin-card" id="adminPanel">
-        <h2><i class="fa-solid fa-user-shield"></i> অ্যাডমিন ড্যাশবোর্ড - রিচার্জ অনুমোদন</h2>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>ইউজার ID</th>
-                    <th>মেথড</th>
-                    <th>পরিমাণ</th>
-                    <th>TrxID</th>
-                    <th>অ্যাকশন</th>
-                </tr>
-            </thead>
-            <tbody id="requestTable">
-                <tr>
-                    <td colspan="5" class="no-data">ডেটা লোড হচ্ছে...</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="tabs">
+            <button class="tab-btn active" id="rechargeTabBtn" onclick="switchTab('recharge')">রিচার্জ রিকোয়েস্ট</button>
+            <button class="tab-btn" id="withdrawTabBtn" onclick="switchTab('withdraw')">উত্তোলন রিকোয়েস্ট</button>
+        </div>
+
+        <!-- রিচার্জ সেকশন -->
+        <div id="rechargeSection">
+            <h3>রিচার্জ রিকোয়েস্ট তালিকা</h3>
+            <div id="rechargeList">লোড হচ্ছে...</div>
+        </div>
+
+        <!-- উত্তোলন সেকশন -->
+        <div id="withdrawSection" style="display: none;">
+            <h3>উত্তোলন রিকোয়েস্ট তালিকা</h3>
+            <div id="withdrawList">লোড হচ্ছে...</div>
+        </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
-            authDomain: "taskora-b2b29.firebaseapp.com",
-            projectId: "taskora-b2b29",
-            storageBucket: "taskora-b2b29.firebasestorage.app",
-            messagingSenderId: "376297360134",
-            appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
-            measurementId: "G-9803M7DPM5"
-        };
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
 
-        // অ্যাডমিন পাসওয়ার্ড (আপনার ইচ্ছামতো পরিবর্তন করে নিন)
-        const ADMIN_PASSWORD = "admin123"; 
+      window.switchTab = function(type) {
+        if(type === 'recharge') {
+          document.getElementById('rechargeSection').style.display = 'block';
+          document.getElementById('withdrawSection').style.display = 'none';
+          document.getElementById('rechargeTabBtn').classList.add('active');
+          document.getElementById('withdrawTabBtn').classList.remove('active');
+        } else {
+          document.getElementById('rechargeSection').style.display = 'none';
+          document.getElementById('withdrawSection').style.display = 'block';
+          document.getElementById('withdrawTabBtn').classList.add('active');
+          document.getElementById('rechargeTabBtn').classList.remove('active');
+          loadWithdrawRequests();
+        }
+      }
 
-        // পাসওয়ার্ড ভেরিফিকেশন
-        window.checkPassword = function() {
-            const inputPassword = document.getElementById('passwordInput').value;
-            if (inputPassword === ADMIN_PASSWORD) {
-                document.getElementById('loginBox').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-                loadRequests();
-            } else {
-                alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
-            }
-        };
+      // রিচার্জ রিকোয়েস্ট লোড করা (আপনার আগের কোড অনুযায়ী চলতে পারে)
+      // উত্তোলন রিকোয়েস্ট লোড করার ফাংশন
+      async function loadWithdrawRequests() {
+        const listEl = document.getElementById('withdrawList');
+        listEl.innerHTML = "লোড হচ্ছে...";
 
-        // পেন্ডিং রিকোয়েস্ট লোড করা
-        async function loadRequests() {
-            const tableBody = document.getElementById('requestTable');
-            tableBody.innerHTML = '';
-
-            try {
-                const q = query(collection(db, "recharge_requests"), where("status", "==", "pending"));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    tableBody.innerHTML = `<tr><td colspan="5" class="no-data">কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।</td></tr>`;
-                    return;
-                }
-
-                querySnapshot.forEach((requestDoc) => {
-                    const data = requestDoc.data();
-                    const row = document.createElement('tr');
-
-                    row.innerHTML = `
-                      <td>${data.userId}</td>
-                      <td>${data.method}</td>
-                      <td>৳ ${data.amount}</td>
-                      <td><strong>${data.trxId}</strong></td>
-                      <td>
-                        <button class="approve-btn" onclick="approveRecharge('${requestDoc.id}', '${data.userId}', ${data.amount})">
-                          অ্যাপ্রুভ করুন
-                        </button>
-                      </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            } catch (error) {
-                console.error("ডেটা লোড করতে সমস্যা:", error);
-                tableBody.innerHTML = `<tr><td colspan="5" class="no-data">ডেটা লোডে সমস্যা হয়েছে!</td></tr>`;
-            }
+        const querySnap = await getDocs(collection(db, "withdrawals"));
+        if (querySnap.empty) {
+          listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।";
+          return;
         }
 
-        // রিচার্জ অ্যাপ্রুভ লজিক (শুধুমাত্র balance অর্থাৎ মাই ক্যাশে জমা হবে)
-        window.approveRecharge = async function(requestId, userId, amount) {
-            if (!confirm(`আপনি কি ৳${amount} টাকা এই ইউজারের মাই ক্যাশ (balance)-এ যোগ করতে চান?`)) return;
+        listEl.innerHTML = "";
+        querySnap.forEach((d) => {
+          const data = d.data();
+          if (data.status === 'waiting' || data.status === 'processing') {
+            listEl.innerHTML += `
+              <div class="request-card">
+                <p>ইউজার: <strong>${data.userEmail}</strong></p>
+                <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
+                <p>মেথড: ${data.method} (${data.account})</p>
+                <p>স্ট্যাটাস: <em>${data.status}</em></p>
+                <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${data.amount}, 'approve')">এপ্রুভ</button>
+                <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${data.amount}, 'reject')">রিজেক্ট</button>
+              </div>
+            `;
+          }
+        });
+      }
 
-            try {
-                const userDocRef = doc(db, "users", userId);
-                const requestDocRef = doc(db, "recharge_requests", requestId);
+      window.handleWithdraw = async function(withdrawId, userId, amount, action) {
+        try {
+          const userRef = doc(db, "users", userId);
+          const withdrawRef = doc(db, "withdrawals", withdrawId);
 
-                // ইউজারের মাই ক্যাশে (balance) টাকা যোগ
-                await updateDoc(userDocRef, {
-                    balance: increment(amount)
-                });
-
-                // স্ট্যাটাস আপডেট
-                await updateDoc(requestDocRef, {
-                    status: "approved"
-                });
-
-                alert("অ্যাপ্রুভ সম্পন্ন হয়েছে! টাকা ইউজারের মাই ক্যাশে যোগ হয়ে গেছে।");
-                loadRequests();
-            } catch (error) {
-                console.error("অ্যাপ্রুভ করতে সমস্যা:", error);
-                alert("অ্যাপ্রুভ করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+          if (action === 'approve') {
+            const userSnap = await getDoc(userRef);
+            if(userSnap.exists()) {
+              const currentTaskCash = userSnap.data().taskCash || 0;
+              if(currentTaskCash < amount) {
+                alert("ইউজারের টাস্ক ক্যাশে পর্যাপ্ত টাকা নেই!");
+                return;
+              }
             }
-        };
+
+            // শুধু taskCash থেকে টাকা কাটবে, totalEarned অপরিবর্তিত থাকবে
+            await updateDoc(userRef, {
+              taskCash: increment(-amount)
+            });
+
+            await updateDoc(withdrawRef, { status: 'approved' });
+            alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে এবং টাস্ক ক্যাশ থেকে টাকা কাটা হয়েছে!");
+          } else {
+            await updateDoc(withdrawRef, { status: 'rejected' });
+            alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে।");
+          }
+
+          loadWithdrawRequests();
+        } catch (error) {
+          console.error("Error:", error);
+          alert("সমস্যা হয়েছে!");
+        }
+      }
     </script>
 </body>
 </html>
