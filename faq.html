@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ - সাধারণ প্রশ্নাবলী</title>
+  <style>
+    /* ছাই থিমের কালার কম্বিনেশন */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f4f5; /* হালকা ছাই ব্যাকগ্রাউন্ড */
+      color: #333333;
+      margin: 0;
+      padding: 40px 20px;
+    }
+
+    .faq-container {
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .faq-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .faq-header h2 {
+      color: #2b2d42; /* গাঢ় ছাই/নেভি */
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .faq-header p {
+      color: #6c757d; /* মিডিয়াম ছাই */
+      font-size: 15px;
+      margin: 0;
+    }
+
+    /* FAQ Item Card */
+    details {
+      background-color: #ffffff;
+      border: 1px solid #dcdfe3; /* হালকা ছাই বর্ডার */
+      border-radius: 6px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    details[open] {
+      border-color: #8d99ae; /* ওপেন হলে বর্ডার একটু গাঢ় ছাই হবে */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Question Header (ক্লিকযোগ্য অংশ) */
+    summary {
+      font-size: 17px;
+      font-weight: 600;
+      padding: 16px 20px;
+      cursor: pointer;
+      color: #343a40; /* গাঢ় ছাই টেক্সট */
+      list-style: none;
+      position: relative;
+      user-select: none;
+    }
+
+    /* ডানপাশের কাস্টম পজিটিভ/নেগেটিভ ইন্ডিকেটর */
+    summary::after {
+      content: '+';
+      position: absolute;
+      right: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #6c757d;
+      transition: transform 0.2s ease;
+    }
+
+    details[open] summary::after {
+      content: '−';
+      color: #495057;
+    }
+
+    summary:hover {
+      background-color: #f8f9fa; /* মাউস নিলে হালকা অফ-হোয়াইট ছাই */
+    }
+
+    /* Answer Content */
+    .faq-answer {
+      padding: 0 20px 16px 20px;
+      font-size: 15px;
+      color: #495057; /* সফট ছাই টেক্সট */
+      line-height: 1.6;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 4px;
+      padding-top: 12px;
+    }
+
+    /* Index এ ফিরে যাওয়ার লিঙ্ক (Optional) */
+    .back-btn {
+      display: inline-block;
+      margin-top: 20px;
+      color: #6c757d;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-btn:hover {
+      color: #2b2d42;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="faq-container">
+    <div class="faq-header">
+      <h2>সাধারণ কিছু প্রশ্ন ও উত্তর (FAQ)</h2>
+      <p>আপনার কোনো প্রশ্ন থাকলে নিচের তালিকায় উত্তর খুঁজে দেখতে পারেন</p>
+    </div>
+
+    <!-- প্রশ্ন ১ -->
+    <details>
+      <summary>১. আপনারা কী কী সেবা প্রদান করে থাকেন?</summary>
+      <div class="faq-answer">
+        আমরা গুগল এডমোডের মাধ্যমে বিভিন্নভাবে ইনকামের সুযোগ বের করে থাকি।
+      </div>
+    </details>
+
+    <!-- প্রশ্ন ২ -->
+    <details>
+      <summary>২. কাজ শুরু করার আগে পেমেন্ট প্রসেস কী?</summary>
+      <div class="faq-answer">
+        সাধারণত আমাদের এখানে নির্দিষ্ট প্যাকেজ ক্রয় করে আপনাকে কাজ করতে হবে।
+      </div>
+    </details>
+
+    <!-- প্রশ্ন ৩ -->
+    <details>
+      <summary>৩. কিভাবে পেমেন্ট তোলা যাবে?</summary>
+      <div class="faq-answer">
+        সাধারণত আপনি বিকাশ এবং নগদের মাধ্যমে পেমেন্ট তুলতে পারবেন।
+      </div>
+    </details>
+    <!-- প্রশ্ন ৪ -->
+    <details>
+      <summary>৪. আপনাদের ইনকাম সোর্স কি?</summary>
+      <div class="faq-answer">
+        গুগল এড এর মাধ্যমে আমাদের ইনকাম হবে।
+      </div>
+    </details>
+        <!-- প্রশ্ন ৫ -->
+    <details>
+      <summary>৫. এই প্লাটফর্ম কতদিন থাকবে?</summary>
+      <div class="faq-answer">
+        আমাদের মূল ইনকাম সোর্স যেহেতু google তাই গুগল যতদিন আছে ততদিন আমরা
+        তবে নির্দিষ্ট কাজের ক্ষেত্রে অবশ্যই মেয়াদ থাকবে এবং মেয়াদের পর কাজ পরিবর্তন হবে।
+      </div>
+    </details>
+        <!-- প্রশ্ন ৬ -->
+    <details>
+      <summary>৬. যেহেতু গুগলের মাধ্যমে আপনাদের ইনকাম তাহলে প্যাকেজ কিনতে হবে কেন?</summary>
+      <div class="faq-answer">
+        গুগলের মাধ্যমে ইনকাম হলেও আমাদের কিছু নিয়ম থাকে। 
+        এছাড়াও কাজের প্রতি আগ্রহ বাড়ানোর জন্য সাময়িকভাবে এটা কিনে নেওয়া হয়ে থাকে।
+      </div>
+    </details>
+    
+    <!-- মূল পেজে ফিরে যাওয়ার লিংক -->
+    <a href="index.html" class="back-btn">← হোম পেজে ফিরে যান</a>
+  </div>
+
+</body>
+      </html>
+      
