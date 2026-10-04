@@ -10,69 +10,44 @@
 <body>
 
     <header class="top-banner">
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>আমার অ্যাকাউন্ট</h2>
+        <h2>প্রোফাইল</h2>
     </header>
 
     <div class="profile-container">
-        <div class="user-info-card">
-            <div class="avatar-box">
-                <i class="fa-solid fa-user-circle"></i>
-            </div>
-            <div class="user-details">
-                <p>নাম: <span id="profileName">লোড হচ্ছে...</span></p>
-                <p>প্যাকেজ: <span id="profilePackage">লোড হচ্ছে...</span></p>
-                <p>হিসাব (ফোন): <span id="profilePhone">লোড হচ্ছে...</span></p>
-            </div>
+        <!-- ইউজার ইনফো -->
+        <div class="profile-card">
+            <i class="fa-solid fa-user-circle profile-icon"></i>
+            <h3 id="userName">লোড হচ্ছে...</h3>
+            <p id="userEmail">লোড হচ্ছে...</p>
         </div>
 
-        <div class="total-income-card">
-            <p>মোট আয়</p>
-            <h3 id="profileBalance">0.00 ৳</h3>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-item">
-                <span>টিম কমিশন</span>
-                <strong id="teamCommission">0.00</strong>
+        <!-- ব্যালেন্স ও আয় সমূহ -->
+        <div class="balance-grid">
+            <div class="balance-box">
+                <h4>মূল ব্যালেন্স (মাই ক্যাশ)</h4>
+                <p id="userBalance">৳ ০</p>
             </div>
-            <div class="stat-item">
-                <span>আমন্ত্রণ আয়</span>
-                <strong id="inviteIncome">0.00</strong>
+            <div class="balance-box">
+                <h4>টাস্ক ক্যাশ</h4>
+                <p id="userTaskCash">৳ ০</p>
             </div>
-            <div class="stat-item">
-                <span>ডেইলি টাস্ক</span>
-                <strong id="dailyTaskCount">0</strong>
+            <div class="balance-box">
+                <h4>মোট আয়</h4>
+                <p id="userTotalEarned">৳ ০</p>
             </div>
-            <div class="stat-item">
-                <span>আজকের টিম কমিশন</span>
-                <strong id="todayTeamCommission">0</strong>
+            <div class="balance-box">
+                <h4>আমন্ত্রণ আয়</h4>
+                <p id="userInviteEarn">৳ ০</p>
             </div>
-        </div>
-
-        <div class="wallet-cards">
-            <div class="wallet-item">
-                <p>মাই ক্যাশ</p>
-                <strong id="myCash">0.00 ৳</strong>
+            <div class="balance-box">
+                <h4>টিম কমিশন</h4>
+                <p id="userTeamCommission">৳ ০</p>
             </div>
-            <div class="wallet-item">
-                <p>টাস্ক ক্যাশ</p>
-                <strong id="taskCash">0.00 ৳</strong>
+            <div class="balance-box">
+                <h4>আজকের টিম কমিশন</h4>
+                <p id="userTodayTeamCommission">৳ ০</p>
             </div>
         </div>
-
-        <!-- কাজের বিবরণ সেকশন এবং তালিকা দেখানোর জন্য মডাল বা বক্স -->
-        <button class="nav-links" id="taskDetailsBtn">কাজের বিবরণ</button>
-        <div id="taskHistoryContainer" style="display:none; background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd;">
-            <h4 style="margin-top: 0; color: #333;">আজকের কাজের বিবরণ</h4>
-            <div id="taskHistoryList">কোনো কাজ সম্পন্ন হয়নি</div>
-        </div>
-
-        <button type="button" class="nav-links" onclick="location.href='withdraw-record.html'">
-            টাকা উত্তোলনের রেকর্ড
-        </button>
-        <button class="nav-links" onclick="alert('কর্মী নির্দেশিকা')">কর্মী নির্দেশিকা</button>
-        <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> লগআউট</button>
     </div>
 
     <nav class="bottom-nav">
@@ -84,7 +59,7 @@
             <i class="fa-solid fa-list-check"></i>
             <span>টাস্ক</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="team.html" class="nav-item">
             <i class="fa-solid fa-users"></i>
             <span>টিম</span>
         </a>
@@ -98,11 +73,11 @@
         </a>
     </nav>
 
-    <!-- Profile Data & Guard Script -->
+    <!-- Firebase Profile Logic -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -120,82 +95,42 @@
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
+          const userDocRef = doc(db, "users", user.uid);
           try {
-            const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
-
             if (userDoc.exists()) {
-              const userData = userDoc.data();
+              const data = userDoc.data();
+
+              // দৈনিক রিসেট চেক (আজকের টিম কমিশন রাত ১২টার পর শূন্য করার জন্য)
+              const lastResetDate = data.lastResetDate || "";
+              const todayStr = new Date().toDateString();
               
-              // ১. ইউজার ইনফো
-              if (document.getElementById('profileName')) document.getElementById('profileName').innerText = userData.name || "ইউজার";
-              if (document.getElementById('profilePhone')) document.getElementById('profilePhone').innerText = userData.phone || "";
-              if (document.getElementById('profilePackage')) document.getElementById('profilePackage').innerText = userData.package || "কোনো প্যাকেজ নেই";
+              let todayTeamComm = data.todayTeamCommission || 0;
+              if (lastResetDate !== todayStr) {
+                todayTeamComm = 0;
+                await updateDoc(userDocRef, {
+                  todayTeamCommission: 0,
+                  lastResetDate: todayStr
+                });
+              }
 
-              // ২. মোট আয় (lifetime additive counter)
-              const totalIncome = userData.totalEarned || 0;
-              if (document.getElementById('profileBalance')) document.getElementById('profileBalance').innerText = totalIncome + " ৳";
-
-              // ৩. স্ট্যাটস গ্রিড ডেটা
-              if (document.getElementById('teamCommission')) document.getElementById('teamCommission').innerText = userData.teamCommission || "0.00";
-              if (document.getElementById('inviteIncome')) document.getElementById('inviteIncome').innerText = userData.inviteIncome || "0.00";
-              if (document.getElementById('dailyTaskCount')) document.getElementById('dailyTaskCount').innerText = userData.dailyTaskCount || "0";
-              if (document.getElementById('todayTeamCommission')) document.getElementById('todayTeamCommission').innerText = userData.todayTeamCommission || "0";
-
-              // ৪. মাই ক্যাশ (শুধুমাত্র রিচার্জের টাকা)
-              if (document.getElementById('myCash')) document.getElementById('myCash').innerText = (userData.balance || 0) + " ৳";
-
-              // ৫. টাস্ক ক্যাশ (উইথড্র করার জন্য ব্যবহৃত সক্রিয় ব্যালেন্স)
-              if (document.getElementById('taskCash')) document.getElementById('taskCash').innerText = (userData.taskCash || 0) + " ৳";
+              // UI এ ডাটা বসানো
+              document.getElementById("userName").innerText = data.name || "নাম পাওয়া যায়নি";
+              document.getElementById("userEmail").innerText = data.email || user.email;
+              document.getElementById("userBalance").innerText = `৳ ${data.balance || 0}`;
+              document.getElementById("userTaskCash").innerText = `৳ ${data.taskCash || 0}`;
+              document.getElementById("userTotalEarned").innerText = `৳ ${data.totalEarned || 0}`;
+              document.getElementById("userInviteEarn").innerText = `৳ ${data.inviteEarn || 0}`;
+              document.getElementById("userTeamCommission").innerText = `৳ ${data.teamCommission || 0}`;
+              document.getElementById("userTodayTeamCommission").innerText = `৳ ${todayTeamComm}`;
             }
-
-            // ৬. কাজের বিবরণ বা টাস্ক হিস্ট্রি লোড করার লজিক
-            const taskHistoryRef = collection(db, "users", user.uid, "taskHistory");
-            const historySnap = await getDocs(taskHistoryRef);
-            const historyListEl = document.getElementById('taskHistoryList');
-
-            if (!historySnap.empty) {
-              let htmlContent = "";
-              let count = 1;
-              historySnap.forEach((docSnap) => {
-                const data = docSnap.data();
-                // ধরে নিচ্ছি প্রতিটি টাস্ক ডকুমেন্টে amount বা reward এবং taskName বা similar ফিল্ড আছে
-                const reward = data.reward || data.amount || 10; 
-                htmlContent += `<p style="margin: 5px 0; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 4px;">কাজ #${count++}: সফলভাবে সম্পন্ন হয়েছে (+${reward} ৳)</p>`;
-              });
-              historyListEl.innerHTML = htmlContent;
-            }
-
           } catch (error) {
-            console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
+            console.error("প্রোফাইল ডাটা লোড করতে সমস্যা হয়েছে:", error);
           }
         } else {
           window.location.href = "login.html";
         }
       });
-
-      // কাজের বিবরণ টগল করার বাটন ইভেন্ট
-      const taskDetailsBtn = document.getElementById('taskDetailsBtn');
-      const taskHistoryContainer = document.getElementById('taskHistoryContainer');
-      if (taskDetailsBtn) {
-        taskDetailsBtn.addEventListener('click', () => {
-          if (taskHistoryContainer.style.display === "none") {
-            taskHistoryContainer.style.display = "block";
-          } else {
-            taskHistoryContainer.style.display = "none";
-          }
-        });
-      }
-
-      // লগআউট হ্যান্ডলার
-      const logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-          signOut(auth).then(() => {
-            window.location.href = "login.html";
-          });
-        });
-      }
     </script>
 </body>
 </html>
