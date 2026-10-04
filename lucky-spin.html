@@ -1,233 +1,38 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>লাকি স্পিন</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #e5e5e5; /* ছাই কালার ব্যাকগ্রাউন্ড */
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
+import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    /* হেডার */
-    .top-banner {
-      width: 100%;
-      background: #777;
-      color: white;
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    .back-btn { color: white; font-size: 20px; text-decoration: none; }
-    .top-banner h2 { font-size: 20px; flex: 1; text-align: center; margin-right: 25px; }
+// ইউজার যখন সফলভাবে প্যাকেজ কিনবে, তখন এই ফাংশনটি কল হবে
+async function onPackagePurchaseSuccess(currentUserUid) {
+  const db = getFirestore();
+  
+  try {
+    // ১. বর্তমান ইউজারের ডাটা আনব, দেখতে সে কার রেফারে এসেছে (referredBy)
+    const userRef = doc(db, "users", currentUserUid);
+    const userSnap = await getDoc(userRef);
 
-    .container { width: 100%; max-width: 420px; padding: 20px; text-align: center; }
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      const referrerCode = userData.referredBy; // যার কোড ব্যবহার করে অ্যাকাউন্ট খুলেছিল
 
-    /* পুরস্কারের পরিমাপ বক্স */
-    .reward-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 25px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    }
-    .reward-box p { font-size: 15px; color: #666; margin-bottom: 5px; font-weight: bold; }
-    .reward-amount { font-size: 26px; font-weight: bold; color: #28a745; }
+      // ২. যদি কেউ রেফার করে থাকে, তবে রেফারারের খোঁজ করব
+      if (referrerCode) {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("referralCode", "==", referrerCode));
+        const querySnapshot = await getDocs(q);
 
-    /* স্পিন হুইল কনটেইনার */
-    .wheel-container {
-      position: relative;
-      width: 320px;
-      height: 320px;
-      margin: 0 auto;
-      border-radius: 50%;
-      background: #8e8e8e; /* বাইরের ছাই বর্ডার */
-      border: 8px solid #666;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-    }
+        if (!querySnapshot.empty) {
+          // রেফারার পাওয়া গেছে
+          querySnapshot.forEach(async (referrerDoc) => {
+            const referrerRef = doc(db, "users", referrerDoc.id);
 
-    /* ঘূর্ণায়মান চাকা */
-    .wheel {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      position: relative;
-      transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);
-      background: #b0b0b0; /* চাকার ছাই ব্যাকগ্রাউন্ড */
-    }
-
-    /* চাকার আইটেম/বাটনসমূহ */
-    .item {
-      position: absolute;
-      width: 80px;
-      height: 60px;
-      background: #ffffff;
-      border: 2px solid #666;
-      border-radius: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-      font-size: 15px;
-      color: #333;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-
-    /* ৬টি পজিশন (কোণ অনুযায়ী) */
-    /* ১. উপর (Try Again) */
-    .item-0 { top: 15px; left: 50%; transform: translateX(-50%); }
-    /* ২. ডান-উপরে (৳50) */
-    .item-1 { top: 75px; right: 15px; }
-    /* ৩. ডান-নিচে (৳100) */
-    .item-2 { bottom: 75px; right: 15px; }
-    /* ৪. নিচে (Try Again) */
-    .item-3 { bottom: 15px; left: 50%; transform: translateX(-50%); }
-    /* ৫. বাম-নিচে (৳150) */
-    .item-4 { bottom: 75px; left: 15px; }
-    /* ৬. বাম-উপরে (৳20) */
-    .item-5 { top: 75px; left: 15px; }
-
-    .try-again-text { color: #d93025; font-size: 13px; }
-    .money-text { color: #1e8e3e; font-size: 16px; }
-
-    /* শুরু বাটন (মাঝখানে) */
-    .spin-btn {
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      background: #555;
-      color: #fff;
-      border-radius: 50%;
-      border: 4px solid #fff;
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 10;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .spin-btn:active { transform: scale(0.95); }
-
-    /* ইন্ডিকেটর / পয়েন্টার (উপরে নির্দেশক তীর) */
-    .pointer {
-      position: absolute;
-      top: -15px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      border-top: 22px solid #d93025;
-      z-index: 12;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- শীর্ষ ব্যানার -->
-  <header class="top-banner">
-    <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-    <h2>লাকি স্পিন</h2>
-  </header>
-
-  <div class="container">
-    <!-- পুরস্কারের পরিমাণ বক্স -->
-    <div class="reward-box">
-      <p>পুরস্কারের পরিমাণ</p>
-      <div class="reward-amount">৳ <span id="reward-display">0.00</span></div>
-    </div>
-
-    <!-- লাকি স্পিন হুইল -->
-    <div class="wheel-container">
-      <div class="pointer"></div>
-
-      <!-- ঘুরার চাকা -->
-      <div class="wheel" id="wheel">
-        <div class="item item-0 try-again-text">Try Again</div>
-        <div class="item item-1 money-text">৳ 50</div>
-        <div class="item item-2 money-text">৳ 100</div>
-        <div class="item item-3 try-again-text">Try Again</div>
-        <div class="item item-4 money-text">৳ 150</div>
-        <div class="item item-5 money-text">৳ 20</div>
-      </div>
-
-      <!-- মাঝের শুরু বাটন -->
-      <div class="spin-btn" onclick="spinWheel()">শুরু</div>
-    </div>
-  </div>
-
-  <script>
-    // ৬টি আইটেমের তথ্য (কোণ অনুযায়ী সিকোয়েন্স)
-    const items = [
-      { name: "Try Again", amount: 0 },   // 0 deg (উপরে)
-      { name: "৳ 50", amount: 50 },       // 60 deg
-      { name: "৳ 100", amount: 100 },     // 120 deg
-      { name: "Try Again", amount: 0 },   // 180 deg
-      { name: "৳ 150", amount: 150 },     // 240 deg
-      { name: "৳ 20", amount: 20 }        // 300 deg
-    ];
-
-    let currentRotation = 0;
-    let isSpinning = false;
-
-    function spinWheel() {
-      if (isSpinning) return;
-      isSpinning = true;
-
-      // র্যান্ডম যেকোনো ১টি ঘর নির্বাচন (০ থেকে ৫)
-      const selectedIndex = Math.floor(Math.random() * items.length);
-      
-      // ডিগ্রির হিসাব (প্রতিটি আইটেম ৬০ ডিগ্রি পর পর)
-      const degreesPerItem = 360 / items.length;
-      
-      // ঘূর্ণন সংখ্যা (কমপক্ষে ৫ বার ঘুরবে) + পয়েন্টারে নির্দিষ্ট আইটেম মেলানোর ডিগ্রি
-      const extraRounds = 360 * 5; 
-      const targetDegree = extraRounds + (360 - (selectedIndex * degreesPerItem));
-      
-      currentRotation += targetDegree;
-
-      const wheel = document.getElementById('wheel');
-      wheel.style.transform = `rotate(${currentRotation}deg)`;
-
-      // স্পিন থামার পর (৪ সেকেন্ড পর)
-      setTimeout(() => {
-        isSpinning = false;
-        const prize = items[selectedIndex];
-
-        if (prize.amount > 0) {
-          alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}`);
-
-          // ১. পুরস্কারের পরিমাপ বক্সে যোগ
-          let currentReward = parseFloat(document.getElementById('reward-display').innerText);
-          let newReward = currentReward + prize.amount;
-          document.getElementById('reward-display').innerText = newReward.toFixed(2);
-
-          // ২. প্রোফাইলের টাস্ক ক্যাশে (localStorage-এ) জমা করা
-          let currentTaskCash = parseFloat(localStorage.getItem('taskCash')) || 0;
-          let updatedTaskCash = currentTaskCash + prize.amount;
-          localStorage.setItem('taskCash', updatedTaskCash.toFixed(2));
-
-        } else {
-          alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
+            // ৩. রেফারারের লাকি স্পিন ১ বাড়িয়ে দেব
+            await updateDoc(referrerRef, {
+              luckySpinCount: increment(1)
+            });
+          });
         }
-      }, 4000);
+      }
     }
-  </script>
-</body>
-</html>
+  } catch (error) {
+    console.error("রেফারারকে স্পিন দিতে সমস্যা হয়েছে:", error);
+  }
+}
