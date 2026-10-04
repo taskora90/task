@@ -91,28 +91,60 @@
     <a href="index.html" class="back-btn">← হোম পেজে ফিরে যান</a>
   </div>
 
-  <script>
-    // ১. লোকাল স্টোরেজ থেকে ইউজারের রেফারেল আইডি পড়া (অথবা ব্যাকএন্ড থেকে আসা ID)
-    // উদাহরণ হিসেবে যদি ইউজারের আইডি না থাকে তবে একটি র‍্যান্ডম আইডি তৈরি করা হচ্ছে
-    let currentUserCode = localStorage.getItem('userReferralCode');
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    if (!currentUserCode) {
-      // ৬ ডিজিটের একটি ইউনিক রেফারেল কোড তৈরি
-      currentUserCode = 'REF' + Math.floor(100000 + Math.random() * 900000);
-      localStorage.setItem('userReferralCode', currentUserCode);
-    }
+    const firebaseConfig = {
+      apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+      authDomain: "taskora-b2b29.firebaseapp.com",
+      projectId: "taskora-b2b29",
+      storageBucket: "taskora-b2b29.firebasestorage.app",
+      messagingSenderId: "376297360134",
+      appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+      measurementId: "G-9803M7DPM5"
+    };
 
-    // স্ক্রিনে কোড বসানো
-    document.getElementById('userRefCode').innerText = currentUserCode;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // সম্পূর্ণ রেজিস্ট্রেশন লিংক তৈরি করা (যেমন: .../register.html?ref=REF123456)
-    const baseUrl = window.location.origin + window.location.pathname.replace('invite.html', 'register.html');
-    const fullInviteLink = baseUrl + '?ref=' + currentUserCode;
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
 
-    document.getElementById('refLink').value = fullInviteLink;
+          if (userSnap.exists()) {
+            let userData = userSnap.data();
+            let currentUserCode = userData.referralCode;
+
+            // যদি ডাটাবেজে কোড না থাকে, তবে নতুন তৈরি করে সেভ হবে
+            if (!currentUserCode) {
+              currentUserCode = 'REF' + Math.floor(100000 + Math.random() * 900000);
+              await setDoc(userRef, { referralCode: currentUserCode }, { merge: true });
+            }
+
+            // স্ক্রিনে কোড বসানো
+            document.getElementById('userRefCode').innerText = currentUserCode;
+
+            // সম্পূর্ণ রেজিস্ট্রেশন লিংক তৈরি করা
+            const baseUrl = window.location.origin + window.location.pathname.replace('invite.html', 'register.html');
+            const fullInviteLink = baseUrl + '?ref=' + currentUserCode;
+
+            document.getElementById('refLink').value = fullInviteLink;
+          }
+        } catch (error) {
+          console.error("ডেটা লোড করতে সমস্যা হয়েছে:", error);
+        }
+      } else {
+        window.location.href = "login.html";
+      }
+    });
 
     // ক্লিপবোর্ডে কপি করার ফাংশন
-    function copyLink() {
+    window.copyLink = function() {
       const linkInput = document.getElementById('refLink');
       linkInput.select();
       linkInput.setSelectionRange(0, 99999); // মোবাইল ডিভাইসের জন্য
