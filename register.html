@@ -71,40 +71,102 @@
     <form id="registerForm">
       <div class="form-group">
         <label>আপনার নাম:</label>
-        <input type="text" placeholder="পুরো নাম লিখুন" required>
+        <input type="text" id="nameInput" placeholder="পুরো নাম লিখুন" required>
       </div>
 
       <div class="form-group">
         <label>ফোন নম্বর:</label>
-        <input type="tel" placeholder="০১৭XXXXXXXX" required>
+        <input type="tel" id="phoneInput" placeholder="০১৭XXXXXXXX" required>
       </div>
 
       <div class="form-group">
         <label>পাসওয়ার্ড:</label>
-        <input type="password" placeholder="পাসওয়ার্ড দিন" required>
+        <input type="password" id="passwordInput" placeholder="পাসওয়ার্ড দিন" required>
       </div>
 
       <div class="form-group">
         <label>রেফারেল আইডি (অটোমেটিক):</label>
-        <!-- অটোমেটিক রেফারেল আইডি বসানোর ইনপুট -->
         <input type="text" id="refInput" placeholder="কোনো রেফারেল নেই" readonly>
       </div>
 
-      <button type="submit" class="submit-btn">রেজিস্টার করুন</button>
+      <button type="submit" class="submit-btn" id="submitBtn">রেজিস্টার করুন</button>
     </form>
   </div>
 
-  <script>
-    // URL থেকে রেফারেল প্যারামিটার ( ?ref= ... ) খুঁজে বের করার লজিক
+  <!-- Firebase JavaScript Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // আপনার দেওয়া ফায়ারবেস কনফিগারেশন
+    const firebaseConfig = {
+      apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+      authDomain: "taskora-b2b29.firebaseapp.com",
+      projectId: "taskora-b2b29",
+      storageBucket: "taskora-b2b29.firebasestorage.app",
+      messagingSenderId: "376297360134",
+      appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+      measurementId: "G-9803M7DPM5"
+    };
+
+    // Firebase ইনিশিয়ালাইজেশন
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // URL থেকে রেফারেল আইডি সেট করা
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
-      const refCode = urlParams.get('ref'); // URL এর 'ref' অংশটি ধরবে
-
+      const refCode = urlParams.get('ref');
       if (refCode) {
-        // যদি URL এ রেফারেল আইডি থাকে তবে তা ইনপুট বক্সে বসিয়ে দেবে
         document.getElementById('refInput').value = refCode;
       }
     };
+
+    // ফার্ম সাবমিট লজিক
+    const registerForm = document.getElementById('registerForm');
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('nameInput').value;
+      const phone = document.getElementById('phoneInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      const refCode = document.getElementById('refInput').value;
+      const submitBtn = document.getElementById('submitBtn');
+
+      // ফোন নম্বর দিয়ে ভার্চুয়াল ইমেইল বানানো (ফায়ারবেস অথেন্টিকেশনের জন্য)
+      const virtualEmail = `${phone}@taskora.app`;
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = "প্রসেসিং হচ্ছে...";
+
+      try {
+        // ১. Firebase Authentication-এ অ্যাকাউন্ট তৈরি
+        const userCredential = await createUserWithEmailAndPassword(auth, virtualEmail, password);
+        const user = userCredential.user;
+
+        // ২. Firestore-এ ইউজারের ডাটা তৈরি
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          name: name,
+          phone: phone,
+          balance: 0,
+          package: "none",
+          referredBy: refCode || "none",
+          createdAt: new Date().toISOString()
+        });
+
+        alert("রেজিস্ট্রেশন সফল হয়েছে!");
+        window.location.href = "index.html"; // মূল পেজে রিডাইরেক্ট
+
+      } catch (error) {
+        console.error(error);
+        alert("রেজিস্ট্রেশন ব্যর্থ হয়েছে: " + error.message);
+        submitBtn.disabled = false;
+        submitBtn.innerText = "রেজিস্টার করুন";
+      }
+    });
   </script>
 
 </body>
