@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>লগইন - Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .login-container {
+      max-width: 400px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .login-container h2 {
+      text-align: center;
+      color: #2b2d42;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    .submit-btn {
+      width: 100%;
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .submit-btn:hover {
+      background: #218838;
+    }
+    .register-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    .register-link a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>লগইন করুন</h2>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label>ফোন নম্বর:</label>
+        <input type="tel" id="phoneInput" placeholder="০১৭XXXXXXXX" required>
+      </div>
+
+      <div class="form-group">
+        <label>পাসওয়ার্ড:</label>
+        <input type="password" id="passwordInput" placeholder="পাসওয়ার্ড দিন" required>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">লগইন</button>
+    </form>
+
+    <div class="register-link">
+      অ্যাকাউন্ট নেই? <a href="register.html">নতুন অ্যাকাউন্ট তৈরি করুন</a>
+    </div>
+  </div>
+
+  <!-- Firebase JavaScript Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // আপনার ফায়ারবেস কনফিগারেশন
+    const firebaseConfig = {
+      apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+      authDomain: "taskora-b2b29.firebaseapp.com",
+      projectId: "taskora-b2b29",
+      storageBucket: "taskora-b2b29.firebasestorage.app",
+      messagingSenderId: "376297360134",
+      appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+      measurementId: "G-9803M7DPM5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const phone = document.getElementById('phoneInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      const submitBtn = document.getElementById('submitBtn');
+
+      const virtualEmail = `${phone}@taskora.app`;
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = "লগইন হচ্ছে...";
+
+      try {
+        await signInWithEmailAndPassword(auth, virtualEmail, password);
+        alert("লগইন সফল হয়েছে!");
+        window.location.href = "index.html"; // মূল হোমপেজে নিয়ে যাবে
+
+      } catch (error) {
+        console.error(error);
+        alert("ফোন নম্বর বা পাসওয়ার্ড ভুল হয়েছে!");
+        submitBtn.disabled = false;
+        submitBtn.innerText = "লগইন";
+      }
+    });
+  </script>
+
+</body>
+</html>
