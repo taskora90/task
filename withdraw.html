@@ -47,7 +47,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, collection, addRef, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -71,7 +71,9 @@
           currentUser = user;
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
-            currentTaskCash = userDoc.data().taskCash || 0;
+            const userData = userDoc.data();
+            // টাস্ক ক্যাশের সঠিক ব্যালেন্স ফেচ করা
+            currentTaskCash = userData.taskCash || userData.totalEarned || 0;
             document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
           }
         } else {
