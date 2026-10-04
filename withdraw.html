@@ -6,143 +6,113 @@
     <title>টাকা উত্তোলন</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+        .withdraw-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    </style>
 </head>
-<body class="ash-theme">
-
-    <header class="top-banner">
-        <a href="profile.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>টাকা উত্তোলন করুন</h2>
-    </header>
+<body>
 
     <div class="withdraw-container">
-        <!-- টাস্ক ক্যাশ ব্যালেন্স -->
-        <div class="balance-card">
-            <p>উত্তোলনযোগ্য ব্যালেন্স (টাস্ক ক্যাশ):</p>
-            <h2 id="task-balance-display">৳ <span id="task-cash">23693.40</span></h2>
+        <h2><i class="fa-solid fa-money-bill-transfer"></i> টাকা উত্তোলন</h2>
+        <p>টাস্ক ক্যাশ থেকে আপনার বিকাশ/নগদ নম্বরে টাকা তুলুন।</p>
+        
+        <div style="background: #eef2f5; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+            বর্তমান টাস্ক ক্যাশ: <strong id="availableTaskCash">৳ 0</strong>
         </div>
 
-        <form id="withdraw-form" onsubmit="handleWithdraw(event)">
-            <!-- পেমেন্ট মেথড (বিকাশ / নগদ) -->
-            <label class="section-label">পেমেন্ট মাধ্যম নির্বাচন করুন</label>
-            <div class="method-selector">
-                <div class="method-option active" id="method-bkash" onclick="selectMethod('bkash')">
-                    <i class="fa-solid fa-circle-check check-icon"></i>
-                    <span>বিকাশ (bKash)</span>
-                </div>
-                <div class="method-option" id="method-nagad" onclick="selectMethod('nagad')">
-                    <i class="fa-solid fa-circle-check check-icon"></i>
-                    <span>নগদ (Nagad)</span>
-                </div>
-            </div>
-            <input type="hidden" id="selected-method" value="bkash">
+        <div class="form-group">
+            <label>উত্তোলনের পরিমাণ (টাকা)</label>
+            <input type="number" id="withdrawAmount" placeholder="পরিমাণ লিখুন">
+        </div>
+        <div class="form-group">
+            <label>পেমেন্ট মেথড</label>
+            <input type="text" id="paymentMethod" placeholder="বিকাশ / নগদ">
+        </div>
+        <div class="form-group">
+            <label>অ্যাকাউন্ট নম্বর</label>
+            <input type="text" id="accountNo" placeholder="আপনার নম্বর">
+        </div>
 
-            <!-- অ্যাকাউন্ট নম্বর -->
-            <div class="form-group">
-                <label>অ্যাকাউন্ট নম্বর</label>
-                <input type="number" id="account-number" placeholder="আপনার বিকাশ বা নগদ নম্বর লিখুন" required>
-            </div>
-
-            <!-- উত্তোলনের পরিমাণ ও নোট -->
-            <div class="form-group">
-                <label>উত্তোলনের পরিমাণ</label>
-                <p class="note-text">* সর্বনিম্ন ৫০০ টাকা এবং ৫০০ এর গুণিতক (যেমন: ৫০০, ১০০০, ১৫০০...)</p>
-                
-                <!-- টাকার অ্যামাউন্ট সিলেক্ট বাটন -->
-                <div class="amount-buttons">
-                    <button type="button" class="amount-btn" onclick="selectAmount(500, this)">৳ ৫০০</button>
-                    <button type="button" class="amount-btn" onclick="selectAmount(1000, this)">৳ ১০০০</button>
-                    <button type="button" class="amount-btn" onclick="selectAmount(1500, this)">৳ ১৫০০</button>
-                    <button type="button" class="amount-btn" onclick="selectAmount(2000, this)">৳ ২০০০</button>
-                    <button type="button" class="amount-btn" onclick="selectAmount(2500, this)">৳ ২৫০০</button>
-                    <button type="button" class="amount-btn" onclick="selectAmount(3000, this)">৳ ৩০০০</button>
-                </div>
-
-                <!-- সিলেক্টেড টাকা প্রদর্শনের রিড-অনলি ইনপুট -->
-                <input type="number" id="selected-amount" placeholder="উপরে থেকে টাকার পরিমাণ সিলেক্ট করুন" readonly required>
-            </div>
-
-            <button type="submit" class="submit-btn">উত্তোলন</button>
-        </form>
+        <button class="btn" id="withdrawBtn">উত্তোলন রিকোয়েস্ট পাঠান</button>
+        
+        <br><br>
+        <a href="profile.html" style="text-decoration: none; color: #007bff;"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
     </div>
 
-    <script>
-        let selectedMethodVal = 'bkash';
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, doc, getDoc, collection, addRef, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // বিকাশ / নগদ সিলেক্ট করা
-        function selectMethod(method) {
-            selectedMethodVal = method;
-            document.getElementById('selected-method').value = method;
-            
-            document.getElementById('method-bkash').classList.remove('active');
-            document.getElementById('method-nagad').classList.remove('active');
-            
-            document.getElementById('method-' + method).classList.add('active');
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      let currentTaskCash = 0;
+      let currentUser = null;
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUser = user;
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            currentTaskCash = userDoc.data().taskCash || 0;
+            document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      document.getElementById('withdrawBtn').onclick = async () => {
+        const amount = parseFloat(document.getElementById('withdrawAmount').value);
+        const method = document.getElementById('paymentMethod').value;
+        const account = document.getElementById('accountNo').value;
+
+        if (!amount || amount <= 0 || !method || !account) {
+          alert("দয়া করে সব তথ্য সঠিকভাবে পূরণ করুন!");
+          return;
         }
 
-        // ফিক্সড অ্যামাউন্ট বাটন ক্লিক
-        function selectAmount(amount, element) {
-            document.getElementById('selected-amount').value = amount;
-            
-            let buttons = document.querySelectorAll('.amount-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            
-            element.classList.add('active');
+        if (amount > currentTaskCash) {
+          alert("আপনার টাস্ক ক্যাশে পর্যাপ্ত পরিমাণ টাকা নেই!");
+          return;
         }
 
-        // উত্তোলন সাবমিট, ব্যালেন্স চেক ও রেকর্ড সেভ
-        function handleWithdraw(event) {
-            event.preventDefault();
-            
-            let currentTaskCash = parseFloat(document.getElementById('task-cash').innerText);
-            let requestedAmount = parseFloat(document.getElementById('selected-amount').value);
-            let accNumber = document.getElementById('account-number').value;
-            let methodVal = document.getElementById('selected-method').value;
+        try {
+          // উইথড্র রিকোয়েস্ট ডাটাবেজে পাঠানো (initial status: waiting)
+          await addDoc(collection(db, "withdrawals"), {
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            amount: amount,
+            method: method,
+            account: account,
+            status: "waiting", // waiting -> bank processing -> approved/rejected
+            timestamp: serverTimestamp()
+          });
 
-            if (!requestedAmount) {
-                alert("অনুগ্রহ করে উত্তোলনের পরিমাণ সিলেক্ট করুন।");
-                return;
-            }
-
-            // ব্যালেন্স চেক logic
-            if (requestedAmount > currentTaskCash) {
-                alert("পর্যাপ্ত পরিমাণ ব্যালেন্স নেই!");
-            } else {
-                // ১. ব্যালেন্স থেকে টাকা কাটা
-                let newBalance = currentTaskCash - requestedAmount;
-                document.getElementById('task-cash').innerText = newBalance.toFixed(2);
-                
-                // ২. তারিখ ও সময় তৈরি
-                const now = new Date();
-                const formattedDate = now.getFullYear() + '-' +
-                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
-                    String(now.getDate()).padStart(2, '0') + ' ' +
-                    String(now.getHours()).padStart(2, '0') + ':' +
-                    String(now.getMinutes()).padStart(2, '0') + ':' +
-                    String(now.getSeconds()).padStart(2, '0');
-
-                // ৩. নতুন উত্তোলনের ডাটা অবজেক্ট তৈরি
-                const newRecord = {
-                    id: 'NO: ' + Date.now(),
-                    amount: requestedAmount,
-                    method: methodVal === 'bkash' ? 'bKash' : 'Nagad',
-                    accountNumber: accNumber,
-                    createdAt: Date.now(), // ২০ মিনিটের টাইমার ট্র্যাকিংয়ের জন্য
-                    dateTimeStr: formattedDate,
-                    adminStatus: 'pending' // ডিফল্ট স্ট্যাটাস
-                };
-
-                // ৪. localStorage-এ ডাটা সেভ করা
-                let records = JSON.parse(localStorage.getItem('withdrawRecords')) || [];
-                records.unshift(newRecord);
-                localStorage.setItem('withdrawRecords', JSON.stringify(records));
-
-                alert("আপনার ৳ " + requestedAmount + " উত্তোলনের আবেদন সফলভাবে জমা হয়েছে!");
-                
-                // ৫. উইথড্র রেকর্ড পেজে রিডাইরেক্ট করা
-                window.location.href = 'withdraw-record.html';
-            }
+          alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
+          window.location.href = "profile.html";
+        } catch (error) {
+          console.error("Error:", error);
+          alert("সমস্যা হয়েছে, আবার চেষ্টা করুন।");
         }
+      };
     </script>
-    
 </body>
 </html>
