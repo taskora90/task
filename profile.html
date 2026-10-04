@@ -94,7 +94,7 @@
             <span>প্রোফাইল</span>
         </a>
     </nav>
-<!-- Profile Data & Balance Loader Script -->
+<!-- Profile Data & Guard Script -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -114,38 +114,35 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // ইউজারের লগইন স্ট্যাটাস ও ডাটা লোড
+  // অনআইথস্টেটচেঞ্জড সম্পূর্ণ রেডি হওয়া নিশ্চিত করা
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      console.log("Logged in user UID:", user.uid);
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
         if (userDoc.exists()) {
           const userData = userDoc.data();
           
-          // আপনার প্রোফাইল পেজের এইচটিএমএল এলিমেন্টে ডাটা বসানো
-          if (document.getElementById('profileName')) {
-            document.getElementById('profileName').innerText = userData.name || "ইউজার";
-          }
-          if (document.getElementById('profilePhone')) {
-            document.getElementById('profilePhone').innerText = userData.phone || "";
-          }
-          if (document.getElementById('profileBalance')) {
-            document.getElementById('profileBalance').innerText = (userData.balance || 0) + " ৳";
-          }
-          if (document.getElementById('profilePackage')) {
-            document.getElementById('profilePackage').innerText = userData.package || "কোনো প্যাকেজ নেই";
-          }
+          // এইচটিএমএল উপাদানে ডাটা সেট করা
+          if (document.getElementById('profileName')) document.getElementById('profileName').innerText = userData.name || "ইউজার";
+          if (document.getElementById('profilePhone')) document.getElementById('profilePhone').innerText = userData.phone || "";
+          if (document.getElementById('profileBalance')) document.getElementById('profileBalance').innerText = (userData.balance || 0) + " ৳";
+          if (document.getElementById('profilePackage')) document.getElementById('profilePackage').innerText = userData.package || "কোনো প্যাকেজ নেই";
+        } else {
+          console.log("Firestore-এ ইউজারের কোনো ডকুমেন্ট পাওয়া যায়নি!");
         }
       } catch (error) {
-        console.error("ডাটা লোড করতে সমস্যা হয়েছে:", error);
+        console.error("ডাটা আনতে সমস্যা:", error);
       }
     } else {
-      // লগইন না থাকলে লগইন পেজে রিডাইরেক্ট
+      // ইউজার সত্যি লগইন না থাকলে তবেই রিডাইরেক্ট হবে
       window.location.href = "login.html";
     }
   });
 
-  // যদি প্রোফাইল পেজে কোনো লগআউট বাটন থাকে
+  // লগআউট হ্যান্ডলার
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
@@ -155,6 +152,7 @@
     });
   }
 </script>
+
     
 </body>
                   </html>
