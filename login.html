@@ -97,7 +97,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    // আপনার ফায়ারবেস কনফিগারেশন
+    // ফায়ারবেস কনফিগারেশন
     const firebaseConfig = {
       apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
       authDomain: "taskora-b2b29.firebaseapp.com",
@@ -127,7 +127,11 @@
       try {
         await signInWithEmailAndPassword(auth, virtualEmail, password);
         alert("লগইন সফল হয়েছে!");
-        window.location.href = "index.html"; // মূল হোমপেজে নিয়ে যাবে
+        
+        // সেশন ব্রাউজারে সঠিকভাবে সেট হওয়ার জন্য ৫০০ মিলি-সেকেন্ড ডিলে
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 500);
 
       } catch (error) {
         console.error(error);
