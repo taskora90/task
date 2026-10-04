@@ -28,7 +28,7 @@
         </div>
 
         <div class="total-income-card">
-            <p>মোট আয় / ব্যালেন্স</p>
+            <p>মোট আয়</p>
             <h3 id="profileBalance">0.00 ৳</h3>
         </div>
 
@@ -54,11 +54,11 @@
         <div class="wallet-cards">
             <div class="wallet-item">
                 <p>মাই ক্যাশ</p>
-                <strong id="myCash">0.00</strong>
+                <strong id="myCash">0.00 ৳</strong>
             </div>
             <div class="wallet-item">
                 <p>টাস্ক ক্যাশ</p>
-                <strong id="taskCash">0.00</strong>
+                <strong id="taskCash">0.00 ৳</strong>
             </div>
         </div>
 
@@ -122,11 +122,20 @@
             if (userDoc.exists()) {
               const userData = userDoc.data();
               
-              // এইচটিএমএলে ইউজারের অরিজিনাল ডাটা বসানো
+              // ১. ইউজার ইনফো
               if (document.getElementById('profileName')) document.getElementById('profileName').innerText = userData.name || "ইউজার";
               if (document.getElementById('profilePhone')) document.getElementById('profilePhone').innerText = userData.phone || "";
-              if (document.getElementById('profileBalance')) document.getElementById('profileBalance').innerText = (userData.balance || 0) + " ৳";
               if (document.getElementById('profilePackage')) document.getElementById('profilePackage').innerText = userData.package || "কোনো প্যাকেজ নেই";
+
+              // ২. মোট আয় (শুধুমাত্র কাজ ও কমিশনের ইনকাম)
+              const totalIncome = userData.totalEarned || 0;
+              if (document.getElementById('profileBalance')) document.getElementById('profileBalance').innerText = totalIncome + " ৳";
+
+              // ৩. মাই ক্যাশ (শুধুমাত্র রিচার্জের টাকা)
+              if (document.getElementById('myCash')) document.getElementById('myCash').innerText = (userData.balance || 0) + " ৳";
+
+              // ৪. টাস্ক ক্যাশ (কাজের মাধ্যমে আয় করা টাকা)
+              if (document.getElementById('taskCash')) document.getElementById('taskCash').innerText = (userData.taskCash || totalIncome) + " ৳";
             }
           } catch (error) {
             console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
