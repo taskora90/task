@@ -16,7 +16,7 @@
 
     <div class="package-container">
         
-        <!-- Package 1 (Task.1) -->
+        <!-- Package 1 (G.1) -->
         <div class="package-card">
             <div class="package-header">
                 <h3>প্যাকেজ ১ (Task.1)</h3>
@@ -121,6 +121,14 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      // প্যাকেজের দামের তালিকা
+      const packagePrices = {
+        "G.1": 3000,
+        "G.2": 4500,
+        "G.3": 6000,
+        "G.4": 7500
+      };
+
       let loggedInUser = null;
 
       onAuthStateChanged(auth, (user) => {
@@ -147,15 +155,24 @@
 
             if (currentBalance >= price) {
               const newBalance = currentBalance - price;
-              
-              // ১. ক্রেতা নিজে প্যাকেজ কেনার কারণে ব্যালেন্স ও প্যাকেজ আপডেট হবে এবং সে ১টি স্পিন পাবে
-              await updateDoc(userDocRef, {
+              const previousPackage = userData.package;
+              let updateData = {
                 balance: newBalance,
                 package: packageName,
                 luckySpinCount: increment(1)
-              });
+              };
 
-              // ২. যার রেফারে অ্যাকাউন্ট খোলা হয়েছিল, তাকেও ১টি স্পিন দেওয়া হবে
+              // আগের প্যাকেজের দামের ৫০% টাস্ক ক্যাশে যোগ করার লজিক
+              if (previousPackage && packagePrices[previousPackage]) {
+                const refundAmount = packagePrices[previousPackage] * 0.50;
+                updateData.taskCash = increment(refundAmount);
+                updateData.totalEarned = increment(refundAmount);
+              }
+
+              // ডাটাবেজ আপডেট
+              await updateDoc(userDocRef, updateData);
+
+              // রেফারের মাধ্যমে এসে থাকলে রেফারারকেও ১টি লাকি স্পিন দেওয়া
               const referrerCode = userData.referredBy;
               if (referrerCode) {
                 const usersRef = collection(db, "users");
