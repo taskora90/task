@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>অ্যাডমিন প্যানেল - রিচার্জ রিকোয়েস্ট</title>
+    <title>অ্যাডমিন প্যানেল - সুরক্ষিত</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -23,6 +23,7 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: none; /* শুরুতে হাইড থাকবে */
         }
         h2 {
             margin-bottom: 20px;
@@ -65,11 +66,49 @@
             padding: 20px;
             color: #777;
         }
+        .login-box {
+            text-align: center;
+            padding-top: 50px;
+            max-width: 400px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .login-input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .login-btn {
+            width: 100%;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="admin-card">
+    <!-- পাসওয়ার্ড প্রমট বক্স -->
+    <div class="login-box" id="loginBox">
+        <h2 style="border: none; padding-bottom: 0;">অ্যাডমিন লগইন</h2>
+        <p style="margin-top: 10px; color: #666;">প্রবেশ করতে পাসওয়ার্ড দিন</p>
+        <input type="password" class="login-input" id="passwordInput" placeholder="পাসওয়ার্ড লিখুন">
+        <button class="login-btn" onclick="checkPassword()">প্রবেশ করুন</button>
+    </div>
+
+    <!-- অ্যাডমিন ড্যাশবোর্ড -->
+    <div class="admin-card" id="adminPanel">
         <h2><i class="fa-solid fa-user-shield"></i> অ্যাডমিন ড্যাশবোর্ড - রিচার্জ অনুমোদন</h2>
         
         <table>
@@ -91,87 +130,99 @@
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
-        authDomain: "taskora-b2b29.firebaseapp.com",
-        projectId: "taskora-b2b29",
-        storageBucket: "taskora-b2b29.firebasestorage.app",
-        messagingSenderId: "376297360134",
-        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
-        measurementId: "G-9803M7DPM5"
-      };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+            authDomain: "taskora-b2b29.firebaseapp.com",
+            projectId: "taskora-b2b29",
+            storageBucket: "taskora-b2b29.firebasestorage.app",
+            messagingSenderId: "376297360134",
+            appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+            measurementId: "G-9803M7DPM5"
+        };
 
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-      // পেন্ডিং রিচার্জ রিকোয়েস্ট লোড করা
-      async function loadRequests() {
-        const tableBody = document.getElementById('requestTable');
-        tableBody.innerHTML = '';
+        // অ্যাডমিন পাসওয়ার্ড (আপনার ইচ্ছামতো পরিবর্তন করে নিন)
+        const ADMIN_PASSWORD = "admin123"; 
 
-        try {
-          const q = query(collection(db, "recharge_requests"), where("status", "==", "pending"));
-          const querySnapshot = await getDocs(q);
+        // পাসওয়ার্ড ভেরিফিকেশন
+        window.checkPassword = function() {
+            const inputPassword = document.getElementById('passwordInput').value;
+            if (inputPassword === ADMIN_PASSWORD) {
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadRequests();
+            } else {
+                alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
+            }
+        };
 
-          if (querySnapshot.empty) {
-            tableBody.innerHTML = `<tr><td colspan="5" class="no-data">কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।</td></tr>`;
-            return;
-          }
+        // পেন্ডিং রিকোয়েস্ট লোড করা
+        async function loadRequests() {
+            const tableBody = document.getElementById('requestTable');
+            tableBody.innerHTML = '';
 
-          querySnapshot.forEach((requestDoc) => {
-            const data = requestDoc.data();
-            const row = document.createElement('tr');
+            try {
+                const q = query(collection(db, "recharge_requests"), where("status", "==", "pending"));
+                const querySnapshot = await getDocs(q);
 
-            row.innerHTML = `
-              <td>${data.userId}</td>
-              <td>${data.method}</td>
-              <td>৳ ${data.amount}</td>
-              <td><strong>${data.trxId}</strong></td>
-              <td>
-                <button class="approve-btn" onclick="approveRecharge('${requestDoc.id}', '${data.userId}', ${data.amount})">
-                  অ্যাপ্রুভ করুন
-                </button>
-              </td>
-            `;
-            tableBody.appendChild(row);
-          });
-        } catch (error) {
-          console.error("ডেটা লোড করতে সমস্যা:", error);
-          tableBody.innerHTML = `<tr><td colspan="5" class="no-data">ডেটা লোডে সমস্যা হয়েছে!</td></tr>`;
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="no-data">কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।</td></tr>`;
+                    return;
+                }
+
+                querySnapshot.forEach((requestDoc) => {
+                    const data = requestDoc.data();
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                      <td>${data.userId}</td>
+                      <td>${data.method}</td>
+                      <td>৳ ${data.amount}</td>
+                      <td><strong>${data.trxId}</strong></td>
+                      <td>
+                        <button class="approve-btn" onclick="approveRecharge('${requestDoc.id}', '${data.userId}', ${data.amount})">
+                          অ্যাপ্রুভ করুন
+                        </button>
+                      </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("ডেটা লোড করতে সমস্যা:", error);
+                tableBody.innerHTML = `<tr><td colspan="5" class="no-data">ডেটা লোডে সমস্যা হয়েছে!</td></tr>`;
+            }
         }
-      }
 
-      // রিচার্জ অ্যাপ্রুভ করার লজিক
-      window.approveRecharge = async function(requestId, userId, amount) {
-        if (!confirm(`আপনি কি ৳${amount} টাকা এই ইউজারের অ্যাকাউন্টে যোগ করতে চান?`)) return;
+        // রিচার্জ অ্যাপ্রুভ লজিক (শুধুমাত্র balance অর্থাৎ মাই ক্যাশে জমা হবে)
+        window.approveRecharge = async function(requestId, userId, amount) {
+            if (!confirm(`আপনি কি ৳${amount} টাকা এই ইউজারের মাই ক্যাশ (balance)-এ যোগ করতে চান?`)) return;
 
-        try {
-          const userDocRef = doc(db, "users", userId);
-          const requestDocRef = doc(db, "recharge_requests", requestId);
+            try {
+                const userDocRef = doc(db, "users", userId);
+                const requestDocRef = doc(db, "recharge_requests", requestId);
 
-          // ১. ইউজারের balance এ টাকা যোগ করা
-          await updateDoc(userDocRef, {
-            balance: increment(amount)
-          });
+                // ইউজারের মাই ক্যাশে (balance) টাকা যোগ
+                await updateDoc(userDocRef, {
+                    balance: increment(amount)
+                });
 
-          // ২. রিকোয়েস্টটির status আপডেট করা
-          await updateDoc(requestDocRef, {
-            status: "approved"
-          });
+                // স্ট্যাটাস আপডেট
+                await updateDoc(requestDocRef, {
+                    status: "approved"
+                });
 
-          alert("অ্যাপ্রুভ সম্পন্ন হয়েছে! টাকা ইউজারের মাই ক্যাশে যোগ হয়ে গেছে।");
-          loadRequests(); // পেজ না রিফ্রেশ করে টেবিল আপডেট করা
-        } catch (error) {
-          console.error("অ্যাপ্রুভ করতে সমস্যা:", error);
-          alert("অ্যাপ্রুভ করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
-        }
-      };
-
-      // পেজ লোড হলে কল হবে
-      loadRequests();
+                alert("অ্যাপ্রুভ সম্পন্ন হয়েছে! টাকা ইউজারের মাই ক্যাশে যোগ হয়ে গেছে।");
+                loadRequests();
+            } catch (error) {
+                console.error("অ্যাপ্রুভ করতে সমস্যা:", error);
+                alert("অ্যাপ্রুভ করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+            }
+        };
     </script>
 </body>
 </html>
