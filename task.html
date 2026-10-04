@@ -147,7 +147,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -173,9 +173,11 @@
       let userDocRef = null;
       let activePackageRule = null;
       let currentTaskCount = 0;
+      let currentUser = null;
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
+          currentUser = user;
           userDocRef = doc(db, "users", user.uid);
           try {
             const userDoc = await getDoc(userDocRef);
@@ -260,7 +262,9 @@
 
         try {
           const rewardAmount = activePackageRule.reward;
+          const nextTaskNumber = currentTaskCount + 1;
 
+          // ১. ইউজারের মূল ব্যালেন্স ও টাস্ক কাউন্ট আপডেট
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
             dailyTaskIncome: increment(rewardAmount),
@@ -268,7 +272,14 @@
             totalEarned: increment(rewardAmount)
           });
 
-          alert(`অভিনন্দন! ৳ ${rewardAmount} আপনার টাস্ক ক্যাশে যোগ করা হয়েছে।`);
+          // ২. কাজের বিবরণ বা হিস্ট্রি সাব-লেকশনে সেভ করা
+          await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
+            taskNumber: nextTaskNumber,
+            amount: rewardAmount,
+            timestamp: serverTimestamp()
+          });
+
+          alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার টাস্ক ক্যাশে যোগ করা হয়েছে।`);
           location.reload(); 
 
         } catch (error) {
