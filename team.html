@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আমার টিম</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .team-container { width: 100%; max-width: 420px; padding: 20px; margin: 0 auto; }
+        .member-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .member-info h4 { font-size: 16px; color: #333; }
+        .member-info p { font-size: 13px; color: #666; margin-top: 5px; }
+        .package-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .pkg-active { background-color: #d1e7dd; color: #0f5132; }
+        .pkg-none { background-color: #f8d7da; color: #842029; }
+    </style>
+</head>
+<body>
+
+    <header class="top-banner">
+        <a href="profile.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>আমার টিম</h2>
+    </header>
+
+    <div class="team-container" id="teamList">
+        <p style="text-align: center; color: #666;">লোড হচ্ছে...</p>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>হোম</span>
+        </a>
+        <a href="task.html" class="nav-item">
+            <i class="fa-solid fa-list-check"></i>
+            <span>টাস্ক</span>
+        </a>
+        <a href="team.html" class="nav-item active">
+            <i class="fa-solid fa-users"></i>
+            <span>টিম</span>
+        </a>
+        <a href="package.html" class="nav-item">
+            <i class="fa-solid fa-box"></i>
+            <span>প্যাকেজ</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fa-solid fa-user"></i>
+            <span>প্রোফাইল</span>
+        </a>
+    </nav>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDocRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userDocRef);
+
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const myReferralCode = userData.referralCode;
+
+            if (myReferralCode) {
+              const usersRef = collection(db, "users");
+              const q = query(usersRef, where("referredBy", "==", myReferralCode));
+              const querySnapshot = await getDocs(q);
+
+              const teamList = document.getElementById("teamList");
+              teamList.innerHTML = "";
+
+              if (querySnapshot.empty) {
+                teamList.innerHTML = '<p style="text-align: center; color: #666;">আপনি এখনও কাউকে রেফার করেননি।</p>';
+                return;
+              }
+
+              querySnapshot.forEach((doc) => {
+                const member = doc.data();
+                const hasPackage = member.package && member.package !== "none";
+                const packageText = hasPackage ? `প্যাকেজ: ${member.package}` : "কোনো প্যাকেজ কেনেনি";
+                const badgeClass = hasPackage ? "pkg-active" : "pkg-none";
+
+                const memberCard = document.createElement("div");
+                memberCard.className = "member-card";
+                memberCard.innerHTML = `
+                    <div class="member-info">
+                        <h4>${member.name || "নাম নেই"}</h4>
+                        <p>ইমেইল: ${member.email}</p>
+                    </div>
+                    <span class="package-badge ${badgeClass}">${packageText}</span>
+                `;
+                teamList.appendChild(memberCard);
+              });
+            }
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+    </script>
+</body>
+  </html>
+  
