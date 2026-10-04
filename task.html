@@ -1,178 +1,283 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>দৈনিক টাস্ক - Task</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f9;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-
-    .task-container {
-      max-width: 450px;
-      margin: 0 auto;
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-
-    .task-header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .task-header h2 {
-      margin: 0;
-      color: #2b2d42;
-    }
-
-    .task-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      background: #fafafa;
-    }
-
-    .task-title {
-      font-size: 16px;
-      font-weight: bold;
-      color: #2c3e50;
-      margin-bottom: 8px;
-    }
-
-    .task-reward {
-      font-size: 14px;
-      color: #28a745;
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
-
-    .video-container {
-      position: relative;
-      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-      height: 0;
-      overflow: hidden;
-      border-radius: 6px;
-      margin-bottom: 12px;
-    }
-
-    .video-container iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .btn-start {
-      background-color: #007bff;
-      color: white;
-    }
-
-    .btn-start:disabled {
-      background-color: #6c757d;
-      cursor: not-allowed;
-    }
-
-    .btn-claim {
-      background-color: #28a745;
-      color: white;
-    }
-
-    .timer-text {
-      font-weight: bold;
-      color: #dc3545;
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    .back-btn {
-      display: block;
-      text-align: center;
-      margin-top: 15px;
-      color: #6c757d;
-      text-decoration: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ভিডিও টাস্ক</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px 20px 80px 20px;
+        }
+        .task-container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .task-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .user-info-box {
+            background: #eef2f5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .task-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-start {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-start:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .btn-claim {
+            background-color: #28a745;
+            color: white;
+        }
+        .timer-text {
+            font-weight: bold;
+            color: #dc3545;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .no-package-box {
+            text-align: center;
+            padding: 30px 15px;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="task-container">
-    <div class="task-header">
-      <h2><i class="fa-solid fa-list-check"></i> ভিডিও টাস্ক</h2>
-      <p style="font-size: 13px; color: #6c757d;">ভিডিও সম্পূর্ণ দেখে পয়েন্ট বা বোনাস আয় করুন</p>
+    <div class="task-container">
+        <div class="task-header">
+            <h2><i class="fa-solid fa-list-check"></i> ভিডিও টাস্ক</h2>
+            <p style="font-size: 13px; color: #6c757d;">ভিডিও সম্পূর্ণ দেখে পয়েন্ট বা বোনাস আয় করুন</p>
+        </div>
+
+        <div class="user-info-box" id="userInfoBox" style="display: none;">
+            <p style="margin: 3px 0;">প্যাকেজ: <strong id="userPackageText">লোড হচ্ছে...</strong></p>
+            <p style="margin: 3px 0;">আজকের সম্পন্ন টাস্ক: <strong id="taskProgress">0 / 0</strong></p>
+        </div>
+
+        <!-- ডিফল্টভাবে টাস্ক কার্ড লুকানো থাকবে (display: none) -->
+        <div class="task-card" id="taskCard" style="display: none;">
+            <div class="task-title" id="taskTitle" style="font-weight: bold; margin-bottom: 5px;">১. ৩ মিনিট ভিডিওটি দেখুন</div>
+            <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 10px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: ১০ টাকা</div>
+            
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+            </div>
+
+            <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
+            <div class="timer-text" id="timerText" style="display: none;"></div>
+        </div>
+
+        <!-- প্যাকেজ না থাকলে এই মেসেজ ও বাটন দেখাবে -->
+        <div id="noPackageMsg" class="no-package-box" style="display: none;">
+            <p style="font-size: 18px; color: #dc3545; font-weight: bold; margin-bottom: 20px;">কোনো সক্রিয় প্যাকেজ নেই! কাজ করতে প্যাকেজ কিনুন।</p>
+            <a href="package.html" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
+        </div>
     </div>
 
-    <!-- টাস্ক ১ -->
-    <div class="task-card">
-      <div class="task-title">১. ৩ মিনিট ভিডিওটি দেখুন</div>
-      <div class="task-reward"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: ১০ টাকা</div>
-      
-      <!-- ইউটিউব ভিডিও এমবেড -->
-      <div class="video-container">
-        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
-      </div>
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>হোম</span>
+        </a>
+        <a href="task.html" class="nav-item active">
+            <i class="fa-solid fa-list-check"></i>
+            <span>টাস্ক</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>টিম</span>
+        </a>
+        <a href="package.html" class="nav-item">
+            <i class="fa-solid fa-box"></i>
+            <span>প্যাকেজ</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fa-solid fa-user"></i>
+            <span>প্রোফাইল</span>
+        </a>
+    </nav>
 
-      <!-- স্টার্ট ও ক্লেইম বাটন -->
-      <button class="btn btn-start" id="startBtn1" onclick="startTimer(1, 30)">টাস্ক শুরু করুন</button>
-      <div class="timer-text" id="timer1" style="display: none;"></div>
-    </div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <a href="index.html" class="back-btn">← হোম পেজে ফিরে যান</a>
-  </div>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
 
-  <script>
-    function startTimer(taskId, duration) {
-      const startBtn = document.getElementById('startBtn' + taskId);
-      const timerDisplay = document.getElementById('timer' + taskId);
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
 
-      startBtn.disabled = true;
-      timerDisplay.style.display = 'block';
+      const packageRules = {
+        "G.1": { maxTasks: 10, reward: 10 },
+        "G.2": { maxTasks: 15, reward: 10 },
+        "G.3": { maxTasks: 20, reward: 10 },
+        "G.4": { maxTasks: 25, reward: 10 }
+      };
 
-      let timeLeft = duration;
+      let userDocRef = null;
+      let activePackageRule = null;
+      let currentTaskCount = 0;
 
-      const countdown = setInterval(() => {
-        if (timeLeft <= 0) {
-          clearInterval(countdown);
-          timerDisplay.style.display = 'none';
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          userDocRef = doc(db, "users", user.uid);
+          try {
+            const userDoc = await getDoc(userDocRef);
 
-          // বাটনটি পরিবর্তন করে Claim বাটন বানিয়ে দেওয়া
-          startBtn.innerText = 'পুরস্কার সংগ্রহ করুন (Claim)';
-          startBtn.className = 'btn btn-claim';
-          startBtn.disabled = false;
-          startBtn.onclick = function() {
-            alert('অভিনন্দন! ১০ টাকা আপনার একাউন্টে যোগ করা হয়েছে।');
-            startBtn.innerText = 'সম্পন্ন হয়েছে (Completed)';
-            startBtn.disabled = true;
-            startBtn.style.backgroundColor = '#6c757d';
-          };
+            if (userDoc.exists()) {
+              let userData = userDoc.data();
+              const userPackage = userData.package;
+
+              const todayDate = new Date().toISOString().split('T')[0];
+              if (userData.lastTaskDate !== todayDate) {
+                await updateDoc(userDocRef, {
+                  dailyTaskCount: 0,
+                  lastTaskDate: todayDate
+                });
+                userData.dailyTaskCount = 0;
+              }
+
+              currentTaskCount = userData.dailyTaskCount || 0;
+
+              // যদি প্যাকেজ না থাকে বা প্যাকেজ কেনা না থাকে
+              if (!userPackage || !packageRules[userPackage]) {
+                document.getElementById('taskCard').style.display = 'none';
+                document.getElementById('userInfoBox').style.display = 'none';
+                document.getElementById('noPackageMsg').style.display = 'block';
+                return;
+              }
+
+              // প্যাকেজ কেনা থাকলে কাজ দেখাবে
+              activePackageRule = packageRules[userPackage];
+              document.getElementById('userPackageText').innerText = userPackage;
+              document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
+
+              document.getElementById('userInfoBox').style.display = 'block';
+              document.getElementById('taskCard').style.display = 'block';
+              document.getElementById('noPackageMsg').style.display = 'none';
+
+              if (currentTaskCount >= activePackageRule.maxTasks) {
+                document.getElementById('actionBtn').innerText = "আজকের সব টাস্ক সম্পন্ন!";
+                document.getElementById('actionBtn').disabled = true;
+              } else {
+                document.getElementById('actionBtn').innerText = `টাস্ক নম্বর ${currentTaskCount + 1} শুরু করুন`;
+                document.getElementById('actionBtn').onclick = () => startTimer(18);
+              }
+            }
+          } catch (error) {
+            console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
+          }
         } else {
-          timerDisplay.innerText = 'অনুগ্রহ করে অপেক্ষা করুন: ' + timeLeft + ' সেকেন্ড';
-          timeLeft--;
+          window.location.href = "login.html";
         }
-      }, 1000);
-    }
-  </script>
+      });
 
+      function startTimer(duration) {
+        const actionBtn = document.getElementById('actionBtn');
+        const timerText = document.getElementById('timerText');
+
+        actionBtn.disabled = true;
+        timerText.style.display = 'block';
+
+        let timeLeft = duration;
+
+        const countdown = setInterval(() => {
+          if (timeLeft <= 0) {
+            clearInterval(countdown);
+            timerText.style.display = 'none';
+
+            actionBtn.innerText = 'পুরস্কার সংগ্রহ করুন (Claim)';
+            actionBtn.className = 'btn btn-claim';
+            actionBtn.disabled = false;
+            actionBtn.onclick = claimReward;
+          } else {
+            timerText.innerText = 'অপেক্ষা করুন: ' + timeLeft + ' সেকেন্ড';
+            timeLeft--;
+          }
+        }, 1000);
+      }
+
+      async function claimReward() {
+        const actionBtn = document.getElementById('actionBtn');
+        actionBtn.disabled = true;
+        actionBtn.innerText = "প্রসেসিং হচ্ছে...";
+
+        try {
+          const rewardAmount = activePackageRule.reward;
+
+          await updateDoc(userDocRef, {
+            dailyTaskCount: increment(1),
+            dailyTaskIncome: increment(rewardAmount),
+            taskCash: increment(rewardAmount),
+            totalEarned: increment(rewardAmount)
+          });
+
+          alert(`অভিনন্দন! ৳ ${rewardAmount} আপনার টাস্ক ক্যাশে যোগ করা হয়েছে।`);
+          location.reload(); 
+
+        } catch (error) {
+          console.error("এরর:", error);
+          alert("সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।");
+          actionBtn.disabled = false;
+          actionBtn.innerText = "পুরস্কার সংগ্রহ করুন (Claim)";
+        }
+      }
+    </script>
 </body>
-  </html>
-  
+</html>
