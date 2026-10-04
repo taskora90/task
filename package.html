@@ -16,7 +16,7 @@
 
     <div class="package-container">
         
-        <!-- Package 1 (G.1) -->
+        <!-- Package 1 (Task.1) -->
         <div class="package-card">
             <div class="package-header">
                 <h3>প্যাকেজ ১ (Task.1)</h3>
@@ -105,7 +105,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -123,7 +123,6 @@
 
       let loggedInUser = null;
 
-      // ইউজার স্টেট মনিটর করা
       onAuthStateChanged(auth, (user) => {
         if (user) {
           loggedInUser = user;
@@ -148,12 +147,33 @@
 
             if (currentBalance >= price) {
               const newBalance = currentBalance - price;
+              
+              // ১. ক্রেতা নিজে প্যাকেজ কেনার কারণে ব্যালেন্স ও প্যাকেজ আপডেট হবে এবং সে ১টি স্পিন পাবে
               await updateDoc(userDocRef, {
                 balance: newBalance,
-                package: packageName
+                package: packageName,
+                luckySpinCount: increment(1)
               });
-              alert("অভিনন্দন! প্যাকেজটি সফলভাবে কেনা হয়েছে।");
-              window.location.href = "task.html"; // কেনা শেষ হলে সরাসরি টাস্ক পেজে নিয়ে যাবে
+
+              // ২. যার রেফারে অ্যাকাউন্ট খোলা হয়েছিল, তাকেও ১টি স্পিন দেওয়া হবে
+              const referrerCode = userData.referredBy;
+              if (referrerCode) {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("referralCode", "==", referrerCode));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                  querySnapshot.forEach(async (referrerDoc) => {
+                    const referrerRef = doc(db, "users", referrerDoc.id);
+                    await updateDoc(referrerRef, {
+                      luckySpinCount: increment(1)
+                    });
+                  });
+                }
+              }
+
+              alert("অভিনন্দন! প্যাকেজটি সফলভাবে কেনা হয়েছে এবং আপনি ১টি লাকি স্পিন পেয়েছেন।");
+              window.location.href = "task.html";
             } else {
               alert("পর্যাপ্ত পরিমাণ ব্যালেন্স নেই, দয়া করে রিচার্জ করুন।");
             }
