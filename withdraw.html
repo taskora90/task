@@ -6,14 +6,6 @@
     <title>টাকা উত্তোলন</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-        .withdraw-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        .btn { width: 100%; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-    </style>
 </head>
 <body>
 
@@ -72,8 +64,7 @@
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            // টাস্ক ক্যাশের সঠিক ব্যালেন্স ফেচ করা
-            currentTaskCash = userData.taskCash || userData.totalEarned || 0;
+            currentTaskCash = userData.taskCash || 0;
             document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
           }
         } else {
@@ -97,14 +88,13 @@
         }
 
         try {
-          // উইথড্র রিকোয়েস্ট ডাটাবেজে পাঠানো (initial status: waiting)
           await addDoc(collection(db, "withdrawals"), {
             userId: currentUser.uid,
             userEmail: currentUser.email,
             amount: amount,
             method: method,
             account: account,
-            status: "waiting", // waiting -> bank processing -> approved/rejected
+            status: "waiting",
             timestamp: serverTimestamp()
           });
 
