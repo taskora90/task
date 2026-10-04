@@ -37,23 +37,27 @@
         </div>
 
         <!-- ফর্ম -->
-        <form class="recharge-form" onsubmit="event.preventDefault(); alert('আপনার আবেদন জমা হয়েছে!');">
+        <form class="recharge-form" id="rechargeForm">
             <div class="form-group">
                 <label>টাকার পরিমাণ (BDT)</label>
-                <input type="number" placeholder="সর্বনিম্ন ৫০০ টাকা" required>
+                <input type="number" id="amount" placeholder="সর্বনিম্ন ৫০০ টাকা" min="500" required>
             </div>
 
             <div class="form-group">
                 <label>ট্রানজেকশন আইডি (TrxID)</label>
-                <input type="text" placeholder="যেমন: 8N7A6D5E" required>
+                <input type="text" id="trxId" placeholder="যেমন: 8N7A6D5E" required>
             </div>
 
-            <button type="submit" class="submit-btn">জমা দিন</button>
+            <button type="submit" class="submit-btn" id="submitBtn">জমা দিন</button>
         </form>
     </div>
 
+    <!-- UI Scripts -->
     <script>
+        let selectedPaymentMethod = 'bKash';
+
         function selectMethod(method) {
+            selectedPaymentMethod = method;
             document.getElementById('method-name').innerText = method;
             let btns = document.querySelectorAll('.method-btn');
             btns.forEach(b => b.classList.remove('active'));
@@ -71,6 +75,84 @@
             navigator.clipboard.writeText(num);
             alert('নম্বর কপি হয়েছে: ' + num);
         }
+    </script>
+
+    <!-- Firebase Backend Integration -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      let currentUser = null;
+
+      // ইউজার অথেন্টিকেশন স্টেট চেক
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          currentUser = user;
+        } else {
+          alert("রিচার্জ করার জন্য অনুগ্রহ করে প্রথমে লগইন করুন।");
+          window.location.href = "login.html";
+        }
+      });
+
+      // রিচার্জ ফর্ম সাবমিশন লজিক
+      const rechargeForm = document.getElementById('rechargeForm');
+      const submitBtn = document.getElementById('submitBtn');
+
+      rechargeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!currentUser) {
+          alert("ইউজার সেশন পাওয়া যায়নি। অনুগ্রহ করে আবার লগইন করুন।");
+          return;
+        }
+
+        const amount = Number(document.getElementById('amount').value);
+        const trxId = document.getElementById('trxId').value.trim();
+
+        if (amount < 500) {
+          alert("সর্বনিম্ন রিচার্জ পরিমাণ ৫০০ টাকা।");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "প্রসেসিং হচ্ছে...";
+
+        try {
+          await addDoc(collection(db, "recharge_requests"), {
+            userId: currentUser.uid,
+            userEmail: currentUser.email || "",
+            amount: amount,
+            trxId: trxId,
+            method: selectedPaymentMethod,
+            status: "pending",
+            createdAt: serverTimestamp()
+          });
+
+          alert("আপনার রিচার্জের আবেদনটি সফলভাবে জমা হয়েছে। অ্যাডমিন ভেরিফাই করে অ্যাপ্রুভ করার সাথে সাথেই টাকা আপনার মাই ক্যাশে যোগ হয়ে যাবে।");
+          rechargeForm.reset();
+        } catch (error) {
+          console.error("রিচার্জ আবেদন জমা দিতে ত্রুটি:", error);
+          alert("আবেদন জমা দিতে সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "জমা দিন";
+        }
+      });
     </script>
 </body>
 </html>
