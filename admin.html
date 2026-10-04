@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অ্যাডমিন প্যানেল - রিচার্জ রিকোয়েস্ট</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f6f9;
+            padding: 20px;
+        }
+        .admin-card {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #28a745;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .approve-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .approve-btn:hover {
+            background-color: #218838;
+        }
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-card">
+        <h2><i class="fa-solid fa-user-shield"></i> অ্যাডমিন ড্যাশবোর্ড - রিচার্জ অনুমোদন</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ইউজার ID</th>
+                    <th>মেথড</th>
+                    <th>পরিমাণ</th>
+                    <th>TrxID</th>
+                    <th>অ্যাকশন</th>
+                </tr>
+            </thead>
+            <tbody id="requestTable">
+                <tr>
+                    <td colspan="5" class="no-data">ডেটা লোড হচ্ছে...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // পেন্ডিং রিচার্জ রিকোয়েস্ট লোড করা
+      async function loadRequests() {
+        const tableBody = document.getElementById('requestTable');
+        tableBody.innerHTML = '';
+
+        try {
+          const q = query(collection(db, "recharge_requests"), where("status", "==", "pending"));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="no-data">কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।</td></tr>`;
+            return;
+          }
+
+          querySnapshot.forEach((requestDoc) => {
+            const data = requestDoc.data();
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+              <td>${data.userId}</td>
+              <td>${data.method}</td>
+              <td>৳ ${data.amount}</td>
+              <td><strong>${data.trxId}</strong></td>
+              <td>
+                <button class="approve-btn" onclick="approveRecharge('${requestDoc.id}', '${data.userId}', ${data.amount})">
+                  অ্যাপ্রুভ করুন
+                </button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        } catch (error) {
+          console.error("ডেটা লোড করতে সমস্যা:", error);
+          tableBody.innerHTML = `<tr><td colspan="5" class="no-data">ডেটা লোডে সমস্যা হয়েছে!</td></tr>`;
+        }
+      }
+
+      // রিচার্জ অ্যাপ্রুভ করার লজিক
+      window.approveRecharge = async function(requestId, userId, amount) {
+        if (!confirm(`আপনি কি ৳${amount} টাকা এই ইউজারের অ্যাকাউন্টে যোগ করতে চান?`)) return;
+
+        try {
+          const userDocRef = doc(db, "users", userId);
+          const requestDocRef = doc(db, "recharge_requests", requestId);
+
+          // ১. ইউজারের balance এ টাকা যোগ করা
+          await updateDoc(userDocRef, {
+            balance: increment(amount)
+          });
+
+          // ২. রিকোয়েস্টটির status আপডেট করা
+          await updateDoc(requestDocRef, {
+            status: "approved"
+          });
+
+          alert("অ্যাপ্রুভ সম্পন্ন হয়েছে! টাকা ইউজারের মাই ক্যাশে যোগ হয়ে গেছে।");
+          loadRequests(); // পেজ না রিফ্রেশ করে টেবিল আপডেট করা
+        } catch (error) {
+          console.error("অ্যাপ্রুভ করতে সমস্যা:", error);
+          alert("অ্যাপ্রুভ করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+        }
+      };
+
+      // পেজ লোড হলে কল হবে
+      loadRequests();
+    </script>
+</body>
+</html>
