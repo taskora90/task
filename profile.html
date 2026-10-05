@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>প্রোফাইল</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -13,22 +13,22 @@
         <!-- মোট আয় বক্স -->
         <div class="total-earn-box">
             <p>মোট আয়</p>
-            <h2 id="userTotalEarned">৮৮৯৯৩.৪</h2>
+            <h2 id="userTotalEarned">৬০</h2>
         </div>
 
         <!-- ব্যালেন্স ও আয় সমূহ গ্রিড -->
         <div class="balance-grid">
             <div class="balance-box">
                 <h4>টিম কমিশন</h4>
-                <p id="userTeamCommission">১৯১০.৪</p>
+                <p id="userTeamCommission">০</p>
             </div>
             <div class="balance-box">
                 <h4>আমন্ত্রণ আয়</h4>
-                <p id="userInviteEarn">৭১২৪</p>
+                <p id="userInviteEarn">০</p>
             </div>
             <div class="balance-box">
                 <h4>ডেইলি টাস্ক</h4>
-                <p id="userTaskCash">০</p>
+                <p id="userTaskCash">৬০</p>
             </div>
             <div class="balance-box">
                 <h4>আজকের টিম কমিশন</h4>
@@ -37,45 +37,27 @@
             <div class="balance-box dark-box">
                 <h4>মাই ক্যাশ</h4>
                 <p id="userBalance">০.০০</p>
-                <a href="package.html" class="package-link">প্যাকেজ ক্রয় / আপগ্রেড</a>
             </div>
             <div class="balance-box dark-box">
                 <h4>টাস্ক ক্যাশ</h4>
-                <p id="userTaskCashBox">২৩৬৯৩.৪০</p>
+                <p id="userTaskCashBox">৬০</p>
             </div>
         </div>
 
-        <!-- মেনু লিস্ট -->
-        <div class="menu-list">
-            <a href="work-details.html" class="menu-item">কাজের বিবরণ</a>
-            <a href="withdrawal-records.html" class="menu-item">টাকা উত্তোলনের রেকর্ড</a>
-            <a href="guideline.html" class="menu-item">কর্মী নির্দেশিকা</a>
-            <a href="logout.html" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> লগআউট</a>
+        <!-- মেনু লিঙ্কসমূহ -->
+        <div class="menu-links">
+            <a href="work-details.html">কাজের বিবরণ</a>
+            <a href="withdrawal-records.html">টাকা উত্তোলনের রেকর্ড</a>
+            <a href="guideline.html">কর্মী নির্দেশিকা</a>
+        </div>
+
+        <!-- লগআউট বাটন -->
+        <div class="logout-container">
+            <a href="logout.html" class="logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i> লগআউট
+            </a>
         </div>
     </div>
-
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <i class="fa-solid fa-house"></i>
-            <span>হোম</span>
-        </a>
-        <a href="task.html" class="nav-item">
-            <i class="fa-solid fa-list-check"></i>
-            <span>টাস্ক</span>
-        </a>
-        <a href="team.html" class="nav-item">
-            <i class="fa-solid fa-users"></i>
-            <span>টিম</span>
-        </a>
-        <a href="package.html" class="nav-item">
-            <i class="fa-solid fa-box"></i>
-            <span>প্যাকেজ</span>
-        </a>
-        <a href="profile.html" class="nav-item active">
-            <i class="fa-solid fa-user"></i>
-            <span>প্রোফাইল</span>
-        </a>
-    </nav>
 
     <!-- Firebase Profile Logic -->
     <script type="module">
@@ -117,11 +99,10 @@
                 });
               }
 
-              // UI এ ডাটা বসানো
               document.getElementById("userTotalEarned").innerText = data.totalEarned || 0;
               document.getElementById("userTeamCommission").innerText = data.teamCommission || 0;
               document.getElementById("userInviteEarn").innerText = data.inviteEarn || 0;
-              document.getElementById("userTaskCash").innerText = data.taskCash || 0;
+              document.getElementById("userTaskCash").innerText = data.dailyTask || 0;
               document.getElementById("userTodayTeamCommission").innerText = todayTeamComm;
               document.getElementById("userBalance").innerText = data.balance || 0;
               document.getElementById("userTaskCashBox").innerText = data.taskCash || 0;
