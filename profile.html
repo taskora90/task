@@ -10,6 +10,21 @@
 <body>
 
     <div class="profile-container">
+        
+        <!-- ইউজার স্ট্যাটাস হেডার (প্যাকেজ, নাম, ফোন ও আইকন) -->
+        <div class="user-status-card">
+            <div class="user-avatar">
+                <i class="fa-solid fa-user"></i>
+                <span id="userPackageBadge" class="package-tag">G.0</span>
+            </div>
+            <div class="user-info-text">
+                <p>দল স্তর: <span id="userPackageName">কোনো প্যাকেজ নেই</span></p>
+                <p>মেয়াদ: <span id="userPackageExpiry">২০২৭.০৬.২৩</span></p>
+                <p>হিসাব: <span id="userPhone">লোড হচ্ছে...</span></p>
+                <p>সেবা ফি: <span id="userPackageFee">0.00</span></p>
+            </div>
+        </div>
+
         <!-- মোট আয় বক্স -->
         <div class="total-earn-box">
             <p>মোট আয়</p>
@@ -44,9 +59,9 @@
             </div>
         </div>
 
-        <!-- মেনু লিঙ্কসমূহ (আপনার চাহিদা অনুযায়ী যুক্ত করা হয়েছে) -->
+        <!-- মেনু লিঙ্কসমূহ -->
         <div class="menu-links">
-            <a href="task.html" class="menu-item">কাজের বিবরণ (প্রতি টাস্ক ১০ টাকা)</a>
+            <a href="task.html" class="menu-item">কাজের বিবরণ</a>
             <a href="withdrawal-records.html" class="menu-item">টাকা উত্তোলনের রেকর্ড</a>
             <a href="guideline.html" class="menu-item">কর্মী নির্দেশিকা</a>
         </div>
@@ -59,7 +74,7 @@
         </div>
     </div>
 
-    <!-- Firebase Profile & Logout Logic -->
+    <!-- Firebase Profile & Package Info Logic -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -79,6 +94,14 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      // প্যাকেজ অনুযায়ী নাম ও ফি ম্যাপিং
+      const packageDetails = {
+        "G.1": { name: "প্যাকেজ ১ (AI প্রশিক্ষক / Task.1)", fee: 3000 },
+        "G.2": { name: "প্যাকেজ ২ (AI প্রশিক্ষক / Task.2)", fee: 4500 },
+        "G.3": { name: "প্যাকেজ ৩ (AI প্রশিক্ষক / Task.3)", fee: 6000 },
+        "G.4": { name: "প্যাকেজ ৪ (AI প্রশিক্ষক / Task.4)", fee: 7500 }
+      };
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDocRef = doc(db, "users", user.uid);
@@ -87,6 +110,7 @@
             if (userDoc.exists()) {
               const data = userDoc.data();
 
+              // দৈনিক টিম কমিশন রিসেট লজিক
               const lastResetDate = data.lastResetDate || "";
               const todayStr = new Date().toDateString();
               
@@ -99,6 +123,14 @@
                 });
               }
 
+              // প্রোফাইল হেডার ডাটা বসানো
+              const userPkg = data.package || "G.1";
+              document.getElementById("userPackageBadge").innerText = userPkg;
+              document.getElementById("userPackageName").innerText = packageDetails[userPkg]?.name || userPkg;
+              document.getElementById("userPhone").innerText = data.phone || user.phoneNumber || "নম্বর নেই";
+              document.getElementById("userPackageFee").innerText = packageDetails[userPkg]?.fee || 0;
+
+              // বাকি ব্যালেন্স ও আর্নিং ডাটা বসানো
               document.getElementById("userTotalEarned").innerText = data.totalEarned || 0;
               document.getElementById("userTeamCommission").innerText = data.teamCommission || 0;
               document.getElementById("userInviteEarn").innerText = data.inviteEarn || 0;
