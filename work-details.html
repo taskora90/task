@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>কাজের বিবরণ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .work-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            background-color: #2b78e4;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .header-bar a {
+            color: white;
+            font-size: 18px;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .header-bar h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .task-item {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .task-info h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        .task-info p {
+            margin: 0;
+            color: #777;
+            font-size: 13px;
+        }
+        .task-amount {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 16px;
+        }
+        .no-data {
+            text-align: center;
+            color: #777;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="work-container">
+        <!-- টপ বার -->
+        <div class="header-bar">
+            <a href="profile.html"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2>কাজের বিবরণ</h2>
+        </div>
+
+        <!-- কাজের তালিকা এখানে ফায়ারবেস থেকে লোড হবে -->
+        <div id="taskListContainer">
+            <p class="no-data">লোড হচ্ছে...</p>
+        </div>
+    </div>
+
+    <!-- Firebase Logic to Fetch Task Details -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, collection, query, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const container = document.getElementById("taskListContainer");
+          
+          try {
+            // ইউজারের সাব-কালেকশন বা মেইন ডাটাবেস থেকে টাস্কের ইতিহাস আনা
+            // ধরে নিচ্ছি ইউজারের ভেতরে বা আলাদা 'tasks' কালেকশনে ইউজারের uid দিয়ে রেকর্ড জমা হয়
+            const tasksRef = collection(db, "users", user.uid, "taskHistory");
+            const q = query(tasksRef, orderBy("timestamp", "desc"));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+              container.innerHTML = `<p class="no-data">এখনো কোনো কাজের বিবরণ নেই।</p>`;
+              return;
+            }
+
+            container.innerHTML = "";
+            let count = 1;
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              const taskName = data.taskName || `টাস্ক ${count}`;
+              const amount = data.amount || 10;
+              const time = data.date || "আজ";
+
+              const itemHTML = `
+                <div class="task-item">
+                    <div class="task-info">
+                        <h4>${taskName} সম্পন্ন হয়েছে</h4>
+                        <p>সময়: ${time}</p>
+                    </div>
+                    <div class="task-amount">+৳${amount}</div>
+                </div>
+              `;
+              container.innerHTML += itemHTML;
+              count++;
+            });
+
+          } catch (error) {
+            console.error("টাস্ক লোড করতে সমস্যা হয়েছে:", error);
+            // যদি সাব-কালেকশন না থাকে বা অন্য স্ট্রাকচার হয়, তবে ফলব্যাক মেসেজ
+            document.getElementById("taskListContainer").innerHTML = `<p class="no-data">কাজের বিবরণ লোড করতে সমস্যা হয়েছে।</p>`;
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+    </script>
+</body>
+</html>
