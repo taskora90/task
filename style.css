@@ -581,3 +581,97 @@ body.ash-theme {
 .submit-btn:hover {
     background: #334155;
 }
+/* প্রোফাইল পেজের জন্য সিএসএস স্টাইল */
+body {
+    background-color: #f4f6f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding-bottom: 70px; /* বটম নেভবারের জন্য জায়গা রাখা */
+}
+
+.top-banner {
+    background-color: #343a40;
+    color: #ffffff;
+    text-align: center;
+    padding: 15px;
+}
+
+.profile-container {
+    padding: 15px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.profile-card {
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.profile-icon {
+    font-size: 60px;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.balance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.balance-box {
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.balance-box h4 {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.balance-box p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #343a40;
+    margin: 0;
+}
+
+/* বটম নেভিগেশন বার */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid #dee2e6;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+}
+
+.nav-item {
+    text-decoration: none;
+    color: #6c757d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+}
+
+.nav-item i {
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.nav-item.active {
+    color: #007bff;
+    }
