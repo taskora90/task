@@ -767,3 +767,51 @@ body {
 .logout-btn:hover {
     background-color: #fff5f5;
 }
+/* ইউজার স্ট্যাটাস কার্ড ডিজাইন (প্রথম স্ক্রিনশটের মতো) */
+.user-status-card {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.user-avatar {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background-color: #e4e6eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #65676b;
+}
+
+.package-tag {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background-color: #ffc107;
+    color: #000;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 2px solid #fff;
+}
+
+.user-info-text p {
+    margin: 3px 0;
+    font-size: 14px;
+    color: #444;
+}
+
+.user-info-text span {
+    font-weight: 600;
+    color: #111;
+}
