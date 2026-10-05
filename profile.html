@@ -44,25 +44,25 @@
             </div>
         </div>
 
-        <!-- মেনু লিঙ্কসমূহ -->
+        <!-- মেনু লিঙ্কসমূহ (আপনার চাহিদা অনুযায়ী যুক্ত করা হয়েছে) -->
         <div class="menu-links">
-            <a href="work-details.html" class="menu-item">কাজের বিবরণ[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)</a>
-            <a href="withdrawal-records.html" class="menu-item">টাকা উত্তোলনের রেকর্ড[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)</a>
-            <a href="guideline.html" class="menu-item">কর্মী নির্দেশিকা[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span)</a>
+            <a href="task.html" class="menu-item">কাজের বিবরণ (প্রতি টাস্ক ১০ টাকা)</a>
+            <a href="withdrawal-records.html" class="menu-item">টাকা উত্তোলনের রেকর্ড</a>
+            <a href="guideline.html" class="menu-item">কর্মী নির্দেশিকা</a>
         </div>
 
         <!-- লগআউট বাটন -->
         <div class="logout-container">
-            <a href="logout.html" class="logout-btn">
-                <i class="fa-solid fa-right-from-bracket"></i> লগআউট[span_8](start_span)[span_8](end_span)[span_9](start_span)[span_9](end_span)
+            <a href="#" id="logoutBtn" class="logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i> লগআউট
             </a>
         </div>
     </div>
 
-    <!-- Firebase Profile Logic -->
+    <!-- Firebase Profile & Logout Logic -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
       import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -113,6 +113,16 @@
         } else {
           window.location.href = "login.html";
         }
+      });
+
+      // লগআউট হ্যান্ডলার
+      document.getElementById("logoutBtn").addEventListener("click", (e) => {
+        e.preventDefault();
+        signOut(auth).then(() => {
+          window.location.href = "login.html";
+        }).catch((error) => {
+          console.error("লগআউট করতে সমস্যা হয়েছে:", error);
+        });
       });
     </script>
 </body>
