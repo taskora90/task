@@ -1,44 +1,3 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>অ্যাডমিন ড্যাশবোর্ড</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
-        .admin-container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
-        .tab-btn { flex: 1; padding: 12px; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .tab-btn.active { border-bottom: 3px solid #007bff; color: #007bff; }
-        .request-card { background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 6px; margin-bottom: 10px; }
-        .btn-approve { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-reject { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    </style>
-</head>
-<body>
-
-    <div class="admin-container">
-        <h2>অ্যাডমিন ড্যাশবোর্ড</h2>
-
-        <div class="tabs">
-            <button class="tab-btn active" id="rechargeTabBtn" onclick="switchTab('recharge')">রিচার্জ রিকোয়েস্ট</button>
-            <button class="tab-btn" id="withdrawTabBtn" onclick="switchTab('withdraw')">উত্তোলন রিকোয়েস্ট</button>
-        </div>
-
-        <!-- রিচার্জ সেকশন -->
-        <div id="rechargeSection">
-            <h3>রিচার্জ রিকোয়েস্ট তালিকা</h3>
-            <div id="rechargeList">লোড হচ্ছে...</div>
-        </div>
-
-        <!-- উত্তোলন সেকশন -->
-        <div id="withdrawSection" style="display: none;">
-            <h3>উত্তোলন রিকোয়েস্ট তালিকা</h3>
-            <div id="withdrawList">লোড হচ্ছে...</div>
-        </div>
-    </div>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -56,12 +15,18 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
+      // পেজ লোড হওয়ার সাথে সাথে রিচার্জ রিকোয়েস্ট লোড হবে
+      window.onload = function() {
+        loadRechargeRequests();
+      }
+
       window.switchTab = function(type) {
         if(type === 'recharge') {
           document.getElementById('rechargeSection').style.display = 'block';
           document.getElementById('withdrawSection').style.display = 'none';
           document.getElementById('rechargeTabBtn').classList.add('active');
           document.getElementById('withdrawTabBtn').classList.remove('active');
+          loadRechargeRequests();
         } else {
           document.getElementById('rechargeSection').style.display = 'none';
           document.getElementById('withdrawSection').style.display = 'block';
@@ -71,8 +36,73 @@
         }
       }
 
-      // রিচার্জ রিকোয়েস্ট লোড করা (আপনার আগের কোড অনুযায়ী চলতে পারে)
-      // উত্তোলন রিকোয়েস্ট লোড করার ফাংশন
+      // রিচার্জ রিকোয়েস্ট লোড করা
+      async function loadRechargeRequests() {
+        const listEl = document.getElementById('rechargeList');
+        listEl.innerHTML = "লোড হচ্ছে...";
+
+        try {
+          const querySnap = await getDocs(collection(db, "recharge_requests"));
+          if (querySnap.empty) {
+            listEl.innerHTML = "কোনো রিচার্জ রিকোয়েস্ট নেই।";
+            return;
+          }
+
+          listEl.innerHTML = "";
+          querySnap.forEach((d) => {
+            const data = d.data();
+            if (data.status === 'pending') {
+              listEl.innerHTML += `
+                <div class="request-card">
+                  <p>ইউজার: <strong>${data.userEmail || 'N/A'}</strong></p>
+                  <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
+                  <p>মেথড: <strong>${data.method}</strong></p>
+                  <p>ট্রানজেকশন আইডি (TrxID): <strong style="color: #007bff;">${data.trxId}</strong></p>
+                  <p>স্ট্যাটাস: <em>${data.status}</em></p>
+                  <button class="btn-approve" onclick="handleRecharge('${d.id}', '${data.userId}', ${data.amount}, 'approve')">এপ্রুভ</button>
+                  <button class="btn-reject" onclick="handleRecharge('${d.id}', '${data.userId}', ${data.amount}, 'reject')">রিজেক্ট</button>
+                </div>
+              `;
+            }
+          });
+
+          if(listEl.innerHTML === "") {
+            listEl.innerHTML = "কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।";
+          }
+        } catch (error) {
+          console.error("রিচার্জ লোড করতে সমস্যা:", error);
+          listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।";
+        }
+      }
+
+      // রিচার্জ এপ্রুভ বা রিজেক্ট করার ফাংশন (myCash এ টাকা যোগ হবে)
+      window.handleRecharge = async function(rechargeId, userId, amount, action) {
+        try {
+          const userRef = doc(db, "users", userId);
+          const rechargeRef = doc(db, "recharge_requests", rechargeId);
+
+          if (action === 'approve') {
+            // ইউজারের myCash এ টাকা যোগ করে দেওয়া
+            await updateDoc(userRef, {
+              myCash: increment(amount)
+            });
+
+            // রিকোয়েস্টের স্ট্যাটাস approved করা
+            await updateDoc(rechargeRef, { status: 'approved' });
+            alert("রিচার্জ সফলভাবে অনুমোদিত হয়েছে এবং ইউজারের 'মাই ক্যাশ'-এ টাকা যোগ করা হয়েছে!");
+          } else {
+            await updateDoc(rechargeRef, { status: 'rejected' });
+            alert("রিচার্জ রিকোয়েস্ট বাতিল করা হয়েছে।");
+          }
+
+          loadRechargeRequests();
+        } catch (error) {
+          console.error("Error:", error);
+          alert("অপারেশন সম্পন্ন করতে সমস্যা হয়েছে!");
+        }
+      }
+
+      // উত্তোলন রিকোয়েস্ট লোড করার ফাংশন (taskCash থেকে কাটবে)
       async function loadWithdrawRequests() {
         const listEl = document.getElementById('withdrawList');
         listEl.innerHTML = "লোড হচ্ছে...";
@@ -116,7 +146,6 @@
               }
             }
 
-            // শুধু taskCash থেকে টাকা কাটবে, totalEarned অপরিবর্তিত থাকবে
             await updateDoc(userRef, {
               taskCash: increment(-amount)
             });
@@ -135,5 +164,3 @@
         }
       }
     </script>
-</body>
-</html>
