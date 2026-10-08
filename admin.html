@@ -15,7 +15,7 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // পেজ লোড হওয়ার সাথে সাথে রিচার্জ রিকোয়েস্ট লোড হবে
+      // পেজ ওপেন হওয়ার সাথে সাথেই রিচার্জ রিকোয়েস্টগুলো লোড হবে
       window.onload = function() {
         loadRechargeRequests();
       }
@@ -36,7 +36,7 @@
         }
       }
 
-      // রিচার্জ রিকোয়েস্ট লোড করা
+      // রিচার্জ রিকোয়েস্ট লোড করার ফাংশন
       async function loadRechargeRequests() {
         const listEl = document.getElementById('rechargeList');
         listEl.innerHTML = "লোড হচ্ছে...";
@@ -82,17 +82,15 @@
           const rechargeRef = doc(db, "recharge_requests", rechargeId);
 
           if (action === 'approve') {
-            // ইউজারের myCash এ টাকা যোগ করে দেওয়া
             await updateDoc(userRef, {
               myCash: increment(amount)
             });
 
-            // রিকোয়েস্টের স্ট্যাটাস approved করা
             await updateDoc(rechargeRef, { status: 'approved' });
             alert("রিচার্জ সফলভাবে অনুমোদিত হয়েছে এবং ইউজারের 'মাই ক্যাশ'-এ টাকা যোগ করা হয়েছে!");
           } else {
             await updateDoc(rechargeRef, { status: 'rejected' });
-            alert("রিচার্জ রিকোয়েস্ট বাতিল করা হয়েছে।");
+            alert("রিচার্জ রিকোয়েস্ট বাতিল করা হয়েছে।");
           }
 
           loadRechargeRequests();
@@ -102,7 +100,7 @@
         }
       }
 
-      // উত্তোলন রিকোয়েস্ট লোড করার ফাংশন (taskCash থেকে কাটবে)
+      // উত্তোলন রিকোয়েস্ট লোড করার ফাংশন
       async function loadWithdrawRequests() {
         const listEl = document.getElementById('withdrawList');
         listEl.innerHTML = "লোড হচ্ছে...";
@@ -146,6 +144,7 @@
               }
             }
 
+            // শুধু taskCash থেকে টাকা কাটবে, totalEarned অপরিবর্তিত থাকবে
             await updateDoc(userRef, {
               taskCash: increment(-amount)
             });
@@ -154,7 +153,7 @@
             alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে এবং টাস্ক ক্যাশ থেকে টাকা কাটা হয়েছে!");
           } else {
             await updateDoc(withdrawRef, { status: 'rejected' });
-            alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে।");
+            alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে।");
           }
 
           loadWithdrawRequests();
@@ -163,5 +162,4 @@
           alert("সমস্যা হয়েছে!");
         }
       }
-              </script>
-              
+    </script>
