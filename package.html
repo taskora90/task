@@ -11,12 +11,12 @@
         .package-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .package-header { text-align: center; margin-bottom: 20px; }
         .balance-box { background: #eef2f5; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 15px; font-weight: bold; color: #333; }
-        
+
         .card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; text-align: center; position: relative; }
         .card h3 { margin: 0 0 10px 0; color: #007bff; }
         .card p { margin: 5px 0; color: #555; font-size: 14px; }
         .price { font-size: 18px; font-weight: bold; color: #28a745; margin: 10px 0; }
-        
+
         .btn-buy { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; width: 100%; margin-top: 10px; }
         .btn-buy:hover { background-color: #0056b3; }
         .btn-active { background-color: #28a745 !important; cursor: not-allowed; }
@@ -114,7 +114,6 @@
               const currentPkg = userData.package;
               const currentLevel = packageLevels[currentPkg] || 0;
 
-              // প্যাকেজ স্ট্যাটাস আপডেট ও উচ্চ থেকে নিম্ন প্যাকেজ লক করার লজিক
               ['task.1', 'task.2', 'task.3', 'task.4'].forEach((pkgId, index) => {
                 const btn = document.getElementById(`btn-${pkgId}`);
                 const pkgLvl = index + 1;
@@ -165,53 +164,31 @@
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
 
-          // আপগ্রেডের ভিত্তিতে লাকি স্পিন গণনার লজিক
           let bonusSpins = 0;
-          if (targetLevel === 2) {
-            bonusSpins = 1; // ১ থেকে ২ এ গেলে ১টি
-          } else if (targetLevel === 3) {
-            bonusSpins = 2; // ১ বা ২ থেকে ৩ এ গেলে ২টি
-          } else if (targetLevel === 4) {
-            bonusSpins = 3; // ১, ২ বা ৩ থেকে ৪ এ গেলে ৩টি
-          }
+          if (targetLevel === 2) bonusSpins = 1;
+          else if (targetLevel === 3) bonusSpins = 2;
+          else if (targetLevel === 4) bonusSpins = 3;
 
-          // ইউজারের প্যাকেজ আপডেট, মাই ক্যাশ কাটা এবং লাকি স্পিন যোগ করা
+          // ইউজারের প্যাকেজ আপডেট ও টাকা কাটা
           await updateDoc(userDocRef, {
             package: packageId,
             myCash: increment(-price),
             luckySpins: increment(bonusSpins)
           });
 
-          // রেফারেল ও স্পিন বোনাস লজিক (যদি নতুন ইউজার হয় বা প্রথম প্যাকেজ কেনে এবং রেফারার থাকে)
-          // চেক করা হচ্ছে এটি প্রথম প্যাকেজ কিনা (অর্থাৎ আগের কোনো প্যাকেজ ছিল না)
-          const isFirstPackage = !currentPkg || currentPkg === "";
-
-          if (userData.referredBy) {
+          // সরাসরি রেফারারের (লেভেল ১) প্যাকেজ কমিশন লজিক (১০%)
+          if (userData.referredBy && userData.referredBy !== "none") {
             const q = query(collection(db, "users"), where("referralCode", "==", userData.referredBy));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
               const referrerDocSnap = querySnapshot.docs[0];
               const referrerRef = doc(db, "users", referrerDocSnap.id);
-              
-              const updateData = {};
-              
-              // যদি প্রথমবার প্যাকেজ কেনে, তবে রেফারকারী ১০% আমন্ত্রণ আয় এবং ২টি লাকি স্পিন পাবে
-              if (isFirstPackage) {
-                const inviteBonus = price * 0.10;
-                updateData.inviteEarnings = increment(inviteBonus);
-                updateData.totalEarned = increment(inviteBonus);
-                updateData.luckySpins = increment(2); // রেফারকারী পাবে ২টি লাকি স্পিন
-              }
 
-              await updateDoc(referrerRef, updateData);
-
-              // যে অ্যাকাউন্ট খুলেছে (বর্তমান ইউজার) সেও যদি প্রথম প্যাকেজ কিনে থাকে, তবে অতিরিক্ত ২টি লাকি স্পিন পাবে
-              if (isFirstPackage) {
-                await updateDoc(userDocRef, {
-                  luckySpins: increment(bonusSpins + 2) // আপগ্রেড স্পিন + রেফারেলের ২ স্পিন
-                });
-              }
+              const commissionAmount = price * 0.10;
+              await updateDoc(referrerRef, {
+                myCash: increment(commissionAmount)
+              });
             }
           }
 
