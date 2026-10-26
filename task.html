@@ -36,7 +36,7 @@
         </div>
 
         <div class="task-card" id="taskCard" style="display: none;">
-            <div class="task-title" id="taskTitle" style="font-weight: bold; margin-bottom: 5px;">সঠিকভাবে কাজ করুন</div>
+            <div class="task-title" style="font-weight: bold; margin-bottom: 5px;">সঠিকভাবে কাজ করুন</div>
             <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 10px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: ১০ টাকা</div>
 
             <div class="video-container" style="background: #eef2f5; display: flex; align-items: center; justify-content: center; text-align: center;">
@@ -53,19 +53,18 @@
             <p style="font-size: 18px; color: #dc3545; font-weight: bold; margin-bottom: 20px;">কোনো সক্রিয় প্যাকেজ নেই! কাজ করতে প্যাকেজ কিনুন।</p>
             <a href="package.html" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
         </div>
-    </div>
-
-    <nav class="bottom-nav">
+    </div>  <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
         <a href="task.html" class="nav-item active"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
         <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
         <a href="package.html" class="nav-item"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
     </nav>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -92,6 +91,7 @@
       let activePackageRule = null;
       let currentTaskCount = 0;
       let currentUser = null;
+      let currentUserData = null;
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -101,22 +101,21 @@
             const userDoc = await getDoc(userDocRef);
 
             if (userDoc.exists()) {
-              let userData = userDoc.data();
-              const userPackage = userData.package;
+              currentUserData = userDoc.data();
+              const userPackage = currentUserData.package;
 
-              // প্রতিদিন রাত ১২টায় টাস্ক ও ডেইলি আয় রিসেট করার লজিক
               const todayStr = new Date().toDateString();
-              if (userData.lastTaskDate !== todayStr) {
+              if (currentUserData.lastTaskDate !== todayStr) {
                 await updateDoc(userDocRef, {
                   dailyTaskCount: 0,
-                  dailyTaskIncome: 0, // এটি যুক্ত করা হয়েছে যাতে আগের দিনের টাকার সাথে যোগ না হয়
+                  dailyTaskIncome: 0,
                   lastTaskDate: todayStr
                 });
-                userData.dailyTaskCount = 0;
-                userData.dailyTaskIncome = 0;
+                currentUserData.dailyTaskCount = 0;
+                currentUserData.dailyTaskIncome = 0;
               }
 
-              currentTaskCount = userData.dailyTaskCount || 0;
+              currentTaskCount = currentUserData.dailyTaskCount || 0;
 
               if (!userPackage || !packageRules[userPackage]) {
                 document.getElementById('taskCard').style.display = 'none';
@@ -172,9 +171,7 @@
             timeLeft--;
           }
         }, 1000);
-      }
-
-      async function claimReward() {
+      }async function claimReward() {
         const actionBtn = document.getElementById('actionBtn');
         actionBtn.disabled = true;
         actionBtn.innerText = "প্রসেসিং হচ্ছে...";
@@ -195,6 +192,40 @@
             amount: rewardAmount,
             timestamp: serverTimestamp()
           });
+
+          // লেভেল ১ (১০%) এবং লেভেল ২ (৪%) কমিশন লজিক
+          if (currentUserData && currentUserData.referredBy && currentUserData.referredBy !== "none") {
+            const qLevel1 = query(collection(db, "users"), where("referralCode", "==", currentUserData.referredBy));
+            const snapshotLevel1 = await getDocs(qLevel1);
+
+            if (!snapshotLevel1.empty) {
+              const level1DocSnap = snapshotLevel1.docs[0];
+              const level1Ref = doc(db, "users", level1DocSnap.id);
+              const level1Data = level1DocSnap.data();
+
+              const level1Commission = rewardAmount * 0.10;
+              await updateDoc(level1Ref, {
+                taskCash: increment(level1Commission),
+                totalEarned: increment(level1Commission)
+              });
+
+              if (level1Data.referredBy && level1Data.referredBy !== "none") {
+                const qLevel2 = query(collection(db, "users"), where("referralCode", "==", level1Data.referredBy));
+                const snapshotLevel2 = await getDocs(qLevel2);
+
+                if (!snapshotLevel2.empty) {
+                  const level2DocSnap = snapshotLevel2.docs[0];
+                  const level2Ref = doc(db, "users", level2DocSnap.id);
+
+                  const level2Commission = rewardAmount * 0.04;
+                  await updateDoc(level2Ref, {
+                    taskCash: increment(level2Commission),
+                    totalEarned: increment(level2Commission)
+                  });
+                }
+              }
+            }
+          }
 
           alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার টাস্ক ক্যাশে যোগ করা হয়েছে।`);
           location.reload(); 
