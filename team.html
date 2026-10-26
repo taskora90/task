@@ -10,7 +10,7 @@
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px 20px 80px 20px; }
         .team-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .team-header { text-align: center; margin-bottom: 20px; }
-        
+
         .stats-grid { display: flex; gap: 10px; margin-bottom: 20px; }
         .stat-card { flex: 1; background: #eef2f5; padding: 15px; border-radius: 8px; text-align: center; }
         .stat-card h3 { margin: 0 0 5px 0; font-size: 16px; color: #333; }
@@ -18,7 +18,7 @@
 
         .level-section { margin-bottom: 25px; }
         .level-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #495057; border-bottom: 2px solid #e9ecef; padding-bottom: 5px; }
-        
+
         .member-card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
         .member-info span { display: block; color: #6c757d; font-size: 12px; }
         .no-member { text-align: center; color: #888; font-size: 14px; padding: 10px; background: #fdfdfd; border-radius: 6px; border: 1px dashed #ddd; }
@@ -93,7 +93,7 @@
           try {
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
-            
+
             if (!userDoc.exists()) return;
             const userData = userDoc.data();
             const myReferralCode = userData.referralCode;
@@ -110,7 +110,7 @@
 
             let level1Users = [];
             let level1Codes = [];
-            
+
             querySnapshot1.forEach((doc) => {
               const data = doc.data();
               level1Users.push(data);
@@ -143,7 +143,6 @@
             // লেভেল ২ কুয়েরি (যাদের `referredBy` লেভেল ১ মেম্বারদের রেফারেল কোডের কোনো একটির সমান)
             let level2Users = [];
             if (level1Codes.length > 0) {
-              // Firestore 'in' কুয়েরি সর্বোচ্চ ১০টি আইটেম সাপোর্ট করে, সেহেতু লুপ বা একসাথে চেক করা যায়। আপাতত লেভেল ১ কোডগুলোর জন্য ফেচ করছি।
               for (let code of level1Codes) {
                 const qLevel2 = query(collection(db, "users"), where("referredBy", "==", code));
                 const querySnapshot2 = await getDocs(qLevel2);
@@ -171,7 +170,7 @@
                   </div>
                 `;
               });
-5level2ListEl.innerHTML = html2;
+              level2ListEl.innerHTML = html2; // টাইপো ঠিক করা হয়েছে
             }
 
           } catch (error) {
