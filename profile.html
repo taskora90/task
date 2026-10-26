@@ -158,5 +158,79 @@
         });
       });
     </script>
+    <!-- ফায়ারস্টোর স্ক্রিপ্ট এবং ডেটা লোড করার লজিক -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // ইউজার লগইন আছে কি না চেক করে রিয়েল-টাইমে ব্যালেন্স ও তথ্য লোড করা
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const userId = user.uid;
+          const userRef = doc(db, "users", userId);
+
+          // রিয়েল-টাইম লিসেনার (অ্যাডমিন এপ্রুভ করলেই সাথে সাথে এখানে ব্যালেন্স আপডেট হয়ে যাবে)
+          onSnapshot(userRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+
+              // ইউজার তথ্য বসানো
+              document.getElementById('userName').innerText = data.name || data.userName || 'নাম নেই';
+              document.getElementById('userPhone').innerText = data.phone || data.userPhone || user.email || 'N/A';
+              
+              // ব্যালেন্স ও ক্যাশ আপডেট (myCash এবং taskCash)
+              const myCash = Number(data.myCash || 0).toFixed(2);
+              const taskCash = Number(data.taskCash || 0).toFixed(2);
+
+              document.getElementById('userBalance').innerText = myCash;
+              document.getElementById('userTaskCashBox').innerText = taskCash;
+              document.getElementById('userTaskCash').innerText = taskCash;
+
+              // অন্যান্য ফিল্ডগুলো যদি থাকে
+              if(data.packageName) {
+                  document.getElementById('userPackageName').innerText = data.packageName;
+              }
+              if(data.packageFee) {
+                  document.getElementById('userPackageFee').innerText = data.packageFee;
+              }
+              if(data.teamCommission) {
+                  document.getElementById('userTeamCommission').innerText = data.teamCommission;
+              }
+              if(data.inviteEarn) {
+                  document.getElementById('userInviteEarn').innerText = data.inviteEarn;
+              }
+              if(data.todayTeamCommission) {
+                  document.getElementById('userTodayTeamCommission').innerText = data.todayTeamCommission;
+              }
+              if(data.totalEarned) {
+                  document.getElementById('userTotalEarned').innerText = data.totalEarned;
+              }
+
+            } else {
+              console.log("ইউজার ডাটাবেসে পাওয়া যায়নি!");
+            }
+          });
+        } else {
+          // ইউজার লগইন না থাকলে লগইন পেজে রিডাইরেক্ট করতে পারেন
+          window.location.href = "login.html"; 
+        }
+      });
+    </script>
+
 </body>
 </html>
