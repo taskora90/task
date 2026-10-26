@@ -91,16 +91,21 @@
           }
 
           listEl.innerHTML = "";
+          let count = 0;
+
           querySnap.forEach((d) => {
             const data = d.data();
-            if (data.status === 'pending') {
+            // স্ট্যাটাস যদি pending বা খালি থাকে (নতুন রিকোয়েস্টের ক্ষেত্রে)
+            if (!data.status || data.status === 'pending') {
+              count++;
               listEl.innerHTML += `
                 <div class="request-card">
-                  <p>ইউজার: <strong>${data.userEmail || 'N/A'}</strong></p>
+                  <p>ইউজার নাম: <strong>${data.userName || 'N/A'}</strong></p>
+                  <p>ফোন/ইমেইল: <strong>${data.userPhone || data.userEmail || 'N/A'}</strong></p>
                   <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
                   <p>মেথড: <strong>${data.method}</strong></p>
                   <p>TrxID: <strong style="color: #007bff;">${data.trxId}</strong></p>
-                  <p>স্ট্যাটাস: <em>${data.status}</em></p>
+                  <p>স্ট্যাটাস: <em>${data.status || 'pending'}</em></p>
                   <button class="btn-approve" onclick="handleRecharge('${d.id}', '${data.userId}', ${data.amount})">এপ্রুভ</button>
                   <button class="btn-reject" onclick="handleRejection('${d.id}')">রিজেক্ট</button>
                 </div>
@@ -108,7 +113,7 @@
             }
           });
 
-          if(listEl.innerHTML === "") {
+          if(count === 0) {
             listEl.innerHTML = "কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।";
           }
         } catch (error) {
@@ -158,20 +163,20 @@
         try {
           const querySnap = await getDocs(collection(db, "withdrawals"));
           if (querySnap.empty) {
-            listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।";
+            listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই। সাবমিট করা ডেটা নেই।";
             return;
           }
 
           listEl.innerHTML = "";
           querySnap.forEach((d) => {
             const data = d.data();
-            if (data.status === 'waiting' || data.status === 'processing') {
+            if (!data.status || data.status === 'waiting' || data.status === 'processing') {
               listEl.innerHTML += `
                 <div class="request-card">
-                  <p>ইউজার: <strong>${data.userEmail}</strong></p>
+                  <p>ইউজার: <strong>${data.userEmail || data.userName || 'N/A'}</strong></p>
                   <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
-                  <p>মেথড: ${data.method} (${data.account})</p>
-                  <p>স্ট্যাটাস: <em>${data.status}</em></p>
+                  <p>মেথড: ${data.method || ''} (${data.account || ''})</p>
+                  <p>স্ট্যাটাস: <em>${data.status || 'waiting'}</em></p>
                   <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${data.amount}, 'approve')">এপ্রুভ</button>
                   <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${data.amount}, 'reject')">রিজেক্ট</button>
                 </div>
