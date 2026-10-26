@@ -170,7 +170,7 @@
 
               // আগের প্যাকেজ থেকে থাকলে সেটির টাকা টাস্ক ক্যাশে যোগ করার লজিক (এখানে চাইলে * 0.50 বাদ দিয়ে পুরো টাকা দিতে পারেন)
               if (previousPackage && packagePrices[previousPackage]) {
-                const refundAmount = packagePrices[previousPackage] * 0.80; 
+                const refundAmount = packagePrices[previousPackage] * 0.50; 
                 updateData.taskCash = increment(refundAmount);
                 updateData.totalEarned = increment(refundAmount);
               }
