@@ -29,7 +29,6 @@
             <p>মোট আয়</p>
             <h2 id="userTotalEarned">0.00</h2>
         </div>
-
         <!-- ব্যালেন্স ও আয় সমূহ গ্রিড -->
         <div class="balance-grid">
             <div class="balance-box">
@@ -73,6 +72,15 @@
             </a>
         </div>
     </div>
+    <!-- নিচের নেভবার -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
+        <a href="task.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
+        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
+        <a href="package.html" class="nav-item"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
+        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
+    </nav>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -92,65 +100,53 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // প্যাকেজ কোডের বিপরীতে সঠিক নাম এবং ফি ম্যাপিং (task.1 ফরম্যাট অনুযায়ী)
       const packageDetails = {
-        "task.1": { name: "প্যাকেজ ১ (Task.1)", fee: 3000 },
-        "task.2": { name: "প্যাকেজ ২ (Task.2)", fee: 4500 },
-        "task.3": { name: "প্যাকেজ ৩ (Task.3)", fee: 6000 },
-        "task.4": { name: "প্যাকেজ ৪ (Task.4)", fee: 7500 },
-        // পুরনো নামগুলোর জন্যও ব্যাকআপ রাখা হলো যাতে সমস্যা না হয়
-        "G.1": { name: "প্যাকেজ ১ (Task.1)", fee: 3000 },
-        "G.2": { name: "প্যাকেজ ২ (Task.2)", fee: 4500 },
-        "G.3": { name: "প্যাকেজ ৩ (Task.3)", fee: 6000 },
-        "G.4": { name: "প্যাকেজ ৪ (Task.4)", fee: 7500 }
+        "task.1": { name: "টাস্ক প্যাকেজ ১", fee: 500 },
+        "task.2": { name: "টাস্ক প্যাকেজ ২", fee: 1000 },
+        "task.3": { name: "টাস্ক প্যাকেজ ৩", fee: 1500 },
+        "task.4": { name: "টাস্ক প্যাকেজ ৪", fee: 2000 }
       };
 
       onAuthStateChanged(auth, (user) => {
         if (user) {
           const userRef = doc(db, "users", user.uid);
 
-          // রিয়েল-টাইম লিসেনার (ডাটা পরিবর্তন হওয়া মাত্র প্রোফাইলে আপডেট হবে)
           onSnapshot(userRef, async (docSnap) => {
             if (docSnap.exists()) {
               const data = docSnap.data();
 
-              // প্রতিদিন রাত ১২টায় বা নতুন দিনে আজকের টিম কমিশন রিসেট লজিক
               const lastResetDate = data.lastResetDate || "";
               const todayStr = new Date().toDateString();
 
               if (lastResetDate !== todayStr) {
                 await updateDoc(userRef, {
                   todayTeamCommission: 0,
-                  dailyTask: 0,
+                  dailyTaskIncome: 0,
                   lastResetDate: todayStr
                 });
                 data.todayTeamCommission = 0;
-                data.dailyTask = 0;
+                data.dailyTaskIncome = 0;
               }
 
-              // ইউজারের তথ্য সেট করা
               document.getElementById("userName").innerText = data.name || data.userName || data.fullName || "নাম পাওয়া যায়নি";
               document.getElementById("userPhone").innerText = data.phone || data.userPhone || user.phoneNumber || "নম্বর নেই";
 
-              // প্যাকেজ তথ্য সেট করা
               const userPkgKey = data.package || "";
               const pkgInfo = packageDetails[userPkgKey] || { name: "কোনো প্যাকেজ কেনা হয়নি", fee: 0 };
 
               document.getElementById("userPackageName").innerText = pkgInfo.name;
               document.getElementById("userPackageFee").innerText = pkgInfo.fee;
 
-              // ব্যালেন্স ও ক্যাশ আপডেট
               const myCash = Number(data.myCash || 0).toFixed(2);
               const taskCash = Number(data.taskCash || 0).toFixed(2);
-              const dailyTask = Number(data.dailyTask || data.dailyTaskIncome || 0).toFixed(2);
+              const dailyTask = Number(data.dailyTaskIncome || data.dailyTask || 0).toFixed(2);
 
               document.getElementById("userBalance").innerText = myCash;
               document.getElementById("userTaskCashBox").innerText = taskCash;
               document.getElementById("userTaskCash").innerText = dailyTask;
 
-              // অন্যান্য আয় ও কমিশন
               document.getElementById("userTeamCommission").innerText = Number(data.teamCommission || 0).toFixed(2);
-              document.getElementById("userInviteEarn").innerText = Number(data.inviteEarn || 0).toFixed(2);
+              document.getElementById("userInviteEarn").innerText = Number(data.inviteEarnings || data.inviteEarn || 0).toFixed(2);
               document.getElementById("userTodayTeamCommission").innerText = Number(data.todayTeamCommission || 0).toFixed(2);
               document.getElementById("userTotalEarned").innerText = Number(data.totalEarned || 0).toFixed(2);
 
@@ -163,7 +159,6 @@
         }
       });
 
-      // লগআউট হ্যান্ডলার
       document.getElementById("logoutBtn").addEventListener("click", (e) => {
         e.preventDefault();
         signOut(auth).then(() => {
