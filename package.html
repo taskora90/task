@@ -128,8 +128,7 @@
                   btn.style.backgroundColor = "#6c757d";
                 }
               });
-            }
-          } catch (error) {
+            }   } catch (error) {
             console.error("ডাটা লোড করতে সমস্যা হয়েছে:", error);
           }
         } else {
@@ -169,16 +168,18 @@
           else if (targetLevel === 3) bonusSpins = 2;
           else if (targetLevel === 4) bonusSpins = 3;
 
-          // ইউজারের প্যাকেজ আপডেট ও টাকা কাটা
+          // ১. ইউজারের প্যাকেজ আপডেট ও টাকা কাটা
           await updateDoc(userDocRef, {
             package: packageId,
             myCash: increment(-price),
             luckySpins: increment(bonusSpins)
           });
 
-          // সরাসরি রেফারারের (লেভেল ১) প্যাকেজ কমিশন লজিক (১০%)
-          if (userData.referredBy && userData.referredBy !== "none") {
-            const q = query(collection(db, "users"), where("referralCode", "==", userData.referredBy));
+          // ২. সরাসরি রেফারারের (লেভেল ১) প্যাকেজ কমিশন লজিক (১০%)
+          const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
+          
+          if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
+            const q = query(collection(db, "users"), where("referralCode", "==", referrerCode));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
@@ -186,8 +187,11 @@
               const referrerRef = doc(db, "users", referrerDocSnap.id);
 
               const commissionAmount = price * 0.10;
+              
+              // রেফারারের 'myCash' এবং মোট আয়ে ১০% কমিশন যোগ করা হচ্ছে
               await updateDoc(referrerRef, {
-                myCash: increment(commissionAmount)
+                myCash: increment(commissionAmount),
+                totalEarned: increment(commissionAmount)
               });
             }
           }
