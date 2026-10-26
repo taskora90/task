@@ -101,35 +101,31 @@
             <p style="margin: 3px 0;">আজকের সম্পন্ন টাস্ক: <strong id="taskProgress">0 / 0</strong></p>
         </div>
 
-        <!-- ডিফল্টভাবে টাস্ক কার্ড লুকানো থাকবে (display: none) -->
+        <!-- ডিফল্টভাবে টাস্ক কার্ড লুকানো থাকবে -->
         <div class="task-card" id="taskCard" style="display: none;">
             <div class="task-title" id="taskTitle" style="font-weight: bold; margin-bottom: 5px;">সঠিকভাবে কাজ করুন</div>
             <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 10px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: ১০ টাকা</div>
-            
-            <!-- ইউটিউব ভিডিওর বদলে এখানে বিজ্ঞাপন শো করবে -->
-<div class="video-container" style="background: #eef2f5; display: flex; align-items: center; justify-content: center; text-align: center;">
-    
-    <!-- আপনার এডসেন্স বা বিজ্ঞাপনের কোড এখানে পেস্ট করুন -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6966170773667004"
-         crossorigin="anonymous"></script>
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-6966170773667004"
-         data-ad-slot="ca-app-pub-6966170773667004/4439784286"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
 
-</div>
-
+            <!-- বিজ্ঞাপন বা ভিডিও সেকশন -->
+            <div class="video-container" style="background: #eef2f5; display: flex; align-items: center; justify-content: center; text-align: center;">
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6966170773667004"
+                     crossorigin="anonymous"></script>
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-6966170773667004"
+                     data-ad-slot="ca-app-pub-6966170773667004/4439784286"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
 
             <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
             <div class="timer-text" id="timerText" style="display: none;"></div>
         </div>
 
-        <!-- প্যাকেজ না থাকলে এই মেসেজ ও বাটন দেখাবে -->
+        <!-- প্যাকেজ না থাকলে এই মেসেজ দেখাবে -->
         <div id="noPackageMsg" class="no-package-box" style="display: none;">
             <p style="font-size: 18px; color: #dc3545; font-weight: bold; margin-bottom: 20px;">কোনো সক্রিয় প্যাকেজ নেই! কাজ করতে প্যাকেজ কিনুন।</p>
             <a href="package.html" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
@@ -158,7 +154,6 @@
             <span>প্রোফাইল</span>
         </a>
     </nav>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -178,11 +173,12 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      // আপডেট করা টাস্ক প্যাকেজ রুলস (task.1, task.2 ইত্যাদি)
       const packageRules = {
-        "G.1": { maxTasks: 10, reward: 10 },
-        "G.2": { maxTasks: 15, reward: 10 },
-        "G.3": { maxTasks: 20, reward: 10 },
-        "G.4": { maxTasks: 25, reward: 10 }
+        "task.1": { maxTasks: 10, reward: 10 },
+        "task.2": { maxTasks: 15, reward: 10 },
+        "task.3": { maxTasks: 20, reward: 10 },
+        "task.4": { maxTasks: 25, reward: 10 }
       };
 
       let userDocRef = null;
@@ -279,7 +275,7 @@
           const rewardAmount = activePackageRule.reward;
           const nextTaskNumber = currentTaskCount + 1;
 
-          // ১. ইউজারের মূল ব্যালেন্স ও টাস্ক কাউন্ট আপডেট
+          // ইউজারের মূল ব্যালেন্স ও টাস্ক কাউন্ট আপডেট
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
             dailyTaskIncome: increment(rewardAmount),
@@ -287,7 +283,7 @@
             totalEarned: increment(rewardAmount)
           });
 
-          // ২. কাজের বিবরণ বা হিস্ট্রি সাব-লেকশনে সেভ করা
+          // কাজের বিবরণ বা হিস্ট্রি সাব-লেকশনে সেভ করা
           await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
             taskNumber: nextTaskNumber,
             amount: rewardAmount,
