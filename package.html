@@ -3,103 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>প্যাকেজ ক্রয়</title>
+    <title>প্যাকেজ কিনুন</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="top-banner">
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>প্যাকেজ ক্রয় করুন</h2>
-    </header>
+    <div class="container">
+        <h2 class="header"><i class="fa-solid fa-box-open"></i> প্যাকেজ নির্বাচন করুন</h2>
 
-    <div class="package-container">
-
-        <!-- Package 1 (task.1) -->
-        <div class="package-card" id="card-task-1">
-            <div class="package-header">
-                <h3>প্যাকেজ ১ (Task.1)</h3>
-                <span class="badge">মেয়াদ: ১৮০ দিন</span>
-            </div>
-            <div class="package-body">
-                <p><strong>দৈনিক কাজ:</strong> ১০ টি</p>
-                <p><strong>প্রতি কাজের বেতন:</strong> ৳ ১০</p>
-                <p><strong>দৈনিক মজুরি:</strong> ৳ ১০০</p>
-                <p><strong>সেবা ফি:</strong> ৳ ৩,০০০</p>
-            </div>
-            <button class="buy-btn" id="btn-task-1" onclick="checkBalance(3000, 'task.1', 1)">প্যাকেজ ক্রয়</button>
+        <!-- প্যাকেজ ১ -->
+        <div class="package-card">
+            <div class="package-title">Task 1 (লেভেল ১)</div>
+            <div class="package-price">মূল্য: ৳ ৩০০০</div>
+            <button class="buy-btn" id="btn-task-1" onclick="checkBalance(3000, 'task.1', 1)">প্যাকেজ ১ কিনুন</button>
         </div>
 
-        <!-- Package 2 (task.2) -->
-        <div class="package-card" id="card-task-2">
-            <div class="package-header">
-                <h3>প্যাকেজ ২ (Task.2)</h3>
-                <span class="badge">মেয়াদ: ১৮০ দিন</span>
-            </div>
-            <div class="package-body">
-                <p><strong>দৈনিক কাজ:</strong> ১৫ টি</p>
-                <p><strong>প্রতি কাজের বেতন:</strong> ৳ ১০</p>
-                <p><strong>দৈনিক মজুরি:</strong> ৳ ১৫০</p>
-                <p><strong>সেবা ফি:</strong> ৳ ৪,৫০০</p>
-            </div>
-            <button class="buy-btn" id="btn-task-2" onclick="checkBalance(4500, 'task.2', 2)">প্যাকেজ ক্রয়</button>
+        <!-- প্যাকেজ ২ -->
+        <div class="package-card">
+            <div class="package-title">Task 2 (লেভেল ২)</div>
+            <div class="package-price">মূল্য: ৳ ৪৫০০</div>
+            <button class="buy-btn" id="btn-task-2" onclick="checkBalance(4500, 'task.2', 2)">প্যাকেজ ২ কিনুন</button>
         </div>
 
-        <!-- Package 3 (task.3) -->
-        <div class="package-card" id="card-task-3">
-            <div class="package-header">
-                <h3>প্যাকেজ ৩ (Task.3)</h3>
-                <span class="badge">মেয়াদ: ১৮০ দিন</span>
-            </div>
-            <div class="package-body">
-                <p><strong>দৈনিক কাজ:</strong> ২০ টি</p>
-                <p><strong>প্রতি কাজের বেতন:</strong> ৳ ১০</p>
-                <p><strong>দৈনিক মজুরি:</strong> ৳ ২০০</p>
-                <p><strong>সেবা ফি:</strong> ৳ ৬,০০০</p>
-            </div>
-            <button class="buy-btn" id="btn-task-3" onclick="checkBalance(6000, 'task.3', 3)">প্যাকেজ ক্রয়</button>
+        <!-- প্যাকেজ ৩ -->
+        <div class="package-card">
+            <div class="package-title">Task 3 (লেভেল ৩)</div>
+            <div class="package-price">মূল্য: ৳ ৬০০০</div>
+            <button class="buy-btn" id="btn-task-3" onclick="checkBalance(6000, 'task.3', 3)">প্যাকেজ ৩ কিনুন</button>
         </div>
 
-        <!-- Package 4 (task.4) -->
-        <div class="package-card" id="card-task-4">
-            <div class="package-header">
-                <h3>প্যাকেজ ৪ (Task.4)</h3>
-                <span class="badge">মেয়াদ: ১৮০ দিন</span>
-            </div>
-            <div class="package-body">
-                <p><strong>দৈনিক কাজ:</strong> ২৫ টি</p>
-                <p><strong>প্রতি কাজের বেতন:</strong> ৳ ১০</p>
-                <p><strong>দৈনিক মজুরি:</strong> ৳ ২৫০</p>
-                <p><strong>সেবা ফি:</strong> ৳ ৭,৫০০</p>
-            </div>
-            <button class="buy-btn" id="btn-task-4" onclick="checkBalance(7500, 'task.4', 4)">প্যাকেজ ক্রয়</button>
+        <!-- প্যাকেজ ৪ -->
+        <div class="package-card">
+            <div class="package-title">Task 4 (লেভেল ৪)</div>
+            <div class="package-price">মূল্য: ৳ ৭৫০০</div>
+            <button class="buy-btn" id="btn-task-4" onclick="checkBalance(7500, 'task.4', 4)">প্যাকেজ ৪ কিনুন</button>
         </div>
 
+        <br>
+        <a href="profile.html" style="text-decoration: none; color: #6c757d;"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
     </div>
-
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <i class="fa-solid fa-house"></i>
-            <span>হোম</span>
-        </a>
-        <a href="task.html" class="nav-item">
-            <i class="fa-solid fa-list-check"></i>
-            <span>টাস্ক</span>
-        </a>
-        <a href="#" class="nav-item">
-            <i class="fa-solid fa-users"></i>
-            <span>টিম</span>
-        </a>
-        <a href="package.html" class="nav-item active">
-            <i class="fa-solid fa-box"></i>
-            <span>প্যাকেজ</span>
-        </a>
-        <a href="profile.html" class="nav-item">
-            <i class="fa-solid fa-user"></i>
-            <span>প্রোফাইল</span>
-        </a>
-    </nav>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #dcdcdc; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .header { text-align: center; margin-bottom: 20px; color: #2b2d42; }
+        .package-card { background: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px solid #ccc; }
+        .package-title { font-size: 18px; font-weight: bold; color: #007bff; margin-bottom: 8px; }
+        .package-price { font-size: 16px; font-weight: bold; color: #28a745; margin-bottom: 12px; }
+        .buy-btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; }
+        .buy-btn:hover { background-color: #0056b3; }
+    </style>
+</head>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -119,7 +73,6 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // প্যাকেজ প্রাইস এবং লেভেল ম্যাপিং
       const packagePrices = {
         "task.1": 3000, "G.1": 3000, "1": 3000,
         "task.2": 4500, "G.2": 4500, "2": 4500,
@@ -148,7 +101,6 @@
             const currentPkg = currentUserData.package;
             const currentLevel = packageLevels[currentPkg] || 0;
 
-            // যদি ইউজারের ইতিমধ্যেই কোনো প্যাকেজ কেনা থাকে, তবে ছোট প্যাকেজগুলোর বাটন ডিসেবল করে দেওয়া
             if (currentLevel > 0) {
               for (let i = 1; i <= 4; i++) {
                 const btn = document.getElementById(`btn-task-${i}`);
@@ -181,7 +133,6 @@
         const previousPackage = currentUserData.package;
         const currentLevel = packageLevels[previousPackage] || 0;
 
-        // ডাউনগ্রেড রেস্ট্রিকশন চেক
         if (currentLevel > 0 && targetLevel < currentLevel) {
           alert("বড় প্যাকেজ থেকে ছোট প্যাকেজে নামা নিষেধ!");
           return;
@@ -191,19 +142,24 @@
 
         if (currentMyCash >= price) {
           const newMyCash = currentMyCash - price;
-          
           let updateData = {
             myCash: newMyCash,
             package: packageName
           };
 
-          // প্রথমবার প্যাকেজ কিনলে ইউজার ২টি লাকি স্পিন পাবে
           let isFirstTimePackage = !previousPackage;
+          let spinReward = targetLevel; // প্যাকেজ ১ = ১ স্পিন, ২ = ২ স্পিন, ৩ = ৩ স্পিন, ৪ = ৪ স্পিন
+
           if (isFirstTimePackage) {
-            updateData.luckySpinCount = increment(2);
+            updateData.luckySpinCount = increment(spinReward);
+          } else {
+            let levelDiff = targetLevel - currentLevel;
+            if (levelDiff > 0) {
+              let upgradeSpinReward = levelDiff; 
+              updateData.luckySpinCount = increment(upgradeSpinReward);
+            }
           }
 
-          // আগের প্যাকেজ থেকে থাকলে সেটির পুরো টাকাই টাস্ক ক্যাশে যোগ করার লজিক (রিফান্ড)
           if (previousPackage && packagePrices[previousPackage]) {
             const refundAmount = packagePrices[previousPackage]; 
             updateData.taskCash = increment(refundAmount);
@@ -213,7 +169,6 @@
           const userDocRef = doc(db, "users", loggedInUser.uid);
           await updateDoc(userDocRef, updateData);
 
-          // রেফারের মাধ্যমে এসে থাকলে এবং প্রথমবার প্যাকেজ কিনলে রেফারারকেও ২টি লাকি স্পিন দেওয়া
           const referrerCode = currentUserData.referredBy;
           if (referrerCode && isFirstTimePackage) {
             const usersRef = collection(db, "users");
@@ -224,7 +179,7 @@
               querySnapshot.forEach(async (referrerDoc) => {
                 const referrerRef = doc(db, "users", referrerDoc.id);
                 await updateDoc(referrerRef, {
-                  luckySpinCount: increment(2)
+                  luckySpinCount: increment(spinReward) 
                 });
               });
             }
