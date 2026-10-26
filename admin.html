@@ -41,7 +41,7 @@
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -95,7 +95,6 @@
 
           querySnap.forEach((d) => {
             const data = d.data();
-            // স্ট্যাটাস যদি pending বা খালি থাকে (নতুন রিকোয়েস্টের ক্ষেত্রে)
             if (!data.status || data.status === 'pending') {
               count++;
               listEl.innerHTML += `
@@ -168,9 +167,11 @@
           }
 
           listEl.innerHTML = "";
+          let count = 0;
           querySnap.forEach((d) => {
             const data = d.data();
             if (!data.status || data.status === 'waiting' || data.status === 'processing') {
+              count++;
               listEl.innerHTML += `
                 <div class="request-card">
                   <p>ইউজার: <strong>${data.userEmail || data.userName || 'N/A'}</strong></p>
@@ -183,34 +184,28 @@
               `;
             }
           });
+
+          if(count === 0) {
+            listEl.innerHTML = "কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।";
+          }
         } catch (error) {
           console.error("Error:", error);
           listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।";
         }
       }
 
+      // উত্তোলন এপ্রুভ বা রিজেক্ট হ্যান্ডলার (সংশোধিত)
       window.handleWithdraw = async function(withdrawId, userId, amount, action) {
         try {
-          const userRef = doc(db, "users", userId);
           const withdrawRef = doc(db, "withdrawals", withdrawId);
 
           if (action === 'approve') {
-            const userSnap = await getDoc(userRef);
-            if(userSnap.exists()) {
-              const currentTaskCash = userSnap.data().taskCash || 0;
-              if(currentTaskCash < amount) {
-                alert("ইউজারের টাস্ক ক্যাশে পর্যাপ্ত টাকা নেই!");
-                return;
-              }
-            }
-
-            await updateDoc(userRef, {
-              taskCash: increment(-amount)
-            });
-
+            // শুধু স্ট্যাটাস approved করে দেওয়া হলো, কারণ টাকা উইথড্র করার সময়ই টাস্ক ক্যাশ থেকে কেটে নেওয়া হয়েছে।
             await updateDoc(withdrawRef, { status: 'approved' });
-            alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে এবং টাস্ক ক্যাশ থেকে টাকা কাটা হয়েছে!");
+            alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
           } else {
+            // যদি এডমিন রিজেক্ট করে, তবে চাইলে ইউজারের কেটে নেওয়া টাকা রিফান্ড বা ফেরত দেওয়ার সিস্টেম রাখা যেতে পারে, 
+            // আপাতত আগের মতো শুধু স্ট্যাটাস rejected করা হলো।
             await updateDoc(withdrawRef, { status: 'rejected' });
             alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে।");
           }
