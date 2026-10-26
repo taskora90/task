@@ -9,9 +9,9 @@
     <style>
         .team-container { width: 100%; max-width: 420px; padding: 20px; margin: 0 auto; }
         .member-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
-        .member-info h4 { font-size: 16px; color: #333; }
-        .member-info p { font-size: 13px; color: #666; margin-top: 5px; }
-        .package-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .member-info h4 { font-size: 16px; color: #333; margin: 0 0 5px 0; }
+        .member-info p { font-size: 13px; color: #666; margin: 0; }
+        .package-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-align: center; }
         .pkg-active { background-color: #d1e7dd; color: #0f5132; }
         .pkg-none { background-color: #f8d7da; color: #842029; }
     </style>
@@ -69,6 +69,21 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      // মোবাইল নম্বরের মাঝের অংশে স্টার (*) বসানোর ফাংশন
+      function maskPhoneNumber(phone) {
+        if (!phone || phone.length < 10) return phone || "নম্বর নেই";
+        // যেমন: 01712345678 কে 017****5678 আকারে দেখাবে
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length - 4);
+      }
+
+      // প্যাকেজের নাম সুন্দর করে দেখানোর ম্যাপিং
+      const packageNames = {
+        "task.1": "Task 1 (৳৩০০০)", "G.1": "Task 1 (৳৩০০০)", "1": "Task 1 (৳৩০০০)",
+        "task.2": "Task 2 (৳৪৫০০)", "G.2": "Task 2 (৳৪৫০০)", "2": "Task 2 (৳৪৫০০)",
+        "task.3": "Task 3 (৳৬০০০)", "G.3": "Task 3 (৳৬০০০)", "3": "Task 3 (৳৬০০০)",
+        "task.4": "Task 4 (৳৭৫০০)", "G.4": "Task 4 (৳৭৫০০)", "4": "Task 4 (৳৭৫০০)"
+      };
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDocRef = doc(db, "users", user.uid);
@@ -87,22 +102,28 @@
               teamList.innerHTML = "";
 
               if (querySnapshot.empty) {
-                teamList.innerHTML = '<p style="text-align: center; color: #666;">আপনি এখনও কাউকে রেফার করেননি।</p>';
+                teamList.innerHTML = '<p style="text-align: center; color: #666; margin-top: 30px;">আপনি এখনও কাউকে রেফার করেননি।</p>';
                 return;
               }
 
-              querySnapshot.forEach((doc) => {
-                const member = doc.data();
-                const hasPackage = member.package && member.package !== "none";
-                const packageText = hasPackage ? `প্যাকেজ: ${member.package}` : "কোনো প্যাকেজ কেনেনি";
+              querySnapshot.forEach((docSnap) => {
+                const member = docSnap.data();
+                const pkg = member.package;
+                const hasPackage = pkg && pkg !== "none" && packageNames[pkg];
+                
+                const packageText = hasPackage ? packageNames[pkg] : "কোনো প্যাকেজ কেনেনি";
                 const badgeClass = hasPackage ? "pkg-active" : "pkg-none";
+
+                // মোবাইল নম্বর সিকিউর করা (যদি ডাটাবেজে phone বা mobile নামে থাকে)
+                const rawPhone = member.phone || member.mobile || member.phoneNumber || "নম্বর পাওয়া যায়নি";
+                const maskedPhone = maskPhoneNumber(rawPhone);
 
                 const memberCard = document.createElement("div");
                 memberCard.className = "member-card";
                 memberCard.innerHTML = `
                     <div class="member-info">
                         <h4>${member.name || "নাম নেই"}</h4>
-                        <p>ইমেইল: ${member.email}</p>
+                        <p><i class="fa-solid fa-phone" style="font-size: 11px; color: #888;"></i> ${maskedPhone}</p>
                     </div>
                     <span class="package-badge ${badgeClass}">${packageText}</span>
                 `;
@@ -116,5 +137,4 @@
       });
     </script>
 </body>
-  </html>
-  
+</html>
