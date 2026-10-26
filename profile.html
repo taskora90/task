@@ -118,14 +118,17 @@
               const lastResetDate = data.lastResetDate || "";
               const todayStr = new Date().toDateString();
 
+              // রাত ১২টার পর ডেইলি টাস্ক ও টিম কমিশন রিসেট লজিক
               if (lastResetDate !== todayStr) {
                 await updateDoc(userRef, {
                   todayTeamCommission: 0,
                   dailyTaskIncome: 0,
+                  dailyTaskCount: 0,
                   lastResetDate: todayStr
                 });
                 data.todayTeamCommission = 0;
                 data.dailyTaskIncome = 0;
+                data.dailyTaskCount = 0;
               }
 
               document.getElementById("userName").innerText = data.name || data.userName || data.fullName || "নাম পাওয়া যায়নি";
@@ -145,6 +148,7 @@
               document.getElementById("userTaskCashBox").innerText = taskCash;
               document.getElementById("userTaskCash").innerText = dailyTask;
 
+              // টিম কমিশন, আমন্ত্রণ আয় এবং মোট আয়
               document.getElementById("userTeamCommission").innerText = Number(data.teamCommission || 0).toFixed(2);
               document.getElementById("userInviteEarn").innerText = Number(data.inviteEarnings || data.inviteEarn || 0).toFixed(2);
               document.getElementById("userTodayTeamCommission").innerText = Number(data.todayTeamCommission || 0).toFixed(2);
