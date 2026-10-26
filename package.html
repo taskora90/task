@@ -47,7 +47,7 @@
         <div class="card" id="pkg-card-2">
             <h3>টাস্ক প্যাকেজ ২</h3>
             <p>প্রতিদিন ১৫টি টাস্ক</p>
-            <p>প্রতি টাস্কে নির্দিষ্ট আয়</p>
+            <p>আপগ্রেড করলে ১টি লাকি স্পিন</p>
             <div class="price">মূল্য: ৳ ৪৫০০</div>
             <button class="btn-buy" id="btn-task.2" onclick="buyPackage('task.2', 4500, 2)">প্যাকেজ কিনুন</button>
         </div>
@@ -56,7 +56,7 @@
         <div class="card" id="pkg-card-3">
             <h3>টাস্ক প্যাকেজ ৩</h3>
             <p>প্রতিদিন ২০টি টাস্ক</p>
-            <p>প্রতি টাস্কে নির্দিষ্ট আয়</p>
+            <p>আপগ্রেড করলে ২টি লাকি স্পিন</p>
             <div class="price">মূল্য: ৳ ৬০০০</div>
             <button class="btn-buy" id="btn-task.3" onclick="buyPackage('task.3', 6000, 3)">প্যাকেজ কিনুন</button>
         </div>
@@ -65,7 +65,7 @@
         <div class="card" id="pkg-card-4">
             <h3>টাস্ক প্যাকেজ ৪</h3>
             <p>প্রতিদিন ২৫টি টাস্ক</p>
-            <p>প্রতি টাস্কে নির্দিষ্ট আয়</p>
+            <p>আপগ্রেড করলে ৩টি লাকি স্পিন</p>
             <div class="price">মূল্য: ৳ ৭৫০০</div>
             <button class="btn-buy" id="btn-task.4" onclick="buyPackage('task.4', 7500, 4)">প্যাকেজ কিনুন</button>
         </div>
@@ -138,7 +138,7 @@
         }
       });
 
-      window.buyPackage = async function(packageId, price, level) {
+      window.buyPackage = async function(packageId, price, targetLevel) {
         if (!currentUser || !userData) {
           alert("দয়া করে অপেক্ষা করুন, ইউজার ডাটা লোড হচ্ছে।");
           return;
@@ -147,7 +147,7 @@
         const currentPkg = userData.package;
         const currentLevel = packageLevels[currentPkg] || 0;
 
-        if (currentLevel >= level) {
+        if (currentLevel >= targetLevel) {
           alert("আপনি এর চেয়ে উঁচু বা সমান প্যাকেজে আছেন। নিম্ন প্যাকেজ কিনতে পারবেন না।");
           return;
         }
@@ -165,12 +165,27 @@
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
 
+          // আপগ্রেডের ভিত্তিতে লাকি স্পিন গণনার লজিক
+          let bonusSpins = 0;
+          if (targetLevel === 2) {
+            bonusSpins = 1; // ১ থেকে ২ এ গেলে ১টি
+          } else if (targetLevel === 3) {
+            bonusSpins = 2; // ১ বা ২ থেকে ৩ এ গেলে ২টি
+          } else if (targetLevel === 4) {
+            bonusSpins = 3; // ১, ২ বা ৩ থেকে ৪ এ গেলে ৩টি
+          }
+
+          // ইউজারের প্যাকেজ আপডেট, মাই ক্যাশ কাটা এবং লাকি স্পিন যোগ করা
           await updateDoc(userDocRef, {
             package: packageId,
-            myCash: increment(-price)
+            myCash: increment(-price),
+            luckySpins: increment(bonusSpins)
           });
 
-          // লেভেল ১ রেফারারের জন্য আমন্ত্রণ আয় (Invite Earnings) ১০% কমিশন যুক্ত করার লজিক
+          // রেফারেল ও স্পিন বোনাস লজিক (যদি নতুন ইউজার হয় বা প্রথম প্যাকেজ কেনে এবং রেফারার থাকে)
+          // চেক করা হচ্ছে এটি প্রথম প্যাকেজ কিনা (অর্থাৎ আগের কোনো প্যাকেজ ছিল না)
+          const isFirstPackage = !currentPkg || currentPkg === "";
+
           if (userData.referredBy) {
             const q = query(collection(db, "users"), where("referralCode", "==", userData.referredBy));
             const querySnapshot = await getDocs(q);
@@ -178,16 +193,33 @@
             if (!querySnapshot.empty) {
               const referrerDocSnap = querySnapshot.docs[0];
               const referrerRef = doc(db, "users", referrerDocSnap.id);
-              const inviteBonus = price * 0.10;
+              
+              const updateData = {};
+              
+              // যদি প্রথমবার প্যাকেজ কেনে, তবে রেফারকারী ১০% আমন্ত্রণ আয় এবং ২টি লাকি স্পিন পাবে
+              if (isFirstPackage) {
+                const inviteBonus = price * 0.10;
+                updateData.inviteEarnings = increment(inviteBonus);
+                updateData.totalEarned = increment(inviteBonus);
+                updateData.luckySpins = increment(2); // রেফারকারী পাবে ২টি লাকি স্পিন
+              }
 
-              await updateDoc(referrerRef, {
-                inviteEarnings: increment(inviteBonus),
-                totalEarned: increment(inviteBonus)
-              });
+              await updateDoc(referrerRef, updateData);
+
+              // যে অ্যাকাউন্ট খুলেছে (বর্তমান ইউজার) সেও যদি প্রথম প্যাকেজ কিনে থাকে, তবে অতিরিক্ত ২টি লাকি স্পিন পাবে
+              if (isFirstPackage) {
+                await updateDoc(userDocRef, {
+                  luckySpins: increment(bonusSpins + 2) // আপগ্রেড স্পিন + রেফারেলের ২ স্পিন
+                });
+              }
             }
           }
 
-          alert("অভিনন্দন! আপনার প্যাকেজ সফলভাবে সক্রিয় হয়েছে।");
+          let msg = "অভিনন্দন! আপনার প্যাকেজ সফলভাবে সক্রিয় হয়েছে।";
+          if (bonusSpins > 0) {
+            msg += ` আপনি বোনাস হিসেবে ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
+          }
+          alert(msg);
           location.reload();
 
         } catch (error) {
