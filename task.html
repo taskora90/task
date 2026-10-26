@@ -58,7 +58,7 @@
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
         <a href="task.html" class="nav-item active"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
-        <a href="#" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
+        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
         <a href="package.html" class="nav-item"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
     </nav>
@@ -104,14 +104,16 @@
               let userData = userDoc.data();
               const userPackage = userData.package;
 
-              // প্রতিদিন রাত ১২টায় টাস্ক রিসেট করার লজিক
+              // প্রতিদিন রাত ১২টায় টাস্ক ও ডেইলি আয় রিসেট করার লজিক
               const todayStr = new Date().toDateString();
               if (userData.lastTaskDate !== todayStr) {
                 await updateDoc(userDocRef, {
                   dailyTaskCount: 0,
+                  dailyTaskIncome: 0, // এটি যুক্ত করা হয়েছে যাতে আগের দিনের টাকার সাথে যোগ না হয়
                   lastTaskDate: todayStr
                 });
                 userData.dailyTaskCount = 0;
+                userData.dailyTaskIncome = 0;
               }
 
               currentTaskCount = userData.dailyTaskCount || 0;
