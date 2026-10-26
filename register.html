@@ -97,9 +97,9 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, add슐, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // আপনার দেওয়া ফায়ারবেস কনফিগারেশন
+    // আপনার ফায়ারবেস কনফিগারেশন
     const firebaseConfig = {
       apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
       authDomain: "taskora-b2b29.firebaseapp.com",
@@ -124,7 +124,7 @@
       }
     };
 
-    // ফার্ম সাবমিট লজিক
+    // ফরম সাবমিট লজিক
     const registerForm = document.getElementById('registerForm');
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -132,7 +132,7 @@
       const name = document.getElementById('nameInput').value;
       const phone = document.getElementById('phoneInput').value.trim();
       const password = document.getElementById('passwordInput').value;
-      const refCode = document.getElementById('refInput').value;
+      const refCode = document.getElementById('refInput').value.trim();
       const submitBtn = document.getElementById('submitBtn');
 
       // ফোন নম্বর দিয়ে ভার্চুয়াল ইমেইল বানানো (ফায়ারবেস অথেন্টিকেশনের জন্য)
@@ -151,11 +151,31 @@
           uid: user.uid,
           name: name,
           phone: phone,
-          balance: 0,
+          taskCash: 0,
+          myCash: 0,
           package: "none",
           referredBy: refCode || "none",
           createdAt: new Date().toISOString()
         });
+
+        // ৩. যদি রেফার কোড থাকে, তবে আপলাইনারের টিমে যুক্ত করা এবং কমিশন হ্যান্ডেল করা
+        if (refCode && refCode !== "none") {
+          const uplineRef = doc(db, "users", refCode);
+          const uplineSnap = await getDoc(uplineRef);
+
+          if (uplineSnap.exists()) {
+            // আপলাইনারের 'team' সাব-কালেকশনে নতুন ইউজারের তথ্য সেভ করা
+            await addDoc(collection(db, "users", refCode, "team"), {
+              memberUid: user.uid,
+              memberName: name,
+              memberPhone: phone,
+              joinedAt: new Date().toISOString()
+            });
+
+            // যদি রেফার করার জন্য কোনো ইনস্ট্যান্ট কমিশন বা বোনাস দিতে চান, তা এখানে যোগ করতে পারেন
+            // যেমন: await updateDoc(uplineRef, { myCash: increment(10) }); 
+          }
+        }
 
         alert("রেজিস্ট্রেশন সফল হয়েছে!");
         window.location.href = "index.html"; // মূল পেজে রিডাইরেক্ট
