@@ -104,11 +104,12 @@
               let userData = userDoc.data();
               const userPackage = userData.package;
 
-              const todayDate = new Date().toISOString().split('T')[0];
-              if (userData.lastTaskDate !== todayDate) {
+              // প্রতিদিন রাত ১২টায় টাস্ক রিসেট করার লজিক
+              const todayStr = new Date().toDateString();
+              if (userData.lastTaskDate !== todayStr) {
                 await updateDoc(userDocRef, {
                   dailyTaskCount: 0,
-                  lastTaskDate: todayDate
+                  lastTaskDate: todayStr
                 });
                 userData.dailyTaskCount = 0;
               }
