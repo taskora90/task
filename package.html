@@ -17,7 +17,7 @@
     <div class="package-container">
 
         <!-- Package 1 (task.1) -->
-        <div class="package-card">
+        <div class="package-card" id="card-task-1">
             <div class="package-header">
                 <h3>প্যাকেজ ১ (Task.1)</h3>
                 <span class="badge">মেয়াদ: ১৮০ দিন</span>
@@ -28,11 +28,11 @@
                 <p><strong>দৈনিক মজুরি:</strong> ৳ ১০০</p>
                 <p><strong>সেবা ফি:</strong> ৳ ৩,০০০</p>
             </div>
-            <button class="buy-btn" onclick="checkBalance(3000, 'task.1')">প্যাকেজ ক্রয়</button>
+            <button class="buy-btn" id="btn-task-1" onclick="checkBalance(3000, 'task.1', 1)">প্যাকেজ ক্রয়</button>
         </div>
 
         <!-- Package 2 (task.2) -->
-        <div class="package-card">
+        <div class="package-card" id="card-task-2">
             <div class="package-header">
                 <h3>প্যাকেজ ২ (Task.2)</h3>
                 <span class="badge">মেয়াদ: ১৮০ দিন</span>
@@ -43,11 +43,11 @@
                 <p><strong>দৈনিক মজুরি:</strong> ৳ ১৫০</p>
                 <p><strong>সেবা ফি:</strong> ৳ ৪,৫০০</p>
             </div>
-            <button class="buy-btn" onclick="checkBalance(4500, 'task.2')">প্যাকেজ ক্রয়</button>
+            <button class="buy-btn" id="btn-task-2" onclick="checkBalance(4500, 'task.2', 2)">প্যাকেজ ক্রয়</button>
         </div>
 
         <!-- Package 3 (task.3) -->
-        <div class="package-card">
+        <div class="package-card" id="card-task-3">
             <div class="package-header">
                 <h3>প্যাকেজ ৩ (Task.3)</h3>
                 <span class="badge">মেয়াদ: ১৮০ দিন</span>
@@ -58,11 +58,11 @@
                 <p><strong>দৈনিক মজুরি:</strong> ৳ ২০০</p>
                 <p><strong>সেবা ফি:</strong> ৳ ৬,০০০</p>
             </div>
-            <button class="buy-btn" onclick="checkBalance(6000, 'task.3')">প্যাকেজ ক্রয়</button>
+            <button class="buy-btn" id="btn-task-3" onclick="checkBalance(6000, 'task.3', 3)">প্যাকেজ ক্রয়</button>
         </div>
 
         <!-- Package 4 (task.4) -->
-        <div class="package-card">
+        <div class="package-card" id="card-task-4">
             <div class="package-header">
                 <h3>প্যাকেজ ৪ (Task.4)</h3>
                 <span class="badge">মেয়াদ: ১৮০ দিন</span>
@@ -73,7 +73,7 @@
                 <p><strong>দৈনিক মজুরি:</strong> ৳ ২৫০</p>
                 <p><strong>সেবা ফি:</strong> ৳ ৭,৫০০</p>
             </div>
-            <button class="buy-btn" onclick="checkBalance(7500, 'task.4')">প্যাকেজ ক্রয়</button>
+            <button class="buy-btn" id="btn-task-4" onclick="checkBalance(7500, 'task.4', 4)">প্যাকেজ ক্রয়</button>
         </div>
 
     </div>
@@ -100,7 +100,6 @@
             <span>প্রোফাইল</span>
         </a>
     </nav>
-    <!-- Firebase Task Logic -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -120,7 +119,7 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // সকল সম্ভাব্য নামের জন্য প্রাইস ম্যাপিং
+      // প্যাকেজ প্রাইস এবং লেভেল ম্যাপিং
       const packagePrices = {
         "task.1": 3000, "G.1": 3000, "1": 3000,
         "task.2": 4500, "G.2": 4500, "2": 4500,
@@ -128,81 +127,113 @@
         "task.4": 7500, "G.4": 7500, "4": 7500
       };
 
-      let loggedInUser = null;
+      const packageLevels = {
+        "task.1": 1, "G.1": 1, "1": 1,
+        "task.2": 2, "G.2": 2, "2": 2,
+        "task.3": 3, "G.3": 3, "3": 3,
+        "task.4": 4, "G.4": 4, "4": 4
+      };
 
-      onAuthStateChanged(auth, (user) => {
+      let loggedInUser = null;
+      let currentUserData = null;
+
+      onAuthStateChanged(auth, async (user) => {
         if (user) {
           loggedInUser = user;
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            currentUserData = userDoc.data();
+            const currentPkg = currentUserData.package;
+            const currentLevel = packageLevels[currentPkg] || 0;
+
+            // যদি ইউজারের ইতিমধ্যেই কোনো প্যাকেজ কেনা থাকে, তবে ছোট প্যাকেজগুলোর বাটন ডিসেবল করে দেওয়া
+            if (currentLevel > 0) {
+              for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`btn-task-${i}`);
+                if (i < currentLevel) {
+                  btn.innerText = "ক্রয় করা যাবে না";
+                  btn.style.backgroundColor = "#ccc";
+                  btn.style.cursor = "not-allowed";
+                  btn.onclick = () => alert("আপনি ছোট বা পূর্বের প্যাকেজে নামতে পারবেন না!");
+                } else if (i === currentLevel) {
+                  btn.innerText = "সক্রিয় প্যাকেজ";
+                  btn.style.backgroundColor = "#28a745";
+                  btn.style.cursor = "default";
+                  btn.onclick = () => alert("এটি আপনার বর্তমানে সক্রিয় প্যাকেজ!");
+                }
+              }
+            }
+          }
         } else {
           window.location.href = "login.html";
         }
       });
 
-      window.checkBalance = async function(price, packageName) {
-        if (!loggedInUser) {
+      window.checkBalance = async function(price, packageName, targetLevel) {
+        if (!loggedInUser || !currentUserData) {
           alert("লগইন না থাকলে প্যাকেজ কিনতে পারবেন না।");
           window.location.href = "login.html";
           return;
         }
 
-        const userDocRef = doc(db, "users", loggedInUser.uid);
-        try {
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const currentMyCash = userData.myCash || 0;
+        const previousPackage = currentUserData.package;
+        const currentLevel = packageLevels[previousPackage] || 0;
 
-            if (currentMyCash >= price) {
-              const newMyCash = currentMyCash - price;
-              const previousPackage = userData.package;
-              
-              let updateData = {
-                myCash: newMyCash,
-                package: packageName
-              };
+        // ডাউনগ্রেড রেস্ট্রিকশন চেক
+        if (currentLevel > 0 && targetLevel < currentLevel) {
+          alert("বড় প্যাকেজ থেকে ছোট প্যাকেজে নামা নিষেধ!");
+          return;
+        }
 
-              // প্রথমবার প্যাকেজ কিনলে ইউজার ২টি লাকি স্পিন পাবে
-              let isFirstTimePackage = !previousPackage;
-              if (isFirstTimePackage) {
-                updateData.luckySpinCount = increment(2);
-              }
+        const currentMyCash = currentUserData.myCash || 0;
 
-              // আগের প্যাকেজ থেকে থাকলে সেটির পুরো টাকাই টাস্ক ক্যাশে যোগ করার লজিক
-              if (previousPackage && packagePrices[previousPackage]) {
-                const refundAmount = packagePrices[previousPackage]; // পুরো টাকার রিফান্ড
-                updateData.taskCash = increment(refundAmount);
-                updateData.totalEarned = increment(refundAmount);
-              }
+        if (currentMyCash >= price) {
+          const newMyCash = currentMyCash - price;
+          
+          let updateData = {
+            myCash: newMyCash,
+            package: packageName
+          };
 
-              // ডাটাবেজ আপডেট
-              await updateDoc(userDocRef, updateData);
+          // প্রথমবার প্যাকেজ কিনলে ইউজার ২টি লাকি স্পিন পাবে
+          let isFirstTimePackage = !previousPackage;
+          if (isFirstTimePackage) {
+            updateData.luckySpinCount = increment(2);
+          }
 
-              // রেফারের মাধ্যমে এসে থাকলে এবং প্রথমবার প্যাকেজ কিনলে রেফারারকেও ২টি লাকি স্পিন দেওয়া
-              const referrerCode = userData.referredBy;
-              if (referrerCode && isFirstTimePackage) {
-                const usersRef = collection(db, "users");
-                const q = query(usersRef, where("referralCode", "==", referrerCode));
-                const querySnapshot = await getDocs(q);
+          // আগের প্যাকেজ থেকে থাকলে সেটির পুরো টাকাই টাস্ক ক্যাশে যোগ করার লজিক (রিফান্ড)
+          if (previousPackage && packagePrices[previousPackage]) {
+            const refundAmount = packagePrices[previousPackage]; 
+            updateData.taskCash = increment(refundAmount);
+            updateData.totalEarned = increment(refundAmount);
+          }
 
-                if (!querySnapshot.empty) {
-                  querySnapshot.forEach(async (referrerDoc) => {
-                    const referrerRef = doc(db, "users", referrerDoc.id);
-                    await updateDoc(referrerRef, {
-                      luckySpinCount: increment(2)
-                    });
-                  });
-                }
-              }
+          const userDocRef = doc(db, "users", loggedInUser.uid);
+          await updateDoc(userDocRef, updateData);
 
-              alert("অভিনন্দন! প্যাকেজটি সফলভাবে কেনা হয়েছে এবং আগের প্যাকেজের পুরো টাকা টাস্ক ক্যাশে জমা হয়েছে।");
-              window.location.href = "task.html";
-            } else {
-              alert("মাই ক্যাশে পর্যাপ্ত পরিমাণ ব্যালেন্স নেই, দয়া করে রিচার্জ করুন।");
+          // রেফারের মাধ্যমে এসে থাকলে এবং প্রথমবার প্যাকেজ কিনলে রেফারারকেও ২টি লাকি স্পিন দেওয়া
+          const referrerCode = currentUserData.referredBy;
+          if (referrerCode && isFirstTimePackage) {
+            const usersRef = collection(db, "users");
+            const q = query(usersRef, where("referralCode", "==", referrerCode));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              querySnapshot.forEach(async (referrerDoc) => {
+                const referrerRef = doc(db, "users", referrerDoc.id);
+                await updateDoc(referrerRef, {
+                  luckySpinCount: increment(2)
+                });
+              });
             }
           }
-        } catch (error) {
-          console.error("এরর:", error);
-          alert("প্যাকেজ ক্রয়ে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+
+          alert("অভিনন্দন! প্যাকেজটি সফলভাবে আপডেট হয়েছে এবং আগের প্যাকেজের সম্পূর্ণ টাকা টাস্ক ক্যাশে জমা হয়েছে।");
+          window.location.href = "task.html";
+        } else {
+          alert("মাই ক্যাশে পর্যাপ্ত পরিমাণ ব্যালেন্স নেই, দয়া করে রিচার্জ করুন।");
         }
       };
     </script>
