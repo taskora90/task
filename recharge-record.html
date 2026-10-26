@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>রিচার্জ রেকর্ড</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 15px; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        .record-card { background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .record-card p { margin: 6px 0; color: #555; }
+        .status-pending { color: #d97706; font-weight: bold; background: #fef3c7; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+        .status-approved { color: #16a34a; font-weight: bold; background: #dcfce7; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+        .status-rejected { color: #dc2626; font-weight: bold; background: #fee2e2; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+        .back-btn { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="profile.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
+        <h2>রিচার্জ রিকোয়েস্টের ইতিহাস</h2>
+
+        <div id="rechargeHistoryList">
+            লোড হচ্ছে...
+        </div>
+    </div>
+
+    <!-- ফায়ারবেস স্ক্রিপ্ট -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const listContainer = document.getElementById('rechargeHistoryList');
+          
+          try {
+            // শুধু বর্তমান লগইন করা ইউজারের রিচার্জ রিকোয়েস্টগুলো ফিল্টার করে আনা
+            const q = query(collection(db, "recharge_requests"), where("userId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+              listContainer.innerHTML = "<p style='text-align: center; color: #777;'>আপনার কোনো রিচার্জ রেকর্ড নেই।</p>";
+              return;
+            }
+
+            listContainer.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              let statusClass = "status-pending";
+              let statusText = "পেন্ডিং (Pending)";
+
+              if (data.status === 'approved') {
+                  statusClass = "status-approved";
+                  statusText = "এপ্রুভড (Approved)";
+              } else if (data.status === 'rejected') {
+                  statusClass = "status-rejected";
+                  statusText = "রিজেক্টেড (Rejected)";
+              }
+
+              listContainer.innerHTML += `
+                <div class="request-card">
+                  <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
+                  <p>মেথড: <strong>${data.method || 'N/A'}</strong></p>
+                  <p>TrxID: <strong style="color: #007bff;">${data.trxId || 'N/A'}</strong></p>
+                  <p>স্ট্যাটাস: <span class="${statusClass}">${statusText}</span></p>
+                </div>
+              `;
+            });
+
+          } catch (error) {
+            console.error("Error loading history:", error);
+            listContainer.innerHTML = "<p style='text-align: center; color: red;'>রেকর্ড লোড করতে সমস্যা হয়েছে।</p>";
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+    </script>
+
+</body>
+</html>
