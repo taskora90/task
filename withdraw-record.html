@@ -10,7 +10,7 @@
         body { font-family: Arial, sans-serif; background-color: #f4f5f7; padding: 15px; margin: 0; }
         .top-banner { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
         .back-btn { font-size: 18px; color: #333; text-decoration: none; }
-        
+
         .record-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
         .card-top { display: flex; justify-content: space-between; align-items: center; }
         .title-area { display: flex; align-items: center; gap: 8px; }
@@ -19,13 +19,13 @@
         .amount { color: #d93025; font-size: 18px; font-weight: bold; }
         .date-time { font-size: 12px; color: #5f6368; margin: 6px 0 2px 0; }
         .transaction-id { font-size: 11px; color: #80868b; margin-bottom: 12px; }
-        
+
         /* Stepper Process UI */
         .stepper { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 12px; position: relative; }
         .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center; }
         .step-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; background: #dadce0; margin-bottom: 4px; }
         .step-label { font-size: 11px; color: #5f6368; }
-        
+
         /* Dynamic Colors */
         .bg-waiting { background: #f9ab00; }
         .bg-bank { background: #d93025; }
@@ -45,88 +45,140 @@
         <h2>টাকা উত্তোলনের রেকর্ড</h2>
     </header>
 
-    <div id="recordsContainer"></div>
+    <div id="recordsContainer">
+        <p style="text-align:center; color:#777; margin-top: 30px;">লোড হচ্ছে...</p>
+    </div>
 
-    <script>
-        function renderRecords() {
-            const container = document.getElementById('recordsContainer');
-            const records = JSON.parse(localStorage.getItem('withdrawRecords')) || [];
+    <!-- Firebase রিয়েল-টাইম রেন্ডার লজিক -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-            if (records.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#777; margin-top: 30px;">কোনো উত্তোলনের রেকর্ড পাওয়া যায়নি।</p>';
-                return;
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const userId = user.uid;
+          const container = document.getElementById('recordsContainer');
+
+          // ফায়ারস্টোর থেকে বর্তমান ইউজারের উইথড্র রিকোয়েস্টগুলো কুয়েরি করা
+          const q = query(
+            collection(db, "withdrawals"), 
+            where("userId", "==", userId)
+          );
+
+          // রিয়েল-টাইম লিসেনার
+          onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+              container.innerHTML = '<p style="text-align:center; color:#777; margin-top: 30px;">কোনো উত্তোলনের রেকর্ড পাওয়া যায়নি।</p>';
+              return;
             }
 
             container.innerHTML = '';
             const currentTime = Date.now();
-            const twentyMinutesInMs = 20 * 60 * 1000; // ২০ মিনিট = ১২০০০০০ মিলি-সেকেন্ড
+            const twentyMinutesInMs = 20 * 60 * 1000; 
 
-            records.forEach(record => {
-                // ২০ মিনিট পার হয়েছে কিনা পরীক্ষা করা
-                let isBankProcess = (currentTime - record.createdAt) >= twentyMinutesInMs;
-                
-                let bankIconBg = isBankProcess ? 'bg-bank' : '';
-                let bankStyle = isBankProcess ? 'text-bank' : '';
+            // ডাটাগুলোকে লেটেস্ট সাজানোর জন্য সর্ট করা
+            let docs = [];
+            snapshot.forEach(docSnap => {
+              docs.push({ id: docSnap.id, ...docSnap.data() });
+            });
 
-                // এডমিন ডিসিশন (অ্যাপ্রুভ / রিজেক্ট)
-                let finalStepLabel = 'সিদ্ধান্তের অপেক্ষায়';
-                let finalIconBg = '';
-                let finalTextStyle = '';
-                let finalIcon = '⚙';
+            // টাইমস্ট্যাম্প অনুযায়ী ডিসেন্ডিং অর্ডারে সর্ট করা
+            docs.sort((a, b) => {
+              const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+              const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+              return timeB - timeA;
+            });
 
-                if (record.adminStatus === 'approved') {
-                    finalStepLabel = 'অ্যাপ্রুভড';
-                    finalIconBg = 'bg-approved';
-                    finalTextStyle = 'text-approved';
-                    finalIcon = '✓';
-                } else if (record.adminStatus === 'rejected') {
-                    finalStepLabel = 'রিজেক্টেড';
-                    finalIconBg = 'bg-rejected';
-                    finalTextStyle = 'text-rejected';
-                    finalIcon = '✕';
-                }
+            docs.forEach(record => {
+              // সময় হিসাব (২০ মিনিট পার হয়েছে কিনা)
+              const recordTime = record.timestamp?.toMillis ? record.timestamp.toMillis() : currentTime;
+              let isBankProcess = (currentTime - recordTime) >= twentyMinutesInMs;
 
-                const cardHtml = `
-                    <div class="record-card">
-                        <div class="card-top">
-                            <div class="title-area">
-                                <span class="title">টাকা উত্তোলন</span>
-                                <span class="tag">টাস্ক ক্যাশ</span>
-                            </div>
-                            <div class="amount">-${record.amount}.00</div>
+              let bankIconBg = isBankProcess ? 'bg-bank' : '';
+              let bankStyle = isBankProcess ? 'text-bank' : '';
+
+              let finalStepLabel = 'সিদ্ধান্তের অপেক্ষায়';
+              let finalIconBg = '';
+              let finalTextStyle = '';
+              let finalIcon = '⚙';
+
+              // স্ট্যাটাস চেক (waiting / approved / rejected)
+              const status = record.status || record.adminStatus;
+              if (status === 'approved') {
+                finalStepLabel = 'অ্যাপ্রুভড';
+                finalIconBg = 'bg-approved';
+                finalTextStyle = 'text-approved';
+                finalIcon = '✓';
+              } else if (status === 'rejected') {
+                finalStepLabel = 'রিজেক্টেড';
+                finalIconBg = 'bg-rejected';
+                finalTextStyle = 'text-rejected';
+                finalIcon = '✕';
+              }
+
+              // তারিখ ও সময় ফরম্যাট করা
+              let dateStr = "এখনই";
+              if (record.timestamp?.toDate) {
+                dateStr = record.timestamp.toDate().toLocaleString('bn-BD');
+              }
+
+              const cardHtml = `
+                <div class="record-card">
+                    <div class="card-top">
+                        <div class="title-area">
+                            <span class="title">টাকা উত্তোলন</span>
+                            <span class="tag">টাস্ক ক্যাশ</span>
                         </div>
-                        <div class="date-time">${record.dateTimeStr} (${record.method})</div>
-                        <div class="transaction-id">${record.id}</div>
+                        <div class="amount">-৳${record.amount}.00</div>
+                    </div>
+                    <div class="date-time">${dateStr} (${record.method || 'বিকাশ'})</div>
+                    <div class="transaction-id">অ্যাকাউন্ট: ${record.account || 'N/A'}</div>
 
-                        <div class="stepper">
-                            <!-- ওয়েটিং -->
-                            <div class="step-item">
-                                <div class="step-icon bg-waiting">⏳</div>
-                                <div class="step-label text-waiting">ওয়েটিং</div>
-                            </div>
+                    <div class="stepper">
+                        <!-- ওয়েটিং -->
+                        <div class="step-item">
+                            <div class="step-icon bg-waiting">⏳</div>
+                            <div class="step-label text-waiting">ওয়েটিং</div>
+                        </div>
 
-                            <!-- ব্যাংক প্রসেস (২০ মিনিট পর লাল হবে) -->
-                            <div class="step-item">
-                                <div class="step-icon ${bankIconBg}">🏦</div>
-                                <div class="step-label ${bankStyle}">ব্যাংক প্রসেস</div>
-                            </div>
+                        <!-- ব্যাংক প্রসেস (২০ মিনিট পর লাল হবে) -->
+                        <div class="step-item">
+                            <div class="step-icon ${bankIconBg}">🏦</div>
+                            <div class="step-label ${bankStyle}">ব্যাংক প্রসেস</div>
+                        </div>
 
-                            <!-- অ্যাপ্রুভ / রিজেক্ট -->
-                            <div class="step-item">
-                                <div class="step-icon ${finalIconBg}">${finalIcon}</div>
-                                <div class="step-label ${finalTextStyle}">${finalStepLabel}</div>
-                            </div>
+                        <!-- অ্যাপ্রুভ / রিজেক্ট -->
+                        <div class="step-item">
+                            <div class="step-icon ${finalIconBg}">${finalIcon}</div>
+                            <div class="step-label ${finalTextStyle}">${finalStepLabel}</div>
                         </div>
                     </div>
-                `;
+                </div>
+              `;
 
-                container.innerHTML += cardHtml;
+              container.innerHTML += cardHtml;
             });
-        }
+          });
 
-        // পেজ লোড হলে ও প্রতি ১০ সেকেন্ড পর পর আপডেট চেক করবে
-        renderRecords();
-        setInterval(renderRecords, 10000);
+        } else {
+          window.location.href = "login.html";
+        }
+      });
     </script>
 </body>
 </html>
