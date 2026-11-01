@@ -8,6 +8,18 @@
     <style>
         body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 15px; }
         .admin-container { max-width: 100%; width: 100%; margin: 0 auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
+        
+        /* পাসওয়ার্ড লগইন বক্স স্টাইল */
+        .login-box { max-width: 350px; margin: 60px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        .login-box h3 { margin-top: 0; color: #333; margin-bottom: 20px; }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; outline: none; }
+        .login-btn { width: 100%; background: #007bff; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .login-btn:hover { background: #0056b3; }
+        .error-msg { color: #dc3545; font-size: 14px; margin-top: 10px; display: none; }
+
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-logout { background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
+
         .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
         .tab-btn { flex: 1; padding: 12px 5px; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 15px; text-align: center; }
         .tab-btn.active { border-bottom: 3px solid #007bff; color: #007bff; }
@@ -18,8 +30,20 @@
 </head>
 <body>
 
-    <div class="admin-container">
-        <h2>অ্যাডমিন ড্যাশবোর্ড</h2>
+    <!-- লগইন ফর্ম সেকশন -->
+    <div id="loginSection" class="login-box">
+        <h3><i class="fa-solid fa-lock"></i> অ্যাডমিন লগইন</h3>
+        <input type="password" id="adminPassInput" class="login-input" placeholder="পাসওয়ার্ড লিখুন...">
+        <button class="login-btn" onclick="verifyAdminPassword()">প্রবেশ করুন</button>
+        <div id="loginError" class="error-msg">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
+    </div>
+
+    <!-- মূল অ্যাডমিন ড্যাশবোর্ড (ডিফল্টভাবে হাইড থাকবে) -->
+    <div id="adminDashboard" class="admin-container" style="display: none;">
+        <div class="header-bar">
+            <h2 style="margin: 0;">অ্যাডমিন ড্যাশবোর্ড</h2>
+            <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> লগআউট</button>
+        </div>
 
         <div class="tabs">
             <button class="tab-btn active" id="rechargeTabBtn" onclick="switchTab('recharge')">রিচার্জ রিকোয়েস্ট</button>
@@ -56,9 +80,47 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // পেজ লোড হওয়ার সাথে সাথে রিচার্জ লোড করবে
-      document.addEventListener("DOMContentLoaded", () => {
+      // অ্যাডমিন পাসওয়ার্ড (প্রয়োজনে পরিবর্তন করুন)
+      const ADMIN_PASSWORD = "TareHasan@36";
+
+      // পাসওয়ার্ড ভেরিফিকেশন ফানশন
+      window.verifyAdminPassword = function() {
+        const inputPass = document.getElementById('adminPassInput').value;
+        const errorEl = document.getElementById('loginError');
+
+        if (inputPass === ADMIN_PASSWORD) {
+          sessionStorage.setItem('isAdminLoggedIn', 'true');
+          errorEl.style.display = 'none';
+          showDashboard();
+        } else {
+          errorEl.style.display = 'block';
+        }
+      }
+
+      // কীবোর্ডের Enter চাপলে লগইন হওয়া
+      document.getElementById('adminPassInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') verifyAdminPassword();
+      });
+
+      // লগআউট ফানশন
+      window.adminLogout = function() {
+        sessionStorage.removeItem('isAdminLoggedIn');
+        document.getElementById('adminDashboard').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('adminPassInput').value = '';
+      }
+
+      function showDashboard() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'block';
         loadRechargeRequests();
+      }
+
+      // পেজ লোড চেক
+      document.addEventListener("DOMContentLoaded", () => {
+        if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+          showDashboard();
+        }
       });
 
       window.switchTab = function(type) {
@@ -194,18 +256,15 @@
         }
       }
 
-      // উত্তোলন এপ্রুভ বা রিজেক্ট হ্যান্ডলার (সংশোধিত)
+      // উত্তোলন এপ্রুভ বা রিজেক্ট হ্যান্ডলার
       window.handleWithdraw = async function(withdrawId, userId, amount, action) {
         try {
           const withdrawRef = doc(db, "withdrawals", withdrawId);
 
           if (action === 'approve') {
-            // শুধু স্ট্যাটাস approved করে দেওয়া হলো, কারণ টাকা উইথড্র করার সময়ই টাস্ক ক্যাশ থেকে কেটে নেওয়া হয়েছে।
             await updateDoc(withdrawRef, { status: 'approved' });
             alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
           } else {
-            // যদি এডমিন রিজেক্ট করে, তবে চাইলে ইউজারের কেটে নেওয়া টাকা রিফান্ড বা ফেরত দেওয়ার সিস্টেম রাখা যেতে পারে, 
-            // আপাতত আগের মতো শুধু স্ট্যাটাস rejected করা হলো।
             await updateDoc(withdrawRef, { status: 'rejected' });
             alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে।");
           }
