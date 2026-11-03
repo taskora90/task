@@ -7,20 +7,137 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #2b2b2b; color: #e0e0e0; margin: 0; padding: 20px 20px 80px 20px; }
-        .package-container { max-width: 450px; margin: 0 auto; background: #333333; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .package-header { text-align: center; margin-bottom: 20px; }
-        .package-header h2 { color: #f0f0f0; }
-        .balance-box { background: #3f3f3f; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 15px; font-weight: bold; color: #f0f0f0; border: 1px solid #555; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f5f7; 
+            color: #2e3440; 
+            margin: 0; 
+            padding: 15px;
+            padding-bottom: 70px; 
+        }
+        .package-container { 
+            max-width: 500px; 
+            margin: 0 auto; 
+        }
+        .package-header { 
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center; 
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid #4c566a;
+        }
+        .package-header h2 { 
+            margin: 0 0 5px 0;
+            color: #2e3440; 
+            font-size: 18px;
+        }
+        .package-header p {
+            margin: 0;
+            color: #4c566a;
+            font-size: 13px;
+        }
+        .balance-box { 
+            background: linear-gradient(135deg, #3b4252, #434c5e);
+            color: white;
+            padding: 15px; 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
+            text-align: center; 
+            font-size: 15px; 
+            font-weight: bold; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .balance-box span {
+            color: #d8dee9;
+        }
 
-        .card { border: 1px solid #555; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #3a3a3a; text-align: center; position: relative; }
-        .card h3 { margin: 0 0 10px 0; color: #90caf9; }
-        .card p { margin: 5px 0; color: #b0bec5; font-size: 14px; }
-        .price { font-size: 18px; font-weight: bold; color: #81c784; margin: 10px 0; }
+        .card { 
+            background: #ffffff;
+            border: 1px solid #e5e9f0; 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            text-align: center; 
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+            border-top: 4px solid #4c566a;
+        }
+        .card h3 { 
+            margin: 0 0 10px 0; 
+            color: #2e3440; 
+            font-size: 16px;
+        }
+        .card p { 
+            margin: 5px 0; 
+            color: #4c566a; 
+            font-size: 13px; 
+        }
+        .price { 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: #3b4252; 
+            margin: 12px 0; 
+            background: #e5e9f0;
+            padding: 8px;
+            border-radius: 6px;
+        }
 
-        .btn-buy { background-color: #5c6bc0; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-buy:hover { background-color: #3f51b5; }
-        .btn-active { background-color: #66bb6a !important; cursor: not-allowed; color: #fff; }
+        .btn-buy { 
+            background-color: #3b4252; 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 14px; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-top: 10px;
+            transition: background 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-buy:hover { 
+            background-color: #434c5e; 
+        }
+        .btn-active { 
+            background-color: #6b7280 !important; 
+            cursor: not-allowed; 
+            color: #fff; 
+        }
+
+        /* নিচের নেভবার */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            max-width: 500px;
+            margin: 0 auto;
+            z-index: 1000;
+        }
+        .nav-item {
+            text-align: center;
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item i {
+            font-size: 18px;
+        }
+        .nav-item.active {
+            color: #3b4252;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -28,7 +145,7 @@
     <div class="package-container">
         <div class="package-header">
             <h2><i class="fa-solid fa-box"></i> প্যাকেজ সমূহ</h2>
-            <p style="font-size: 13px; color: #b0bec5;">আপনার পছন্দের প্যাকেজটি সিলেক্ট করুন</p>
+            <p>আপনার পছন্দের প্যাকেজটি সিলেক্ট করুন</p>
         </div>
 
         <div class="balance-box">
@@ -71,6 +188,15 @@
             <button class="btn-buy" id="btn-task.4" onclick="buyPackage('task.4', 7500, 4)">প্যাকেজ কিনুন</button>
         </div>
     </div>
+
+    <!-- নিচের নেভবার -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
+        <a href="task.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
+        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
+        <a href="package.html" class="nav-item active"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
+    </nav>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -119,7 +245,7 @@
                 } else if (currentLevel > pkgLvl) {
                   btn.innerText = "পূর্বের প্যাকেজ";
                   btn.disabled = true;
-                  btn.style.backgroundColor = "#555";
+                  btn.style.backgroundColor = "#9ca3af";
                 }
               });
             }   
@@ -161,7 +287,6 @@
           let bonusSpins = 0;
           let cashBonus = 0;
 
-          // প্যাকেজ অনুযায়ী স্পিন এবং টাস্ক ক্যাশ বোনাস নির্ধারণ
           if (targetLevel === 1) {
             bonusSpins = 1;
             cashBonus = 135;
@@ -176,16 +301,17 @@
             cashBonus = 475;
           }
 
-          // ১. ইউজারের প্যাকেজ আপডেট, টাকা কাটা, স্পিন ও টাস্ক ক্যাশ বোনাস যোগ করা
+          // ১. ইউজারের প্যাকেজ আপডেট ও টাকা কাটা (myCash থেকে শুধু প্যাকেজের দাম কাটবে)
+          // ক্যাশ বোনাস সরাসরি taskCash এবং totalEarned এ যাবে (myCash ছোঁয়া হবে না)
           await updateDoc(userDocRef, {
             package: packageId,
             myCash: increment(-price),
-            taskCash: increment(cashBonus),
+            taskCash: increment(cashBonus),     // ক্যাশ বোনাস টাস্ক ক্যাশে জমা হবে
             totalEarned: increment(cashBonus),
             luckySpins: increment(bonusSpins)
           });
 
-          // ২. রেফারকারীর (আপলাইনার) সঠিক ওয়ালেটে কমিশন ও বোনাস পাঠানোর লজিক
+          // ২. রেফারকারীর (আপলাইনার) কমিশন ও বোনাস পাঠানোর লজিক (সবকিছু taskCash ও টিম কমিশনে যাবে)
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -208,8 +334,8 @@
               await updateDoc(referrerRef, {
                 inviteEarnings: increment(commissionAmount),       
                 teamCommission: increment(commissionAmount),     
-                todayTeamCommission: increment(commissionAmount),
-                taskCash: increment(commissionAmount),           
+                todayTeamCommission: increment(commissionAmount), // আজকের টিম কমিশন
+                taskCash: increment(commissionAmount),           // টাস্ক ক্যাশ
                 totalEarned: increment(commissionAmount),        
                 luckySpins: increment(bonusSpins)                
               });
