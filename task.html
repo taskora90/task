@@ -53,7 +53,8 @@
             <p style="font-size: 18px; color: #dc3545; font-weight: bold; margin-bottom: 20px;">কোনো সক্রিয় প্যাকেজ নেই! কাজ করতে প্যাকেজ কিনুন।</p>
             <a href="package.html" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
         </div>
-    </div>  <nav class="bottom-nav">
+    </div>  
+    <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
         <a href="task.html" class="nav-item active"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
         <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
@@ -171,7 +172,9 @@
             timeLeft--;
           }
         }, 1000);
-      }async function claimReward() {
+      }
+
+      async function claimReward() {
         const actionBtn = document.getElementById('actionBtn');
         actionBtn.disabled = true;
         actionBtn.innerText = "প্রসেসিং হচ্ছে...";
@@ -180,6 +183,7 @@
           const rewardAmount = activePackageRule.reward;
           const nextTaskNumber = currentTaskCount + 1;
 
+          // ১. ইউজারের নিজস্ব টাস্ক ইনকাম আপডেট
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
             dailyTaskIncome: increment(rewardAmount),
@@ -193,33 +197,59 @@
             timestamp: serverTimestamp()
           });
 
-          // লেভেল ১ (১০%) এবং লেভেল ২ (৪%) কমিশন লজিক
-          if (currentUserData && currentUserData.referredBy && currentUserData.referredBy !== "none") {
-            const qLevel1 = query(collection(db, "users"), where("referralCode", "==", currentUserData.referredBy));
-            const snapshotLevel1 = await getDocs(qLevel1);
+          // ২. লেভেল ১ (১০%) এবং লেভেল ২ (৪%) টিম কমিশন লজিক
+          const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
-            if (!snapshotLevel1.empty) {
-              const level1DocSnap = snapshotLevel1.docs[0];
-              const level1Ref = doc(db, "users", level1DocSnap.id);
-              const level1Data = level1DocSnap.data();
+          if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
+            let level1Ref = null;
+            let level1Data = null;
 
+            // লেভেল ১ রেফারার খোঁজা
+            const directSnap = await getDoc(doc(db, "users", referrerCode));
+            if (directSnap.exists()) {
+              level1Ref = doc(db, "users", referrerCode);
+              level1Data = directSnap.data();
+            } else {
+              const q1 = query(collection(db, "users"), where("referralCode", "==", referrerCode));
+              const snap1 = await getDocs(q1);
+              if (!snap1.empty) {
+                level1Ref = doc(db, "users", snap1.docs[0].id);
+                level1Data = snap1.docs[0].data();
+              }
+            }
+
+            // লেভেল ১ কমিশন যোগ (১০%)
+            if (level1Ref && level1Data) {
               const level1Commission = rewardAmount * 0.10;
               await updateDoc(level1Ref, {
-                taskCash: increment(level1Commission),
+                myCash: increment(level1Commission),
+                teamCommission: increment(level1Commission),
+                todayTeamCommission: increment(level1Commission),
                 totalEarned: increment(level1Commission)
               });
 
-              if (level1Data.referredBy && level1Data.referredBy !== "none") {
-                const qLevel2 = query(collection(db, "users"), where("referralCode", "==", level1Data.referredBy));
-                const snapshotLevel2 = await getDocs(qLevel2);
+              // লেভেল ২ কমিশন লজিক (৪%)
+              const level2Code = level1Data.referredBy ? String(level1Data.referredBy).trim() : "";
+              if (level2Code && level2Code !== "none" && level2Code !== "undefined") {
+                let level2Ref = null;
+                const directL2Snap = await getDoc(doc(db, "users", level2Code));
 
-                if (!snapshotLevel2.empty) {
-                  const level2DocSnap = snapshotLevel2.docs[0];
-                  const level2Ref = doc(db, "users", level2DocSnap.id);
+                if (directL2Snap.exists()) {
+                  level2Ref = doc(db, "users", level2Code);
+                } else {
+                  const q2 = query(collection(db, "users"), where("referralCode", "==", level2Code));
+                  const snap2 = await getDocs(q2);
+                  if (!snap2.empty) {
+                    level2Ref = doc(db, "users", snap2.docs[0].id);
+                  }
+                }
 
+                if (level2Ref) {
                   const level2Commission = rewardAmount * 0.04;
                   await updateDoc(level2Ref, {
-                    taskCash: increment(level2Commission),
+                    myCash: increment(level2Commission),
+                    teamCommission: increment(level2Commission),
+                    todayTeamCommission: increment(level2Commission),
                     totalEarned: increment(level2Commission)
                   });
                 }
