@@ -164,7 +164,7 @@
         <div class="card" id="pkg-card-2">
             <h3>টাস্ক প্যাকেজ ২</h3>
             <p>প্রতিদিন ১৫টি টাস্ক</p>
-            <p>আপগ্রেড করলে ১টি লাকি স্পিন</p>
+            <p>আপগ্রেড করলে ২টি লাকি স্পিন</p>
             <div class="price">মূল্য: ৳ ৪৫০০</div>
             <button class="btn-buy" id="btn-task.2" onclick="buyPackage('task.2', 4500, 2)">প্যাকেজ কিনুন</button>
         </div>
@@ -173,7 +173,7 @@
         <div class="card" id="pkg-card-3">
             <h3>টাস্ক প্যাকেজ ৩</h3>
             <p>প্রতিদিন ২০টি টাস্ক</p>
-            <p>আপগ্রেড করলে ২টি লাকি স্পিন</p>
+            <p>আপগ্রেড করলে ৩টি লাকি স্পিন</p>
             <div class="price">মূল্য: ৳ ৬০০০</div>
             <button class="btn-buy" id="btn-task.3" onclick="buyPackage('task.3', 6000, 3)">প্যাকেজ কিনুন</button>
         </div>
@@ -286,30 +286,31 @@
           let bonusSpins = 0;
           let cashBonus = 0;
 
+          // প্যাকেজ অনুযায়ী লাকি স্পিন এবং ক্যাশ বোনাস নির্ধারণ
           if (targetLevel === 1) {
-            bonusSpins = 1;
+            bonusSpins = 1; // প্যাকেজ ১ এ ১টি স্পিন
             cashBonus = 135;
           } else if (targetLevel === 2) {
-            bonusSpins = 1;
+            bonusSpins = 2; // প্যাকেজ ২ এ ২টি স্পিন
             cashBonus = 235;
           } else if (targetLevel === 3) {
-            bonusSpins = 2;
+            bonusSpins = 3; // প্যাকেজ ৩ এ ৩টি স্পিন
             cashBonus = 350;
           } else if (targetLevel === 4) {
-            bonusSpins = 3;
+            bonusSpins = 3; // প্যাকেজ ৪ এ ৩টি স্পিন
             cashBonus = 475;
           }
 
-          // ১. ইউজারের প্যাকেজ আপডেট ও মাই ক্যাশ থেকে শুধু প্যাকেজের দাম কাটা
+          // ১. ইউজারের নিজের প্যাকেজ, মাই ক্যাশ, এবং লাকি স্পিন আপডেট
           await updateDoc(userDocRef, {
             package: packageId,
             myCash: increment(-price),
             taskCash: increment(cashBonus),     
             totalEarned: increment(cashBonus),
-            luckySpins: increment(bonusSpins)
+            luckySpinCount: increment(bonusSpins) // স্পিন কাউন্টে যোগ হলো
           });
 
-          // ২. রেফারকারীর (আপলাইনার) ১০% টিম কমিশন এবং টাস্ক ক্যাশ আপডেট লজিক
+          // ২. রেফারকারীর (আপলাইনার) ১০% কমিশন এবং ঠিক একই সংখ্যক লাকি স্পিন জমা হওয়ার লজিক
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -327,13 +328,13 @@
             }
 
             if (referrerRef) {
-              const commissionAmount = price * 0.10; // ১০% কমিশন
+              const commissionAmount = price * 0.10; // ১০% টিম কমিশন
 
               await updateDoc(referrerRef, {
-                teamCommission: increment(commissionAmount),     // টিম কমিশন যোগ হলো
-                taskCash: increment(commissionAmount),           // টাস্ক ক্যাশ-এর সাথে যুক্ত হলো
+                teamCommission: increment(commissionAmount),     
+                taskCash: increment(commissionAmount),           
                 totalEarned: increment(commissionAmount),        
-                luckySpins: increment(bonusSpins)                
+                luckySpinCount: increment(bonusSpins) // রেফারকারীও সমপরিমাণ লাকি স্পিন পাবে
               });
             }
           }
