@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>প্যাকেজ কিনুন</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -301,17 +300,16 @@
             cashBonus = 475;
           }
 
-          // ১. ইউজারের প্যাকেজ আপডেট ও টাকা কাটা (myCash থেকে শুধু প্যাকেজের দাম কাটবে)
-          // ক্যাশ বোনাস সরাসরি taskCash এবং totalEarned এ যাবে (myCash ছোঁয়া হবে না)
+          // ১. ইউজারের প্যাকেজ আপডেট ও মাই ক্যাশ থেকে শুধু প্যাকেজের দাম কাটা
           await updateDoc(userDocRef, {
             package: packageId,
             myCash: increment(-price),
-            taskCash: increment(cashBonus),     // ক্যাশ বোনাস টাস্ক ক্যাশে জমা হবে
+            taskCash: increment(cashBonus),     
             totalEarned: increment(cashBonus),
             luckySpins: increment(bonusSpins)
           });
 
-          // ২. রেফারকারীর (আপলাইনার) কমিশন ও বোনাস পাঠানোর লজিক (সবকিছু taskCash ও টিম কমিশনে যাবে)
+          // ২. রেফারকারীর (আপলাইনার) ১০% টিম কমিশন এবং টাস্ক ক্যাশ আপডেট লজিক
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -332,10 +330,8 @@
               const commissionAmount = price * 0.10; // ১০% কমিশন
 
               await updateDoc(referrerRef, {
-                inviteEarnings: increment(commissionAmount),       
-                teamCommission: increment(commissionAmount),     
-                todayTeamCommission: increment(commissionAmount), // আজকের টিম কমিশন
-                taskCash: increment(commissionAmount),           // টাস্ক ক্যাশ
+                teamCommission: increment(commissionAmount),     // টিম কমিশন যোগ হলো
+                taskCash: increment(commissionAmount),           // টাস্ক ক্যাশ-এর সাথে যুক্ত হলো
                 totalEarned: increment(commissionAmount),        
                 luckySpins: increment(bonusSpins)                
               });
