@@ -44,17 +44,26 @@
         .task-info h4 {
             margin: 0 0 5px 0;
             color: #333;
-            font-size: 16px;
+            font-size: 15px;
         }
         .task-info p {
             margin: 0;
             color: #777;
-            font-size: 13px;
+            font-size: 12px;
+        }
+        .task-right {
+            text-align: right;
         }
         .task-amount {
             font-weight: bold;
             color: #28a745;
-            font-size: 16px;
+            font-size: 15px;
+        }
+        .task-spin {
+            font-size: 11px;
+            color: #e67e22;
+            margin-top: 3px;
+            font-weight: bold;
         }
         .no-data {
             text-align: center;
@@ -72,13 +81,13 @@
             <h2>কাজের বিবরণ</h2>
         </div>
 
-        <!-- কাজের তালিকা এখানে ফায়ারবেস থেকে লোড হবে -->
+        <!-- আয়ের তালিকা এখানে ফায়ারবেস থেকে লোড হবে -->
         <div id="taskListContainer">
             <p class="no-data">লোড হচ্ছে...</p>
         </div>
     </div>
 
-    <!-- Firebase Logic to Fetch Task Details -->
+    <!-- Firebase Logic to Fetch Earnings & Transaction Details -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -103,12 +112,12 @@
           const container = document.getElementById("taskListContainer");
 
           try {
-            // সাব-কালেকশন থেকে সব টাস্কের ইতিহাস ফেচ করা (অর্ডার বাই বাদ দেওয়া হয়েছে যাতে ইনডেক্স ত্রুটি না করে)
-            const tasksRef = collection(db, "users", user.uid, "taskHistory");
-            const querySnapshot = await getDocs(tasksRef);
+            // earningsHistory সাব-কালেকশন থেকে সমস্ত আয়ের ইতিহাস ফেচ করা
+            const earningsRef = collection(db, "users", user.uid, "earningsHistory");
+            const querySnapshot = await getDocs(earningsRef);
 
             if (querySnapshot.empty) {
-              container.innerHTML = `<p class="no-data">এখনো কোনো কাজের বিবরণ নেই।</p>`;
+              container.innerHTML = `<p class="no-data">এখনো কোনো আয়ের বিবরণ নেই।</p>`;
               return;
             }
 
@@ -116,9 +125,30 @@
             let count = 1;
             querySnapshot.forEach((doc) => {
               const data = doc.data();
-              const taskName = data.taskName || `ডেইলি টাস্ক ${count}`;
-              const amount = data.amount || 10;
               
+              // বিভিন্ন ট্রানজ্যাকশন টাইপ অনুযায়ী টাইটেল ও বিবরণ সেট করা
+              let title = "টাস্ক ইনকাম সম্পন্ন";
+              let desc = data.taskName || `ডেইলি টাস্ক ${count}`;
+              let amount = data.amount || 0;
+              let spinsText = "";
+
+              if (data.type === "package_bonus") {
+                title = "প্যাকেজ ক্যাশ বোনাস";
+                desc = data.description || "প্যাকেজ ক্রয়ের ক্যাশ বোনাস";
+                if (data.spins && data.spins > 0) {
+                  spinsText = `+${data.spins} লাকি স্পিন`;
+                }
+              } else if (data.type === "team_commission") {
+                title = "টিম কমিশন";
+                desc = data.description || "রেফারেল টিম কমিশন";
+                if (data.spins && data.spins > 0) {
+                  spinsText = `+${data.spins} লাকি স্পিন`;
+                }
+              } else if (data.type === "task_income" || !data.type) {
+                title = "টাস্ক ইনকাম সম্পন্ন";
+                desc = data.taskName || `টাস্ক #${count}`;
+              }
+
               // তারিখ বা সময় ফরম্যাট হ্যান্ডেল করা
               let timeStr = "আজ";
               if (data.timestamp && data.timestamp.toDate) {
@@ -130,10 +160,14 @@
               const itemHTML = `
                 <div class="task-item">
                     <div class="task-info">
-                        <h4>${taskName} সম্পন্ন হয়েছে</h4>
+                        <h4>${title}</h4>
+                        <p>${desc}</p>
                         <p>সময়: ${timeStr}</p>
                     </div>
-                    <div class="task-amount">+৳${amount}</div>
+                    <div class="task-right">
+                        <div class="task-amount">+৳${amount}</div>
+                        ${spinsText ? `<div class="task-spin"><i class="fa-solid fa-gift"></i> ${spinsText}</div>` : ""}
+                    </div>
                 </div>
               `;
               container.innerHTML += itemHTML;
@@ -141,7 +175,7 @@
             });
 
           } catch (error) {
-            console.error("টাস্ক লোড করতে সমস্যা হয়েছে:", error);
+            console.error("হিস্ট্রি লোড করতে সমস্যা হয়েছে:", error);
             container.innerHTML = `<p class="no-data">কাজের বিবরণ লোড করতে সমস্যা হয়েছে।</p>`;
           }
         } else {
