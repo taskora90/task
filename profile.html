@@ -6,6 +6,178 @@
     <title>প্রোফাইল</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f5f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding-bottom: 70px;
+        }
+        .profile-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        /* ইউজার স্ট্যাটাস হেডার (Ash Theme) */
+        .user-status-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            border-left: 5px solid #4c566a;
+        }
+        .user-avatar {
+            font-size: 35px;
+            color: #4c566a;
+            background: #e5e9f0;
+            width: 65px;
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        .user-info-text h3 {
+            margin: 0 0 5px 0;
+            color: #2e3440;
+            font-size: 16px;
+        }
+        .user-info-text p {
+            margin: 3px 0;
+            color: #4c566a;
+            font-size: 13px;
+        }
+        /* মোট আয় বক্স */
+        .total-earn-box {
+            background: linear-gradient(135deg, #3b4252, #434c5e);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .total-earn-box p {
+            margin: 0;
+            font-size: 14px;
+            color: #d8dee9;
+        }
+        .total-earn-box h2 {
+            margin: 8px 0 0 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        /* ব্যালেন্স গ্রিড */
+        .balance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .balance-box {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+            border-top: 3px solid #6b7280;
+        }
+        .balance-box h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: #4c566a;
+        }
+        .balance-box p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2e3440;
+        }
+        .dark-box {
+            background: #e5e9f0;
+            border-top-color: #3b4252;
+        }
+        /* মেনু লিঙ্কসমূহ */
+        .menu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .menu-item {
+            background: #ffffff;
+            color: #2e3440;
+            padding: 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .menu-item::after {
+            content: "\f054";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .menu-item:hover {
+            background: #f1f5f9;
+        }
+        /* লগআউট বাটন */
+        .logout-container {
+            text-align: center;
+        }
+        .logout-btn {
+            display: block;
+            background: #ef4444;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(239, 68, 68, 0.2);
+        }
+        /* নিচের নেভবার */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            max-width: 500px;
+            margin: 0 auto;
+            z-index: 1000;
+        }
+        .nav-item {
+            text-align: center;
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item i {
+            font-size: 18px;
+        }
+        .nav-item.active {
+            color: #3b4252;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
@@ -17,7 +189,7 @@
                 <i class="fa-solid fa-user"></i>
             </div>
             <div class="user-info-text">
-                <h3 id="userPackageName" style="margin: 0 0 5px 0; color: #2b78e4; font-size: 16px;">প্যাকেজ নির্বাচন করা হয়নি</h3>
+                <h3 id="userPackageName">প্যাকেজ নির্বাচন করা হয়নি</h3>
                 <p>নাম: <span id="userName">লোড হচ্ছে...</span></p>
                 <p>মোবাইল নাম্বার: <span id="userPhone">লোড হচ্ছে...</span></p>
                 <p>প্যাকেজ ফি: ৳<span id="userPackageFee">০</span></p>
@@ -29,6 +201,7 @@
             <p>মোট আয়</p>
             <h2 id="userTotalEarned">0.00</h2>
         </div>
+
         <!-- ব্যালেন্স ও আয় সমূহ গ্রিড -->
         <div class="balance-grid">
             <div class="balance-box">
@@ -72,6 +245,7 @@
             </a>
         </div>
     </div>
+
     <!-- নিচের নেভবার -->
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
