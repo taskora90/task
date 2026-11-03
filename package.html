@@ -65,20 +65,6 @@
         <div class="card" id="pkg-card-4">
             <h3>টাস্ক প্যাকেজ ৪</h3>
             <p>প্রতিদিন ২৫টি টাস্ক</p>
-            <p>আপগ্রেড করলে ৩টি লাকি স্পিন</p>
-            <div class="price">মূল্য: ৳ ৭৫০০</div>
-            <button class="btn-buy" id="btn-task.4" onclick="buyPackage('task.4', 7500, 4)">প্যাকেজ কিনুন</button>
-        </div>
-    </div>
-    
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
-        <a href="task.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
-        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
-        <a href="package.html" class="nav-item active"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
-    </nav>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -191,7 +177,7 @@
             luckySpins: increment(bonusSpins)
           });
 
-          // ২. রেফারকারীর (আপলাইনার) কমিশন এবং স্পিন বোনাস লজিক
+          // ২. রেফারকারীর (আপলাইনার) সঠিক ওয়ালেটে কমিশন ও বোনাস পাঠানোর লজিক
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -209,15 +195,16 @@
             }
 
             if (referrerRef) {
-              const commissionAmount = price * 0.10; // ১০% নগদ কমিশন
-              
-              // রেফারকারীর মাই ক্যাশ, টিম কমিশন, আজকের টিম কমিশন, মোট আয় এবং লাকি স্পিন আপডেট
+              const commissionAmount = price * 0.10; // ১০% কমিশন
+
+              // রেফারকারীর 'মাই ক্যাশ' সুরক্ষিত রেখে সঠিক ফিল্ডগুলোতে টাকা আপডেট করা হলো
               await updateDoc(referrerRef, {
-                myCash: increment(commissionAmount),
-                teamCommission: increment(commissionAmount),
-                todayTeamCommission: increment(commissionAmount),
-                totalEarned: increment(commissionAmount),
-                luckySpins: increment(bonusSpins) // ক্রেতা যতটি স্পিন পাবে, রেফারকারীও সমপরিমাণ স্পিন বোনাস পাবেন
+                inviteEarnings: increment(commissionAmount),       // আমন্ত্রণ আয়
+                teamCommission: increment(commissionAmount),     // টিম কমিশন
+                todayTeamCommission: increment(commissionAmount),// আজকের টিম কমিশন
+                taskCash: increment(commissionAmount),           // টাস্ক ক্যাশ
+                totalEarned: increment(commissionAmount),        // মোট আয়
+                luckySpins: increment(bonusSpins)                // লাকি স্পিন বোনাস
               });
             }
           }
@@ -229,7 +216,7 @@
           if (bonusSpins > 0) {
             msg += ` এবং ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
           }
-          
+
           alert(msg);
           location.reload();
 
