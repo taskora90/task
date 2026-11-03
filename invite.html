@@ -7,8 +7,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f5f7;
+      color: #2e3440;
       margin: 0;
       padding: 20px;
     }
@@ -16,28 +17,34 @@
       max-width: 450px;
       margin: 0 auto;
       background: #fff;
-      padding: 20px;
+      padding: 25px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       text-align: center;
+      border-top: 4px solid #4c566a;
     }
     .header h2 {
-      color: #2b2d42;
-      margin-bottom: 10px;
+      color: #2e3440;
+      margin-bottom: 8px;
+      font-size: 20px;
+    }
+    .header p {
+      color: #4c566a;
+      font-size: 13px;
     }
     .referral-box {
       background: #f8f9fa;
-      border: 1px dashed #6c757d;
-      padding: 15px;
-      border-radius: 8px;
+      border: 1px dashed #4c566a;
+      padding: 20px;
+      border-radius: 10px;
       margin: 20px 0;
     }
     .ref-code {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
-      color: #007bff;
+      color: #3b4252;
       letter-spacing: 2px;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
     .input-group {
       display: flex;
@@ -46,27 +53,36 @@
     .input-group input {
       flex: 1;
       padding: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid #d8dee9;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 13px;
+      background: #fff;
+      color: #4c566a;
     }
     .copy-btn {
-      background: #28a745;
+      background: #3b4252;
       color: white;
       border: none;
-      padding: 10px 15px;
+      padding: 10px 18px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: bold;
+      font-size: 14px;
+      transition: background 0.2s;
     }
     .copy-btn:hover {
-      background: #218838;
+      background: #434c5e;
     }
     .back-btn {
       display: inline-block;
       margin-top: 15px;
-      color: #6c757d;
+      color: #4c566a;
       text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .back-btn:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -74,21 +90,21 @@
 
   <div class="container">
     <div class="header">
-      <h2>বন্ধুদের আমন্ত্রণ জানান</h2>
-      <p style="color: #6c757d; font-size: 14px;">আপনার রেফারেল লিংক ব্যবহার করে বন্ধুদের একাউন্ট খোলাতে শেয়ার করুন।</p>
+      <h2><i class="fa-solid fa-users"></i> বন্ধুদের আমন্ত্রণ জানান</h2>
+      <p>আপনার রেফারেল লিংক শেয়ার করে বন্ধুদের অ্যাকাউন্ট খোলাতে সাহায্য করুন।</p>
     </div>
 
     <div class="referral-box">
-      <div style="font-size: 14px; color: #555;">আপনার রেফারেল কোড:</div>
+      <div style="font-size: 13px; color: #4c566a; margin-bottom: 5px;">আপনার রেফারেল কোড:</div>
       <div class="ref-code" id="userRefCode">---</div>
-      
+
       <div class="input-group">
         <input type="text" id="refLink" readonly value="লিংক লোড হচ্ছে...">
-        <button class="copy-btn" onclick="copyLink()">কপি</button>
+        <button class="copy-btn" onclick="copyLink()"><i class="fa-solid fa-copy"></i> কপি</button>
       </div>
     </div>
 
-    <a href="index.html" class="back-btn">← হোম পেজে ফিরে যান</a>
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> হোম পেজে ফিরে যান</a>
   </div>
 
   <script type="module">
@@ -120,16 +136,13 @@
             let userData = userSnap.data();
             let currentUserCode = userData.referralCode;
 
-            // যদি ডাটাবেজে কোড না থাকে, তবে নতুন তৈরি করে সেভ হবে
             if (!currentUserCode) {
               currentUserCode = 'REF' + Math.floor(100000 + Math.random() * 900000);
               await setDoc(userRef, { referralCode: currentUserCode }, { merge: true });
             }
 
-            // স্ক্রিনে কোড বসানো
             document.getElementById('userRefCode').innerText = currentUserCode;
 
-            // সম্পূর্ণ রেজিস্ট্রেশন লিংক তৈরি করা
             const baseUrl = window.location.origin + window.location.pathname.replace('invite.html', 'register.html');
             const fullInviteLink = baseUrl + '?ref=' + currentUserCode;
 
@@ -143,11 +156,10 @@
       }
     });
 
-    // ক্লিপবোর্ডে কপি করার ফাংশন
     window.copyLink = function() {
       const linkInput = document.getElementById('refLink');
       linkInput.select();
-      linkInput.setSelectionRange(0, 99999); // মোবাইল ডিভাইসের জন্য
+      linkInput.setSelectionRange(0, 99999); 
       navigator.clipboard.writeText(linkInput.value);
       alert('রেফারেল লিংক কপি করা হয়েছে!');
     }
