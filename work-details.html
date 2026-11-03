@@ -7,19 +7,27 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        body {
+            background-color: #f4f5f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
         .work-container {
             max-width: 500px;
             margin: 0 auto;
             padding: 15px;
         }
+        /* Ash Theme Header */
         .header-bar {
             display: flex;
             align-items: center;
-            background-color: #2b78e4;
+            background-color: #3b4252;
             color: white;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .header-bar a {
             color: white;
@@ -40,15 +48,16 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-left: 4px solid #6b7280;
         }
         .task-info h4 {
             margin: 0 0 5px 0;
-            color: #333;
+            color: #2e3440;
             font-size: 15px;
         }
         .task-info p {
             margin: 0;
-            color: #777;
+            color: #4c566a;
             font-size: 12px;
         }
         .task-right {
@@ -56,19 +65,14 @@
         }
         .task-amount {
             font-weight: bold;
-            color: #28a745;
+            color: #10b981;
             font-size: 15px;
-        }
-        .task-spin {
-            font-size: 11px;
-            color: #e67e22;
-            margin-top: 3px;
-            font-weight: bold;
         }
         .no-data {
             text-align: center;
-            color: #777;
+            color: #4c566a;
             margin-top: 30px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -87,7 +91,7 @@
         </div>
     </div>
 
-    <!-- Firebase Logic to Fetch Earnings & Transaction Details -->
+    <!-- Firebase Logic to Fetch Task History -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -112,49 +116,26 @@
           const container = document.getElementById("taskListContainer");
 
           try {
-            // earningsHistory সাব-কালেকশন থেকে সমস্ত আয়ের ইতিহাস ফেচ করা
-            const earningsRef = collection(db, "users", user.uid, "earningsHistory");
+            // taskHistory সাব-কালেকশন থেকে আয়ের ইতিহাস ফেচ করা হচ্ছে
+            const earningsRef = collection(db, "users", user.uid, "taskHistory");
             const querySnapshot = await getDocs(earningsRef);
 
             if (querySnapshot.empty) {
-              container.innerHTML = `<p class="no-data">এখনো কোনো আয়ের বিবরণ নেই।</p>`;
+              container.innerHTML = `<p class="no-data">এখনো কোনো কাজের বিবরণ নেই।</p>`;
               return;
             }
 
             container.innerHTML = "";
-            let count = 1;
             querySnapshot.forEach((doc) => {
               const data = doc.data();
-              
-              // বিভিন্ন ট্রানজ্যাকশন টাইপ অনুযায়ী টাইটেল ও বিবরণ সেট করা
-              let title = "টাস্ক ইনকাম সম্পন্ন";
-              let desc = data.taskName || `ডেইলি টাস্ক ${count}`;
-              let amount = data.amount || 0;
-              let spinsText = "";
 
-              if (data.type === "package_bonus") {
-                title = "প্যাকেজ ক্যাশ বোনাস";
-                desc = data.description || "প্যাকেজ ক্রয়ের ক্যাশ বোনাস";
-                if (data.spins && data.spins > 0) {
-                  spinsText = `+${data.spins} লাকি স্পিন`;
-                }
-              } else if (data.type === "team_commission") {
-                title = "টিম কমিশন";
-                desc = data.description || "রেফারেল টিম কমিশন";
-                if (data.spins && data.spins > 0) {
-                  spinsText = `+${data.spins} লাকি স্পিন`;
-                }
-              } else if (data.type === "task_income" || !data.type) {
-                title = "টাস্ক ইনকাম সম্পন্ন";
-                desc = data.taskName || `টাস্ক #${count}`;
-              }
+              let title = `টাস্ক #${data.taskNumber || 'কম্প্লিট'}`;
+              let desc = "ডেইলি ভিডিও টাস্ক সফলভাবে সম্পন্ন হয়েছে";
+              let amount = data.amount || 10;
 
-              // তারিখ বা সময় ফরম্যাট হ্যান্ডেল করা
               let timeStr = "আজ";
               if (data.timestamp && data.timestamp.toDate) {
                 timeStr = data.timestamp.toDate().toLocaleString('bn-BD');
-              } else if (data.date) {
-                timeStr = data.date;
               }
 
               const itemHTML = `
@@ -166,12 +147,10 @@
                     </div>
                     <div class="task-right">
                         <div class="task-amount">+৳${amount}</div>
-                        ${spinsText ? `<div class="task-spin"><i class="fa-solid fa-gift"></i> ${spinsText}</div>` : ""}
                     </div>
                 </div>
               `;
               container.innerHTML += itemHTML;
-              count++;
             });
 
           } catch (error) {
