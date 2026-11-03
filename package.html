@@ -70,6 +70,7 @@
             <button class="btn-buy" id="btn-task.4" onclick="buyPackage('task.4', 7500, 4)">প্যাকেজ কিনুন</button>
         </div>
     </div>
+    
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
         <a href="task.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
@@ -164,14 +165,28 @@
           const userDocRef = doc(db, "users", currentUser.uid);
 
           let bonusSpins = 0;
-          if (targetLevel === 2) bonusSpins = 1;
-          else if (targetLevel === 3) bonusSpins = 2;
-          else if (targetLevel === 4) bonusSpins = 3;
+          let cashBonus = 0;
 
-          // ১. ইউজারের প্যাকেজ আপডেট, টাকা কাটা ও স্পিন যোগ করা
+          // প্যাকেজ অনুযায়ী স্পিন এবং টাস্ক ক্যাশ বোনাস নির্ধারণ
+          if (targetLevel === 1) {
+            cashBonus = 135;
+          } else if (targetLevel === 2) {
+            bonusSpins = 1;
+            cashBonus = 235;
+          } else if (targetLevel === 3) {
+            bonusSpins = 2;
+            cashBonus = 350;
+          } else if (targetLevel === 4) {
+            bonusSpins = 3;
+            cashBonus = 475;
+          }
+
+          // ১. ইউজারের প্যাকেজ আপডেট, টাকা কাটা, স্পিন ও টাস্ক ক্যাশ বোনাস যোগ করা
           await updateDoc(userDocRef, {
             package: packageId,
             myCash: increment(-price),
+            taskCash: increment(cashBonus),
+            totalEarned: increment(cashBonus),
             luckySpins: increment(bonusSpins)
           });
 
@@ -179,40 +194,37 @@
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
-            const referrerRef = doc(db, "users", referrerCode);
-            const referrerSnap = await getDoc(referrerRef);
-
-            const commissionAmount = price * 0.10;
+            let referrerRef = null;
+            let referrerSnap = await getDoc(doc(db, "users", referrerCode));
 
             if (referrerSnap.exists()) {
-              // যদি referredBy সরাসরি রেফারারের UID বা Document ID হয়
+              referrerRef = doc(db, "users", referrerCode);
+            } else {
+              const q = query(collection(db, "users"), where("referralCode", "==", referrerCode));
+              const querySnapshot = await getDocs(q);
+              if (!querySnapshot.empty) {
+                referrerRef = doc(db, "users", querySnapshot.docs[0].id);
+              }
+            }
+
+            if (referrerRef) {
+              const commissionAmount = price * 0.10;
               await updateDoc(referrerRef, {
                 myCash: increment(commissionAmount),
                 teamCommission: increment(commissionAmount),
                 totalEarned: increment(commissionAmount)
               });
-            } else {
-              // যদি referredBy কোনো রেফারেল কোড (যেমন: REF123456) হয়, তবে কুয়েরি করে বের করা
-              const q = query(collection(db, "users"), where("referralCode", "==", referrerCode));
-              const querySnapshot = await getDocs(q);
-
-              if (!querySnapshot.empty) {
-                const referrerDocSnap = querySnapshot.docs[0];
-                const refRef = doc(db, "users", referrerDocSnap.id);
-
-                await updateDoc(refRef, {
-                  myCash: increment(commissionAmount),
-                  teamCommission: increment(commissionAmount),
-                  totalEarned: increment(commissionAmount)
-                });
-              }
             }
           }
 
-          let msg = "অভিনন্দন! আপনার প্যাকেজ সফলভাবে সক্রিয় হয়েছে।";
-          if (bonusSpins > 0) {
-            msg += ` আপনি বোনাস হিসেবে ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
+          let msg = `অভিনন্দন! আপনার প্যাকেজ সফলভাবে সক্রিয় হয়েছে।`;
+          if (cashBonus > 0) {
+            msg += ` আপনি বোনাস হিসেবে ৳ ${cashBonus} টাস্ক ক্যাশ পেয়েছেন!`;
           }
+          if (bonusSpins > 0) {
+            msg += ` এবং ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
+          }
+          
           alert(msg);
           location.reload();
 
