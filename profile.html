@@ -4,186 +4,304 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>প্রোফাইল</title>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Hind Siliguri', sans-serif;
+    }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f5f7;
-      color: #2e3440;
+      background-color: #f6f8fa;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding-bottom: 70px;
     }
 
-    /* শীর্ষ ব্যানার / হেডার */
-    .top-banner {
+    .app-container {
       width: 100%;
-      background: #4c566a;
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .top-banner h2 { font-size: 18px; font-weight: bold; }
-    .logout-btn {
-      background: #bf616a;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .logout-btn:hover { background: #d08770; }
-
-    .container {
-      width: 100%;
-      max-width: 450px;
-      padding: 20px;
+      max-width: 412px;
+      background-color: #f6f8fa;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      padding: 16px 16px 75px 16px;
+      position: relative;
     }
 
-    /* প্রোফাইল ইনফো কার্ড (নাম, প্যাকেজ ও ফি) */
+    /* Top Profile Card */
     .profile-card {
       background: #ffffff;
-      padding: 20px;
       border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      border-top: 4px solid #4c566a;
-      text-align: center;
-    }
-    .profile-card h3 {
-      font-size: 20px;
-      color: #2e3440;
-      margin-bottom: 8px;
-    }
-    .profile-card p {
-      font-size: 14px;
-      color: #4c566a;
-      margin: 4px 0;
-    }
-    .package-badge {
-      display: inline-block;
-      background: #e5e9f0;
-      color: #3b4252;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: bold;
-      margin-top: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-left: 5px solid #2d3748;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      margin-bottom: 12px;
+      position: relative;
     }
 
-    /* ব্যালেন্স ও স্ট্যাটাস সেকশন */
+    .avatar {
+      width: 58px;
+      height: 58px;
+      background-color: #cbd5e1;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #64748b;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .profile-info h3 {
+      font-size: 18px;
+      color: #1e293b;
+      margin-bottom: 2px;
+      font-weight: 700;
+    }
+
+    .profile-info p {
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.35;
+    }
+
+    .logout-icon {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #fee2e2;
+      color: #ef4444;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Total Earnings Card */
+    .total-card {
+      background-color: #2d3748;
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .total-card p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .total-card h2 {
+      font-size: 28px;
+      margin-top: 4px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* Stats Grid */
     .stats-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 15px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
     }
+
     .stat-box {
-      background: #ffffff;
-      padding: 15px 20px;
+      background-color: #ffffff;
       border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      border-bottom: 3px solid #2d3748;
+    }
+
+    .stat-box p {
+      font-size: 13px;
+      color: #475569;
+      margin-bottom: 3px;
+    }
+
+    .stat-box h4 {
+      font-size: 17px;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    /* Menu Options */
+    .menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .menu-item {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-left: 4px solid #4c566a;
-    }
-    .stat-box span {
-      font-size: 14px;
-      color: #4c566a;
-      font-weight: bold;
-    }
-    .stat-value {
-      font-size: 18px;
-      font-weight: bold;
-      color: #2e3440;
+      text-decoration: none;
+      color: #1e293b;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    /* নিচের নেভবার */
+    .menu-item i {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    /* Bottom Navigation */
     .bottom-nav {
-      position: fixed;
+      position: absolute;
       bottom: 0;
       left: 0;
-      right: 0;
-      background: #ffffff;
+      width: 100%;
+      background-color: #ffffff;
       display: flex;
       justify-content: space-around;
       padding: 10px 0;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-      max-width: 450px;
-      margin: 0 auto;
-      z-index: 1000;
+      border-top: 1px solid #e2e8f0;
     }
-    .nav-item {
-      text-align: center;
-      text-decoration: none;
-      color: #6b7280;
-      font-size: 11px;
+
+    .nav-link {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      color: #64748b;
+      text-decoration: none;
+      font-size: 12px;
     }
-    .nav-item i { font-size: 18px; }
-    .nav-item.active { color: #3b4252; font-weight: bold; }
+
+    .nav-link i {
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .nav-link.active {
+      color: #2d3748;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
 
-  <!-- শীর্ষ ব্যানার (লগআউট বাটন সহ) -->
-  <header class="top-banner">
-    <h2><i class="fa-solid fa-user-circle"></i> প্রোফাইল</h2>
-    <button class="logout-btn" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> লগআউট</button>
-  </header>
-
-  <div class="container">
-    <!-- প্রোফাইল ইনফো (নাম, প্যাকেজ ও ফি) -->
+  <div class="app-container">
+    
+    <!-- Profile Card Header -->
     <div class="profile-card">
-      <h3 id="userName">লোড হচ্ছে...</h3>
-      <p id="userEmail">---</p>
-      <div class="package-badge" id="packageDisplay">প্যাকেজ: লোড হচ্ছে...</div>
+      <div class="avatar">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div class="profile-info">
+        <h3 id="packageName">প্যাকেজ: লোড হচ্ছে...</h3>
+        <p>নাম: <span id="userName">লোড হচ্ছে...</span></p>
+        <p>মোবাইল নাম্বার: <span id="userPhone">---</span></p>
+        <p>প্যাকেজ ফি: ৳<span id="packagePrice">0</span></p>
+      </div>
+      <button class="logout-icon" title="লগআউট" onclick="logoutUser()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
     </div>
 
-    <!-- স্ট্যাটাস ফিল্ডসমূহ -->
+    <!-- Total Income -->
+    <div class="total-card">
+      <p>মোট আয়</p>
+      <h2><span id="totalIncome">0.00</span></h2>
+    </div>
+
+    <!-- Stats Grid -->
     <div class="stats-grid">
       <div class="stat-box">
-        <span>মাই ক্যাশ (রিচার্জ):</span>
-        <span class="stat-value">৳ <span id="myCash">0.00</span></span>
+        <p>টিম কমিশন</p>
+        <h4><span id="teamCommission">0.00</span></h4>
       </div>
       <div class="stat-box">
-        <span>টাস্ক ক্যাশ:</span>
-        <span class="stat-value">৳ <span id="taskCash">0.00</span></span>
+        <p>আমন্ত্রণ আয়</p>
+        <h4><span id="inviteIncome">0.00</span></h4>
       </div>
       <div class="stat-box">
-        <span>টিম কমিশন:</span>
-        <span class="stat-value">৳ <span id="teamCommission">0.00</span></span>
+        <p>ডেইলি টাস্ক</p>
+        <h4><span id="dailyTask">0.00</span></h4>
       </div>
       <div class="stat-box">
-        <span>অবশিষ্ট লাকি স্পিন:</span>
-        <span class="stat-value"><span id="luckySpins">0</span> টি</span>
+        <p>আজকের টিম কমিশন</p>
+        <h4><span id="todayTeamCommission">0.00</span></h4>
+      </div>
+      <div class="stat-box">
+        <p>মাই ক্যাশ</p>
+        <h4><span id="myCash">0.00</span></h4>
+      </div>
+      <div class="stat-box">
+        <p>টাস্ক ক্যাশ</p>
+        <h4><span id="taskCash">0.00</span></h4>
       </div>
     </div>
+
+    <!-- Action Links -->
+    <div class="menu-list">
+      <a href="work-details.html" class="menu-item">
+        <span>কাজের বিবরণ</span>
+        <i class="fa-solid fa-chevron-right"></i>
+      </a>
+      <a href="withdraw-records.html" class="menu-item">
+        <span>টাকা উত্তোলনের রেকর্ড</span>
+        <i class="fa-solid fa-chevron-right"></i>
+      </a>
+      <a href="recharge-records.html" class="menu-item">
+        <span>রিচার্জ রেকর্ড</span>
+        <i class="fa-solid fa-chevron-right"></i>
+      </a>
+      <a href="guide.html" class="menu-item">
+        <span>কর্মী নির্দেশিকা</span>
+        <i class="fa-solid fa-chevron-right"></i>
+      </a>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <a href="index.html" class="nav-link">
+        <i class="fa-solid fa-house"></i>
+        <span>হোম</span>
+      </a>
+      <a href="task.html" class="nav-link">
+        <i class="fa-solid fa-list-check"></i>
+        <span>টাস্ক</span>
+      </a>
+      <a href="team.html" class="nav-link">
+        <i class="fa-solid fa-users"></i>
+        <span>টিম</span>
+      </a>
+      <a href="package.html" class="nav-link">
+        <i class="fa-solid fa-box"></i>
+        <span>প্যাকেজ</span>
+      </a>
+      <a href="profile.html" class="nav-link active">
+        <i class="fa-solid fa-user"></i>
+        <span>প্রোফাইল</span>
+      </a>
+    </div>
+
   </div>
 
-  <!-- নিচের নেভবার -->
-  <nav class="bottom-nav">
-    <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
-    <a href="task.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
-    <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
-    <a href="package.html" class="nav-item"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
-    <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
-  </nav>
-
-  <!-- Firebase Script & Integration -->
+  <!-- Firebase Script Integration -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -203,12 +321,11 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // প্যাকেজ নাম এবং ফি এর তালিকা
     const packageDetails = {
-      "task.1": { name: "টাস্ক প্যাকেজ ১", price: "৩০০০" },
-      "task.2": { name: "টাস্ক প্যাকেজ ২", price: "৪৫০০" },
-      "task.3": { name: "টাস্ক প্যাকেজ ৩", price: "৬০০০" },
-      "task.4": { name: "টাস্ক প্যাকেজ ৪", price: "৭৫০০" }
+      "task.1": { name: "টাস্ক প্যাকেজ ১", price: "3000" },
+      "task.2": { name: "টাস্ক প্যাকেজ ২", price: "4500" },
+      "task.3": { name: "টাস্ক প্যাকেজ ৩", price: "6000" },
+      "task.4": { name: "টাস্ক প্যাকেজ ৪", price: "7500" }
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -220,24 +337,39 @@
           if (userDoc.exists()) {
             const data = userDoc.data();
 
-            // নাম এবং ইমেইল সেট করা
+            // নাম ও ফোন নাম্বার
             document.getElementById('userName').innerText = data.name || data.fullName || "ইউজার";
-            document.getElementById('userEmail').innerText = user.email || data.phone || "";
+            document.getElementById('userPhone').innerText = data.phone || data.mobile || user.phoneNumber || "---";
 
-            // প্যাকেজ ও ফি দেখানো
+            // প্যাকেজ তথ্য
             const pkgKey = data.package;
             if (pkgKey && packageDetails[pkgKey]) {
               const pkg = packageDetails[pkgKey];
-              document.getElementById('packageDisplay').innerText = `${pkg.name} (ফি: ৳ ${pkg.price})`;
+              document.getElementById('packageName').innerText = pkg.name;
+              document.getElementById('packagePrice').innerText = pkg.price;
             } else {
-              document.getElementById('packageDisplay').innerText = "কোনো প্যাকেজ সক্রিয় নেই";
+              document.getElementById('packageName').innerText = "কোনো প্যাকেজ নেই";
+              document.getElementById('packagePrice').innerText = "0";
             }
 
-            // ব্যালেন্স ও অন্যান্য ফিল্ড
-            document.getElementById('myCash').innerText = (data.myCash || 0).toFixed(2);
-            document.getElementById('taskCash').innerText = (data.taskCash || 0).toFixed(2);
-            document.getElementById('teamCommission').innerText = (data.teamCommission || 0).toFixed(2);
-            document.getElementById('luckySpins').innerText = data.luckySpins || data.luckySpinCount || 0;
+            // ব্যালেন্স ও আয়ের হিসাব
+            const teamComm = Number(data.teamCommission || 0);
+            const inviteInc = Number(data.inviteIncome || 0);
+            const dailyTsk = Number(data.dailyTask || 0);
+            const todayTeamComm = Number(data.todayTeamCommission || 0);
+            const myCsh = Number(data.myCash || 0);
+            const taskCsh = Number(data.taskCash || 0);
+
+            // মোট আয় হিসাব
+            const total = teamComm + inviteInc + dailyTsk + todayTeamComm;
+
+            document.getElementById('totalIncome').innerText = total.toFixed(2);
+            document.getElementById('teamCommission').innerText = teamComm.toFixed(2);
+            document.getElementById('inviteIncome').innerText = inviteInc.toFixed(2);
+            document.getElementById('dailyTask').innerText = dailyTsk.toFixed(2);
+            document.getElementById('todayTeamCommission').innerText = todayTeamComm.toFixed(2);
+            document.getElementById('myCash').innerText = myCsh.toFixed(2);
+            document.getElementById('taskCash').innerText = taskCsh.toFixed(2);
           }
         } catch (error) {
           console.error("প্রোফাইল ডাটা লোড করতে সমস্যা:", error);
@@ -247,7 +379,6 @@
       }
     });
 
-    // লগআউট ফাংশন
     window.logoutUser = function() {
       signOut(auth).then(() => {
         window.location.href = "login.html";
