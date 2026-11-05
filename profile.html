@@ -1,12 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>প্রোফাইল</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <style>
     * {
       box-sizing: border-box;
@@ -34,7 +36,7 @@
       position: relative;
     }
 
-    /* Top Profile Card */
+    /* Profile Card */
     .profile-card {
       background: #ffffff;
       border-radius: 12px;
@@ -74,24 +76,7 @@
       line-height: 1.35;
     }
 
-    .logout-icon {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: #fee2e2;
-      color: #ef4444;
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    /* Total Earnings Card */
+    /* Total Earnings */
     .total-card {
       background-color: #2d3748;
       color: #ffffff;
@@ -113,7 +98,7 @@
       letter-spacing: 0.5px;
     }
 
-    /* Stats Grid */
+    /* Four Stats Cards */
     .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -142,7 +127,7 @@
       font-weight: 700;
     }
 
-    /* Menu Options */
+    /* Menu */
     .menu-list {
       display: flex;
       flex-direction: column;
@@ -166,6 +151,24 @@
     .menu-item i {
       color: #94a3b8;
       font-size: 14px;
+    }
+
+    /* Logout */
+    .logout-button {
+      width: 100%;
+      margin-top: 14px;
+      padding: 14px;
+      background: #fee2e2;
+      color: #ef4444;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }
 
     /* Bottom Navigation */
@@ -201,191 +204,251 @@
     }
   </style>
 </head>
+
 <body>
+<div class="app-container">
 
-  <div class="app-container">
-    
-    <!-- Profile Card Header -->
-    <div class="profile-card">
-      <div class="avatar">
-        <i class="fa-solid fa-user"></i>
-      </div>
-      <div class="profile-info">
-        <h3 id="packageName">প্যাকেজ: লোড হচ্ছে...</h3>
-        <p>নাম: <span id="userName">লোড হচ্ছে...</span></p>
-        <p>মোবাইল নাম্বার: <span id="userPhone">---</span></p>
-        <p>প্যাকেজ ফি: ৳<span id="packagePrice">0</span></p>
-      </div>
-      <button class="logout-icon" title="লগআউট" onclick="logoutUser()">
-        <i class="fa-solid fa-right-from-bracket"></i>
-      </button>
+  <!-- Profile Header -->
+  <div class="profile-card">
+    <div class="avatar">
+      <i class="fa-solid fa-user"></i>
     </div>
 
-    <!-- Total Income -->
-    <div class="total-card">
-      <p>মোট আয়</p>
-      <h2><span id="totalIncome">0.00</span></h2>
+    <div class="profile-info">
+      <h3 id="packageName">প্যাকেজ: লোড হচ্ছে...</h3>
+      <p>নাম: <span id="userName">লোড হচ্ছে...</span></p>
+      <p>মোবাইল নাম্বার: <span id="userPhone">---</span></p>
+      <p>প্যাকেজ ফি: ৳<span id="packagePrice">0</span></p>
+    </div>
+  </div>
+
+  <!-- Total Income -->
+  <div class="total-card">
+    <p>মোট আয়</p>
+    <h2><span id="totalIncome">0.00</span></h2>
+  </div>
+
+  <!-- Four Cards -->
+  <div class="stats-grid">
+
+    <div class="stat-box">
+      <p>টিম কমিশন</p>
+      <h4><span id="teamCommission">0.00</span></h4>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-box">
-        <p>টিম কমিশন</p>
-        <h4><span id="teamCommission">0.00</span></h4>
-      </div>
-      <div class="stat-box">
-        <p>আমন্ত্রণ আয়</p>
-        <h4><span id="inviteIncome">0.00</span></h4>
-      </div>
-      <div class="stat-box">
-        <p>ডেইলি টাস্ক</p>
-        <h4><span id="dailyTask">0.00</span></h4>
-      </div>
-      <div class="stat-box">
-        <p>আজকের টিম কমিশন</p>
-        <h4><span id="todayTeamCommission">0.00</span></h4>
-      </div>
-      <div class="stat-box">
-        <p>মাই ক্যাশ</p>
-        <h4><span id="myCash">0.00</span></h4>
-      </div>
-      <div class="stat-box">
-        <p>টাস্ক ক্যাশ</p>
-        <h4><span id="taskCash">0.00</span></h4>
-      </div>
+    <div class="stat-box">
+      <p>ডেইলি টাস্ক</p>
+      <h4><span id="dailyTask">0.00</span></h4>
     </div>
 
-    <!-- Action Links -->
-    <div class="menu-list">
-      <a href="work-details.html" class="menu-item">
-        <span>কাজের বিবরণ</span>
-        <i class="fa-solid fa-chevron-right"></i>
-      </a>
-      <a href="withdraw-records.html" class="menu-item">
-        <span>টাকা উত্তোলনের রেকর্ড</span>
-        <i class="fa-solid fa-chevron-right"></i>
-      </a>
-      <a href="recharge-records.html" class="menu-item">
-        <span>রিচার্জ রেকর্ড</span>
-        <i class="fa-solid fa-chevron-right"></i>
-      </a>
-      <a href="guide.html" class="menu-item">
-        <span>কর্মী নির্দেশিকা</span>
-        <i class="fa-solid fa-chevron-right"></i>
-      </a>
+    <div class="stat-box">
+      <p>মাই ক্যাশ</p>
+      <h4><span id="myCash">0.00</span></h4>
     </div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-      <a href="index.html" class="nav-link">
-        <i class="fa-solid fa-house"></i>
-        <span>হোম</span>
-      </a>
-      <a href="task.html" class="nav-link">
-        <i class="fa-solid fa-list-check"></i>
-        <span>টাস্ক</span>
-      </a>
-      <a href="team.html" class="nav-link">
-        <i class="fa-solid fa-users"></i>
-        <span>টিম</span>
-      </a>
-      <a href="package.html" class="nav-link">
-        <i class="fa-solid fa-box"></i>
-        <span>প্যাকেজ</span>
-      </a>
-      <a href="profile.html" class="nav-link active">
-        <i class="fa-solid fa-user"></i>
-        <span>প্রোফাইল</span>
-      </a>
+    <div class="stat-box">
+      <p>টাস্ক ক্যাশ</p>
+      <h4><span id="taskCash">0.00</span></h4>
     </div>
 
   </div>
 
-  <!-- Firebase Script Integration -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <!-- Action Links -->
+  <div class="menu-list">
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
-      authDomain: "taskora-b2b29.firebaseapp.com",
-      projectId: "taskora-b2b29",
-      storageBucket: "taskora-b2b29.firebasestorage.app",
-      messagingSenderId: "376297360134",
-      appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
-      measurementId: "G-9803M7DPM5"
-    };
+    <a href="work-details.html" class="menu-item">
+      <span>কাজের বিবরণ</span>
+      <i class="fa-solid fa-chevron-right"></i>
+    </a>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    <a href="withdraw-records.html" class="menu-item">
+      <span>টাকা উত্তোলনের রেকর্ড</span>
+      <i class="fa-solid fa-chevron-right"></i>
+    </a>
 
-    const packageDetails = {
-      "task.1": { name: "টাস্ক প্যাকেজ ১", price: "3000" },
-      "task.2": { name: "টাস্ক প্যাকেজ ২", price: "4500" },
-      "task.3": { name: "টাস্ক প্যাকেজ ৩", price: "6000" },
-      "task.4": { name: "টাস্ক প্যাকেজ ৪", price: "7500" }
-    };
+    <a href="recharge-records.html" class="menu-item">
+      <span>রিচার্জ রেকর্ড</span>
+      <i class="fa-solid fa-chevron-right"></i>
+    </a>
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
+    <a href="guide.html" class="menu-item">
+      <span>কর্মী নির্দেশিকা</span>
+      <i class="fa-solid fa-chevron-right"></i>
+    </a>
 
-          if (userDoc.exists()) {
-            const data = userDoc.data();
+  </div>
 
-            // নাম ও ফোন নাম্বার
-            document.getElementById('userName').innerText = data.name || data.fullName || "ইউজার";
-            document.getElementById('userPhone').innerText = data.phone || data.mobile || user.phoneNumber || "---";
+  <!-- Logout Button -->
+  <button class="logout-button" onclick="logoutUser()">
+    <i class="fa-solid fa-right-from-bracket"></i>
+    লগ আউট
+  </button>
 
-            // প্যাকেজ তথ্য
-            const pkgKey = data.package;
-            if (pkgKey && packageDetails[pkgKey]) {
-              const pkg = packageDetails[pkgKey];
-              document.getElementById('packageName').innerText = pkg.name;
-              document.getElementById('packagePrice').innerText = pkg.price;
-            } else {
-              document.getElementById('packageName').innerText = "কোনো প্যাকেজ নেই";
-              document.getElementById('packagePrice').innerText = "0";
-            }
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
 
-            // ব্যালেন্স ও আয়ের হিসাব
-            const teamComm = Number(data.teamCommission || 0);
-            const inviteInc = Number(data.inviteIncome || 0);
-            const dailyTsk = Number(data.dailyTask || 0);
-            const todayTeamComm = Number(data.todayTeamCommission || 0);
-            const myCsh = Number(data.myCash || 0);
-            const taskCsh = Number(data.taskCash || 0);
+    <a href="index.html" class="nav-link">
+      <i class="fa-solid fa-house"></i>
+      <span>হোম</span>
+    </a>
 
-            // মোট আয় হিসাব
-            const total = teamComm + inviteInc + dailyTsk + todayTeamComm;
+    <a href="task.html" class="nav-link">
+      <i class="fa-solid fa-list-check"></i>
+      <span>টাস্ক</span>
+    </a>
 
-            document.getElementById('totalIncome').innerText = total.toFixed(2);
-            document.getElementById('teamCommission').innerText = teamComm.toFixed(2);
-            document.getElementById('inviteIncome').innerText = inviteInc.toFixed(2);
-            document.getElementById('dailyTask').innerText = dailyTsk.toFixed(2);
-            document.getElementById('todayTeamCommission').innerText = todayTeamComm.toFixed(2);
-            document.getElementById('myCash').innerText = myCsh.toFixed(2);
-            document.getElementById('taskCash').innerText = taskCsh.toFixed(2);
+    <a href="team.html" class="nav-link">
+      <i class="fa-solid fa-users"></i>
+      <span>টিম</span>
+    </a>
+
+    <a href="package.html" class="nav-link">
+      <i class="fa-solid fa-box"></i>
+      <span>প্যাকেজ</span>
+    </a>
+
+    <a href="profile.html" class="nav-link active">
+      <i class="fa-solid fa-user"></i>
+      <span>প্রোফাইল</span>
+    </a>
+
+  </div>
+</div>
+
+<!-- Firebase Script -->
+<script type="module">
+
+  import {
+    initializeApp
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  import {
+    getFirestore,
+    doc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+    authDomain: "taskora-b2b29.firebaseapp.com",
+    projectId: "taskora-b2b29",
+    storageBucket: "taskora-b2b29.firebasestorage.app",
+    messagingSenderId: "376297360134",
+    appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+    measurementId: "G-9803M7DPM5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const packageDetails = {
+    "task.1": { name: "টাস্ক প্যাকেজ ১", price: "3000" },
+    "task.2": { name: "টাস্ক প্যাকেজ ২", price: "4500" },
+    "task.3": { name: "টাস্ক প্যাকেজ ৩", price: "6000" },
+    "task.4": { name: "টাস্ক প্যাকেজ ৪", price: "7500" }
+  };
+
+  onAuthStateChanged(auth, async (user) => {
+
+    if (user) {
+
+      try {
+
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+
+          const data = userDoc.data();
+
+          // নাম ও ফোন নাম্বার
+          document.getElementById('userName').innerText =
+            data.name || data.fullName || "ইউজার";
+
+          document.getElementById('userPhone').innerText =
+            data.phone || data.mobile || user.phoneNumber || "---";
+
+          // প্যাকেজ তথ্য
+          const pkgKey = data.package;
+
+          if (pkgKey && packageDetails[pkgKey]) {
+
+            const pkg = packageDetails[pkgKey];
+
+            document.getElementById('packageName').innerText = pkg.name;
+            document.getElementById('packagePrice').innerText = pkg.price;
+
+          } else {
+
+            document.getElementById('packageName').innerText = "কোনো প্যাকেজ নেই";
+            document.getElementById('packagePrice').innerText = "0";
+
           }
-        } catch (error) {
-          console.error("প্রোফাইল ডাটা লোড করতে সমস্যা:", error);
+
+          // Firebase থেকে আয়ের তথ্য
+          const teamComm = Number(data.teamCommission || 0);
+          const dailyTsk = Number(data.dailyTask || 0);
+          const myCsh = Number(data.myCash || 0);
+          const taskCsh = Number(data.taskCash || 0);
+
+          // মোট আয়: মাই ক্যাশ বাদে বাকি তিনটি
+          const total = teamComm + dailyTsk + taskCsh;
+
+          // স্ক্রিনে দেখানো
+          document.getElementById('totalIncome').innerText =
+            total.toFixed(2);
+
+          document.getElementById('teamCommission').innerText =
+            teamComm.toFixed(2);
+
+          document.getElementById('dailyTask').innerText =
+            dailyTsk.toFixed(2);
+
+          document.getElementById('myCash').innerText =
+            myCsh.toFixed(2);
+
+          document.getElementById('taskCash').innerText =
+            taskCsh.toFixed(2);
+
         }
-      } else {
-        window.location.href = "login.html";
+
+      } catch (error) {
+
+        console.error("প্রোফাইল ডাটা লোড করতে সমস্যা:", error);
+
       }
+
+    } else {
+
+      window.location.href = "login.html";
+
+    }
+
+  });
+
+  // Logout Function
+  window.logoutUser = function() {
+
+    signOut(auth).then(() => {
+
+      window.location.href = "login.html";
+
+    }).catch((error) => {
+
+      console.error("লগআউট করতে সমস্যা:", error);
+
     });
 
-    window.logoutUser = function() {
-      signOut(auth).then(() => {
-        window.location.href = "login.html";
-      }).catch((error) => {
-        console.error("লগআউট করতে সমস্যা:", error);
-      });
-    }
-  </script>
+  };
+
+</script>
+
 </body>
 </html>
