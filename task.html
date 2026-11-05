@@ -202,7 +202,7 @@
             timestamp: serverTimestamp()
           });
 
-          // ২. টিম কমিশন লজিক (পূর্বের নিয়মে লেভেল ১ ও লেভেল ২ কমিশন যথারীতি কাজ করবে)
+          // ২. টিম কমিশন লজিক (রেফারেল বা টিম কমিশন আগের নিয়মে বহাল আছে)
           const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
