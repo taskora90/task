@@ -395,15 +395,15 @@
 
           }
 
-          // Firebase থেকে আয়ের তথ্য
+          // Firebase থেকে সঠিক আয়ের তথ্য ফেচ করা
           const teamComm = Number(data.teamCommission || 0);
           const dailyTsk = Number(data.dailyTaskIncome || data.dailyTask || 0);
           const myCsh = Number(data.myCash || 0);
 
-          // টাস্ক ক্যাশ = ডেইলি টাস্ক + টিম কমিশন
-          const taskCsh = dailyTsk + teamComm;
+          // ডাটাবেসে থাকা মূল taskCash রিড করা, যদি না থাকে তবে ডেইলি টাস্ক + টিম কমিশন যোগ হবে
+          const taskCsh = Number(data.taskCash !== undefined ? data.taskCash : (dailyTsk + teamComm));
 
-          // মোট আয় = শুধুমাত্র টাস্ক ক্যাশের টাকা
+          // মোট আয় = টাস্ক ক্যাশ
           const total = taskCsh;
 
           // স্ক্রিনে দেখানো
