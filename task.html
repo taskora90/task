@@ -109,7 +109,7 @@
               currentUserData = userDoc.data();
               const userPackage = currentUserData.package;
 
-              // প্রতিদিন রাত ১২টার পর ডেইলি টাস্ক কাউন্ট ও ডেইলি ইনকাম রিসেট (শূন্য) হবে
+              // রাত ১২টার পর ডেইলি টাস্ক কাউন্ট ও ডেইলি ইনকাম রিসেট (শূন্য) হবে
               const todayStr = new Date().toDateString();
               if (currentUserData.lastTaskDate !== todayStr) {
                 await updateDoc(userDocRef, {
@@ -188,11 +188,11 @@
           const rewardAmount = activePackageRule.reward;
           const nextTaskNumber = currentTaskCount + 1;
 
-          // ১. টাস্কের টাকা ডেইলি টাস্ক (dailyTaskIncome) এবং মূল টাস্ক ক্যাশ (taskCash) উভয়ের সাথেই যুক্ত হবে
+          // কাজের টাকা সরাসরি dailyTaskIncome এবং taskCash উভয়েই জমা হবে যাতে টাস্ক ক্যাশ বাড়তেই থাকে
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
-            dailyTaskIncome: increment(rewardAmount), // ডেইলি টাস্কে জমা হবে
-            taskCash: increment(rewardAmount),        // টাস্ক ক্যাশেও জমা হয়ে জমতে থাকবে
+            dailyTaskIncome: increment(rewardAmount), 
+            taskCash: increment(rewardAmount),
             totalEarned: increment(rewardAmount)
           });
 
@@ -202,7 +202,7 @@
             timestamp: serverTimestamp()
           });
 
-          // ২. টিম কমিশন লজিক (রেফারেল বা টিম কমিশন আগের নিয়মে বহাল আছে)
+          // টিম কমিশন লজিক
           const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -226,7 +226,7 @@
               const level1Commission = rewardAmount * 0.10;
               await updateDoc(level1Ref, {
                 myCash: increment(level1Commission),
-                taskCash: increment(level1Commission), // কমিশনের টাকা টাস্ক ক্যাশে যোগ হবে
+                taskCash: increment(level1Commission),
                 teamCommission: increment(level1Commission),
                 todayTeamCommission: increment(level1Commission),
                 totalEarned: increment(level1Commission)
@@ -251,7 +251,7 @@
                   const level2Commission = rewardAmount * 0.04;
                   await updateDoc(level2Ref, {
                     myCash: increment(level2Commission),
-                    taskCash: increment(level2Commission), // লেভেল ২ কমিশনের টাকাও টাস্ক ক্যাশে যোগ হবে
+                    taskCash: increment(level2Commission),
                     teamCommission: increment(level2Commission),
                     todayTeamCommission: increment(level2Commission),
                     totalEarned: increment(level2Commission)
