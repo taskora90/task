@@ -399,10 +399,12 @@
           const teamComm = Number(data.teamCommission || 0);
           const dailyTsk = Number(data.dailyTaskIncome || data.dailyTask || 0);
           const myCsh = Number(data.myCash || 0);
-          const taskCsh = Number(data.taskCash || 0);
 
-          // মোট আয় হিসাব
-          const total = teamComm + dailyTsk + taskCsh;
+          // টাস্ক ক্যাশ = ডেইলি টাস্ক + টিম কমিশন
+          const taskCsh = dailyTsk + teamComm;
+
+          // মোট আয় = শুধুমাত্র টাস্ক ক্যাশের টাকা
+          const total = taskCsh;
 
           // স্ক্রিনে দেখানো
           document.getElementById('totalIncome').innerText =
