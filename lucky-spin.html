@@ -9,7 +9,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
-      background-color: #e5e5e5;
+      background-color: #f6f8fa;
       color: #333;
       display: flex;
       flex-direction: column;
@@ -20,7 +20,7 @@
     /* হেডার */
     .top-banner {
       width: 100%;
-      background: #777;
+      background: #2d3748;
       color: white;
       padding: 15px;
       display: flex;
@@ -44,7 +44,7 @@
     .reward-box p { font-size: 15px; color: #666; margin-bottom: 5px; font-weight: bold; }
     .reward-amount { font-size: 26px; font-weight: bold; color: #28a745; }
 
-    /* লাকি স্পিনের সংখ্যা বক্স (নতুন যুক্ত করা হয়েছে) */
+    /* লাকি স্পিনের সংখ্যা বক্স */
     .spin-count-box {
       background: white;
       padding: 10px;
@@ -53,7 +53,7 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       font-size: 15px;
       font-weight: bold;
-      color: #007bff;
+      color: #2d3748;
     }
 
     /* স্পিন হুইল কনটেইনার */
@@ -63,8 +63,8 @@
       height: 320px;
       margin: 0 auto;
       border-radius: 50%;
-      background: #8e8e8e;
-      border: 8px solid #666;
+      background: #cbd5e1;
+      border: 8px solid #2d3748;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -78,7 +78,7 @@
       border-radius: 50%;
       position: relative;
       transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);
-      background: #b0b0b0;
+      background: #e2e8f0;
     }
 
     /* চাকার আইটেম/বাটনসমূহ */
@@ -87,7 +87,7 @@
       width: 80px;
       height: 60px;
       background: #ffffff;
-      border: 2px solid #666;
+      border: 2px solid #cbd5e1;
       border-radius: 10px;
       display: flex;
       justify-content: center;
@@ -106,15 +106,15 @@
     .item-4 { bottom: 75px; left: 15px; }
     .item-5 { top: 75px; left: 15px; }
 
-    .try-again-text { color: #d93025; font-size: 13px; }
-    .money-text { color: #1e8e3e; font-size: 16px; }
+    .try-again-text { color: #dc3545; font-size: 13px; }
+    .money-text { color: #28a745; font-size: 16px; }
 
     /* শুরু বাটন (মাঝখানে) */
     .spin-btn {
       position: absolute;
       width: 90px;
       height: 90px;
-      background: #555;
+      background: #2d3748;
       color: #fff;
       border-radius: 50%;
       border: 4px solid #fff;
@@ -139,7 +139,7 @@
       height: 0;
       border-left: 12px solid transparent;
       border-right: 12px solid transparent;
-      border-top: 22px solid #d93025;
+      border-top: 22px solid #dc3545;
       z-index: 12;
     }
   </style>
@@ -252,7 +252,7 @@
       const degreesPerItem = 360 / items.length;
       const extraRounds = 360 * 5; 
       const targetDegree = extraRounds + (360 - (selectedIndex * degreesPerItem));
-      
+
       currentRotation += targetDegree;
       const wheel = document.getElementById('wheel');
       wheel.style.transform = `rotate(${currentRotation}deg)`;
@@ -262,7 +262,7 @@
         const prize = items[selectedIndex];
 
         try {
-          // স্পিন সংখ্যা ১ কমিয়ে দেওয়া এবং taskCash এ টাকা যোগ করা
+          // স্পিন সংখ্যা ১ কমানো এবং taskCash ও totalEarned এ পুরস্কারের টাকা যোগ করা
           let updateData = {
             luckySpinCount: increment(-1)
           };
@@ -282,7 +282,7 @@
             alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
           }
 
-          location.reload(); // পেজ রিলোড করে স্পিন কাউন্ট আপডেট করা
+          location.reload(); 
         } catch (error) {
           console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
           alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
