@@ -82,6 +82,10 @@
       const db = getFirestore(app);
 
       const packageRules = {
+        "টাস্ক প্যাকেজ ১": { maxTasks: 10, reward: 10 },
+        "টাস্ক প্যাকেজ ২": { maxTasks: 15, reward: 10 },
+        "টাস্ক প্যাকেজ ৩": { maxTasks: 20, reward: 10 },
+        "টাস্ক প্যাকেজ ৪": { maxTasks: 25, reward: 10 },
         "task.1": { maxTasks: 10, reward: 10 },
         "task.2": { maxTasks: 15, reward: 10 },
         "task.3": { maxTasks: 20, reward: 10 },
@@ -105,6 +109,7 @@
               currentUserData = userDoc.data();
               const userPackage = currentUserData.package;
 
+              // প্রতিদিন রাত ১২টার পর ডেইলি টাস্ক কাউন্ট ও ডেইলি ইনকাম রিসেট (শূন্য) হবে
               const todayStr = new Date().toDateString();
               if (currentUserData.lastTaskDate !== todayStr) {
                 await updateDoc(userDocRef, {
@@ -183,22 +188,21 @@
           const rewardAmount = activePackageRule.reward;
           const nextTaskNumber = currentTaskCount + 1;
 
-          // ১. ইউজারের নিজস্ব টাস্ক ইনকাম আপডেট
+          // ১. টাস্কের টাকা ডেইলি টাস্ক (dailyTaskIncome) এবং মূল টাস্ক ক্যাশ (taskCash) উভয়ের সাথেই যুক্ত হবে
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
-            dailyTaskIncome: increment(rewardAmount),
-            taskCash: increment(rewardAmount),
+            dailyTaskIncome: increment(rewardAmount), // ডেইলি টাস্কে জমা হবে
+            taskCash: increment(rewardAmount),        // টাস্ক ক্যাশেও জমা হয়ে জমতে থাকবে
             totalEarned: increment(rewardAmount)
           });
 
-          // ফায়ারবেসে টাস্ক হিস্ট্রি সেভ করা হচ্ছে (যা work-details.html পেজে দেখাবে)
           await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
             taskNumber: nextTaskNumber,
             amount: rewardAmount,
             timestamp: serverTimestamp()
           });
 
-          // ২. লেভেল ১ (১০%) এবং লেভেল ২ (৪%) টিম কমিশন লজিক
+          // ২. টিম কমিশন লজিক (পূর্বের নিয়মে লেভেল ১ ও লেভেল ২ কমিশন যথারীতি কাজ করবে)
           const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -222,6 +226,7 @@
               const level1Commission = rewardAmount * 0.10;
               await updateDoc(level1Ref, {
                 myCash: increment(level1Commission),
+                taskCash: increment(level1Commission), // কমিশনের টাকা টাস্ক ক্যাশে যোগ হবে
                 teamCommission: increment(level1Commission),
                 todayTeamCommission: increment(level1Commission),
                 totalEarned: increment(level1Commission)
@@ -246,6 +251,7 @@
                   const level2Commission = rewardAmount * 0.04;
                   await updateDoc(level2Ref, {
                     myCash: increment(level2Commission),
+                    taskCash: increment(level2Commission), // লেভেল ২ কমিশনের টাকাও টাস্ক ক্যাশে যোগ হবে
                     teamCommission: increment(level2Commission),
                     todayTeamCommission: increment(level2Commission),
                     totalEarned: increment(level2Commission)
@@ -255,7 +261,7 @@
             }
           }
 
-          alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার টাস্ক ক্যাশে যোগ করা হয়েছে।`);
+          alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার ডেইলি টাস্ক ও টাস্ক ক্যাশে যোগ হয়েছে।`);
           location.reload(); 
 
         } catch (error) {
