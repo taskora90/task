@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px 20px 80px 20px; }
+        body { font-family: Arial, sans-serif; background-color: #f6f8fa; margin: 0; padding: 20px 20px 80px 20px; }
         .task-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .task-header { text-align: center; margin-bottom: 20px; }
         .user-info-box { background: #eef2f5; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: center; }
@@ -15,8 +15,8 @@
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 6px; margin-bottom: 12px; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .btn-start { background-color: #007bff; color: white; }
-        .btn-start:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .btn-start { background-color: #2d3748; color: white; }
+        .btn-start:disabled { background-color: #cbd5e1; cursor: not-allowed; }
         .btn-claim { background-color: #28a745; color: white; }
         .timer-text { font-weight: bold; color: #dc3545; text-align: center; margin-top: 10px; }
         .no-package-box { text-align: center; padding: 30px 15px; }
@@ -27,7 +27,7 @@
     <div class="task-container">
         <div class="task-header">
             <h2><i class="fa-solid fa-list-check"></i>টাস্ক</h2>
-            <p style="font-size: 13px; color: #6c757d;">পয়েন্ট বা বোনাস আয় করুন</p>
+            <p style="font-size: 13px; color: #64748b;">পয়েন্ট বা বোনাস আয় করুন</p>
         </div>
 
         <div class="user-info-box" id="userInfoBox" style="display: none;">
@@ -51,15 +51,16 @@
 
         <div id="noPackageMsg" class="no-package-box" style="display: none;">
             <p style="font-size: 18px; color: #dc3545; font-weight: bold; margin-bottom: 20px;">কোনো সক্রিয় প্যাকেজ নেই! কাজ করতে প্যাকেজ কিনুন।</p>
-            <a href="package.html" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
+            <a href="package.html" style="display: inline-block; background-color: #2d3748; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
         </div>
     </div>  
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
-        <a href="task.html" class="nav-item active"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
-        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
-        <a href="package.html" class="nav-item"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
+    
+    <nav class="bottom-nav" style="position:fixed; bottom:0; left:0; width:100%; background:#fff; display:flex; justify-content:space-around; padding:10px 0; border-top:1px solid #e2e8f0;">
+        <a href="index.html" class="nav-item" style="color:#64748b; text-decoration:none; font-size:12px; text-align:center;"><i class="fa-solid fa-house" style="display:block; font-size:18px; margin-bottom:2px;"><span>হোম</span></a>
+        <a href="task.html" class="nav-item active" style="color:#2d3748; font-weight:700; text-decoration:none; font-size:12px; text-align:center;"><i class="fa-solid fa-list-check" style="display:block; font-size:18px; margin-bottom:2px;"><span>টাস্ক</span></a>
+        <a href="team.html" class="nav-item" style="color:#64748b; text-decoration:none; font-size:12px; text-align:center;"><i class="fa-solid fa-users" style="display:block; font-size:18px; margin-bottom:2px;"><span>টিম</span></a>
+        <a href="package.html" class="nav-item" style="color:#64748b; text-decoration:none; font-size:12px; text-align:center;"><i class="fa-solid fa-box" style="display:block; font-size:18px; margin-bottom:2px;"><span>প্যাকেজ</span></a>
+        <a href="profile.html" class="nav-item" style="color:#64748b; text-decoration:none; font-size:12px; text-align:center;"><i class="fa-solid fa-user" style="display:block; font-size:18px; margin-bottom:2px;"><span>প্রোফাইল</span></a>
     </nav>
 
     <script type="module">
@@ -188,7 +189,6 @@
           const rewardAmount = activePackageRule.reward;
           const nextTaskNumber = currentTaskCount + 1;
 
-          // কাজের টাকা সরাসরি dailyTaskIncome এবং taskCash উভয়েই জমা হবে যাতে টাস্ক ক্যাশ বাড়তেই থাকে
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
             dailyTaskIncome: increment(rewardAmount), 
@@ -202,7 +202,7 @@
             timestamp: serverTimestamp()
           });
 
-          // টিম কমিশন লজিক
+          // টিম কমিশন লজিক (এখানে myCash থেকে সরিয়ে শুধু teamCommission ও taskCash এ দেওয়া হয়েছে)
           const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -225,7 +225,6 @@
             if (level1Ref && level1Data) {
               const level1Commission = rewardAmount * 0.10;
               await updateDoc(level1Ref, {
-                myCash: increment(level1Commission),
                 taskCash: increment(level1Commission),
                 teamCommission: increment(level1Commission),
                 todayTeamCommission: increment(level1Commission),
@@ -250,7 +249,6 @@
                 if (level2Ref) {
                   const level2Commission = rewardAmount * 0.04;
                   await updateDoc(level2Ref, {
-                    myCash: increment(level2Commission),
                     taskCash: increment(level2Commission),
                     teamCommission: increment(level2Commission),
                     todayTeamCommission: increment(level2Commission),
