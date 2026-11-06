@@ -115,10 +115,26 @@
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const phone = document.getElementById('phoneInput').value.trim();
+      let phone = document.getElementById('phoneInput').value.trim();
       const password = document.getElementById('passwordInput').value;
       const submitBtn = document.getElementById('submitBtn');
 
+      // ১. বাংলা ডিজিট ইংরেজিতে কনভার্ট করা
+      const bengaliDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};
+      phone = phone.replace(/[০-৯]/g, match => bengaliDigits[match]).replace(/\s+/g, '');
+
+      // ২. ফোন নম্বরে স্বয়ংক্রিয়ভাবে +880 ফরম্যাট নিশ্চিত করা
+      if (!phone.startsWith('+88')) {
+        if (phone.startsWith('88')) {
+          phone = '+' + phone;
+        } else if (phone.startsWith('0')) {
+          phone = '+88' + phone;
+        } else {
+          phone = '+880' + phone;
+        }
+      }
+
+      // ৩. ব্যাকগ্রাউন্ড ভার্চুয়াল ইমেল তৈরি
       const virtualEmail = `${phone}@taskora.app`;
 
       submitBtn.disabled = true;
@@ -127,7 +143,7 @@
       try {
         await signInWithEmailAndPassword(auth, virtualEmail, password);
         alert("লগইন সফল হয়েছে!");
-        
+
         // সেশন ব্রাউজারে সঠিকভাবে সেট হওয়ার জন্য ৫০০ মিলি-সেকেন্ড ডিলে
         setTimeout(() => {
           window.location.href = "index.html";
