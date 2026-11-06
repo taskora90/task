@@ -73,11 +73,39 @@
 
     </section>
 
-    <!-- ৪. প্রমো ব্যানার (স্লাইডার/কারোসেল) -->
-    <section class="promo-slider">
-        <div class="slider-container">
-            <img id="slider-img" src="https://via.placeholder.com/600x250/808080/ffffff?text=প্রচারণার+ছবি+১" alt="Promo Banner">
-        </div>
+   <!-- ৪. প্রমো ব্যানার (স্লাইডার/কারোসেল) -->
+<section class="promo-slider" style="width: 100%; text-align: center; overflow: hidden;">
+    <div class="slider-container" style="width: 100%; max-width: 600px; margin: 0 auto;">
+        <img id="slider-img" src="https://raw.githubusercontent.com/taskora90/task/main/WhatsApp%20Image%202026-11-06%20at%203.32.56%20PM.jpeg" alt="" style="width: 100%; height: auto; border-radius: 8px; transition: opacity 0.5s ease-in-out; display: block;">
+    </div>
+</section>
+
+<!-- অটো স্লাইডার স্ক্রিপ্ট -->
+<script>
+    // এখানে আপনার স্লাইডারের সব ছবির লিংকগুলো দিয়ে দিন
+    const images = [
+        "https://raw.githubusercontent.com/taskora90/task/main/WhatsApp%20Image%202026-11-06%20at%203.32.56%20PM.jpeg", // ১ম ছবি
+        "আপনার_২য়_ছবির_raw_লিংক", // ২য় ছবি
+        "আপনার_৩য়_ছবির_raw_লিংক"  // ৩য় ছবি
+    ];
+
+    let currentIndex = 0;
+    const sliderImg = document.getElementById("slider-img");
+
+    function changeImage() {
+        currentIndex = (currentIndex + 1) % images.length;
+        sliderImg.style.opacity = 0; // স্মুথ ফেড আউট
+        
+        setTimeout(() => {
+            sliderImg.src = images[currentIndex];
+            sliderImg.style.opacity = 1; // স্মুথ ফেড ইন
+        }, 300);
+    }
+
+    // প্রতি ৩ সেকেন্ড (৩০০০ মিলিসেকেন্ড) পরপর ছবি পরিবর্তন হবে
+    setInterval(changeImage, 3000);
+</script>
+
     </section>
 
     <!-- ৫. বটম নেভিগেশন বার (৫টি মেনু) -->
