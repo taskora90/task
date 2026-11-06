@@ -89,7 +89,7 @@
         <input type="text" id="refInput" placeholder="কোনো রেফারেল নেই" readonly>
       </div>
 
-      <button type="submit" class="submit-btn" id="submitBtn">রেজিস্টার করুন</button>
+      <button type="submit" class="submit-btn" id="submitBtn">রেজিস্ট্রেশন করুন</button>
     </form>
   </div>
 
@@ -126,12 +126,28 @@
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const name = document.getElementById('nameInput').value;
-      const phone = document.getElementById('phoneInput').value.trim();
+      const name = document.getElementById('nameInput').value.trim();
+      let phone = document.getElementById('phoneInput').value.trim();
       const password = document.getElementById('passwordInput').value;
       const refCode = document.getElementById('refInput').value.trim();
       const submitBtn = document.getElementById('submitBtn');
 
+      // বাংলা সংখ্যা ইংরেজিতে রূপান্তর এবং স্পেস রিমুভ করা
+      const bengaliDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};
+      phone = phone.replace(/[০-৯]/g, match => bengaliDigits[match]).replace(/\s+/g, '');
+
+      // ফোন নম্বরের সাথে অটোমেটিক +880 যুক্ত করা
+      if (!phone.startsWith('+88')) {
+        if (phone.startsWith('88')) {
+          phone = '+' + phone;
+        } else if (phone.startsWith('0')) {
+          phone = '+88' + phone;
+        } else {
+          phone = '+880' + phone;
+        }
+      }
+
+      // ফায়ারবেসের জন্য ভার্চুয়াল ইমেল তৈরি (+88017XXXXXXXX@taskora.app)
       const virtualEmail = `${phone}@taskora.app`;
 
       submitBtn.disabled = true;
@@ -146,7 +162,7 @@
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           name: name,
-          phone: phone,
+          phone: phone, // ডেটাবেজে +880 সহ সেভ হবে
           taskCash: 0,
           myCash: 0,
           package: "none",
