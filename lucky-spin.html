@@ -275,7 +275,7 @@
           await updateDoc(userDocRef, updateData);
 
           if (prize.amount > 0) {
-            alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার টাস্ক ক্যাশে জমা হয়েছে।`);
+            alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার মাই ক্যাশে জমা হয়েছে।`);
             let currentReward = parseFloat(document.getElementById('reward-display').innerText);
             document.getElementById('reward-display').innerText = (currentReward + prize.amount).toFixed(2);
           } else {
