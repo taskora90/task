@@ -197,7 +197,7 @@
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
     </nav>
 
-    <script type="module">
+        <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
       import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -219,6 +219,14 @@
       let currentUser = null;
       let userData = null;
       const packageLevels = { "task.1": 1, "task.2": 2, "task.3": 3, "task.4": 4 };
+      
+      // প্রতিটি প্যাকেজের নির্দিষ্ট মূল্য (পূর্ববর্তী প্যাকেজের ৮০% হিসাব করার জন্য)
+      const packagePrices = {
+        "task.1": 3000,
+        "task.2": 4500,
+        "task.3": 6000,
+        "task.4": 7500
+      };
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -284,33 +292,42 @@
           const userDocRef = doc(db, "users", currentUser.uid);
 
           let bonusSpins = 0;
-          let cashBonus = 0;
+          let fixedCashBonus = 0;
+          let previousPackageRefund = 0;
 
-          // প্যাকেজ অনুযায়ী লাকি স্পিন এবং ক্যাশ বোনাস নির্ধারণ
+          // ১. প্যাকেজ অনুযায়ী নির্দিষ্ট বা ফিক্সড ক্যাশ বোনাস এবং লাকি স্পিন নির্ধারণ
           if (targetLevel === 1) {
-            bonusSpins = 1; // প্যাকেজ ১ এ ১টি স্পিন
-            cashBonus = 135;
+            bonusSpins = 1; 
+            fixedCashBonus = 135; // আপনার আগের নির্ধারিত ফিক্সড বোনাস
           } else if (targetLevel === 2) {
-            bonusSpins = 2; // প্যাকেজ ২ এ ২টি স্পিন
-            cashBonus = 235;
+            bonusSpins = 2; 
+            fixedCashBonus = 235;
           } else if (targetLevel === 3) {
-            bonusSpins = 3; // প্যাকেজ ৩ এ ৩টি স্পিন
-            cashBonus = 350;
+            bonusSpins = 3; 
+            fixedCashBonus = 350;
           } else if (targetLevel === 4) {
-            bonusSpins = 3; // প্যাকেজ ৪ এ ৩টি স্পিন
-            cashBonus = 475;
+            bonusSpins = 3; 
+            fixedCashBonus = 475;
           }
 
-          // ১. ইউজারের নিজের প্যাকেজ, মাই ক্যাশ, এবং লাকি স্পিন আপডেট
+          // ২. পূর্ববর্তী প্যাকেজ থাকলে তার মূল্যের ৮০% টাকা হিসাব করা
+          if (currentPkg && packagePrices[currentPkg]) {
+            previousPackageRefund = packagePrices[currentPkg] * 0.80;
+          }
+
+          // ৩. মোট টাস্ক ক্যাশ বোনাস = নির্দিষ্ট ফিক্সড বোনাস + আগের প্যাকেজের ৮০% রিফান্ড
+          const totalTaskCashBonus = fixedCashBonus + previousPackageRefund;
+
+          // ৪. ডাটাবেসে আপডেট করা
           await updateDoc(userDocRef, {
             package: packageId,
             myCash: increment(-price),
-            taskCash: increment(cashBonus),     
-            totalEarned: increment(cashBonus),
-            luckySpinCount: increment(bonusSpins) // স্পিন কাউন্টে যোগ হলো
+            taskCash: increment(totalTaskCashBonus),     
+            totalEarnings: increment(totalTaskCashBonus), // মোট আয়েও এটি যোগ হবে
+            luckySpinCount: increment(bonusSpins) 
           });
 
-          // ২. রেফারকারীর (আপলাইনার) ১০% কমিশন এবং ঠিক একই সংখ্যক লাকি স্পিন জমা হওয়ার লজিক
+          // ৫. রেফারকারীর (আপলাইনার) ১০% কমিশন এবং লাকি স্পিন জমা হওয়ার লজিক
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -333,18 +350,20 @@
               await updateDoc(referrerRef, {
                 teamCommission: increment(commissionAmount),     
                 taskCash: increment(commissionAmount),           
-                totalEarned: increment(commissionAmount),        
-                luckySpinCount: increment(bonusSpins) // রেফারকারীও সমপরিমাণ লাকি স্পিন পাবে
+                totalEarnings: increment(commissionAmount),        
+                luckySpinCount: increment(bonusSpins) 
               });
             }
           }
 
-          let msg = `অভিনন্দন! আপনার প্যাকেজ সফলভাবে সক্রিয় হয়েছে।`;
-          if (cashBonus > 0) {
-            msg += ` আপনি বোনাস হিসেবে ৳ ${cashBonus} টাস্ক ক্যাশ পেয়েছেন!`;
+          let msg = `অভিনন্দন! আপনার প্যাকেজ সফলভাবে সক্রিয় হয়েছে।\n`;
+          msg += `• নির্দিষ্ট বোনাস: ৳ ${fixedCashBonus}\n`;
+          if (previousPackageRefund > 0) {
+            msg += `• আগের প্যাকেজের ৮০% রিফান্ড: ৳ ${previousPackageRefund}\n`;
           }
+          msg += `• মোট যোগ হলো: ৳ ${totalTaskCashBonus} টাস্ক ক্যাশ!\n`;
           if (bonusSpins > 0) {
-            msg += ` এবং ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
+            msg += `• সাথে ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
           }
 
           alert(msg);
@@ -356,5 +375,6 @@
         }
       };
     </script>
+
 </body>
 </html>
