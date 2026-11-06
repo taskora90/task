@@ -30,7 +30,7 @@
         <h2 class="header"><i class="fa-solid fa-money-bill-transfer"></i> টাকা উত্তোলন</h2>
 
         <div class="balance-box">
-            বর্তমান টাস্ক ক্যাশ: <strong id="availableTaskCash" style="color: #007bff;">৳ 0</strong>
+            বর্তমান মাই ক্যাশ: <strong id="availableTaskCash" style="color: #007bff;">৳ 0</strong>
         </div>
 
         <h3>পেমেন্ট মাধ্যম সিলেক্ট করুন:</h3>
@@ -129,7 +129,7 @@
         }
 
         if (amount > currentTaskCash) {
-          alert("আপনার টাস্ক ক্যাশে পর্যাপ্ত টাকা নেই!");
+          alert("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
           return;
         }
 
@@ -149,7 +149,7 @@
 
             const latestTaskCash = userDocSnap.data().taskCash || 0;
             if (amount > latestTaskCash) {
-              throw new Error("আপনার টাস্ক ক্যাশে পর্যাপ্ত টাকা নেই!");
+              throw new Error("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
             }
 
             // ১. ইউজারের টাস্ক ক্যাশ থেকে টাকা কমানো
@@ -170,7 +170,7 @@
             });
           });
 
-          alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে এবং টাস্ক ক্যাশ থেকে ব্যালেন্স কেটে নেওয়া হয়েছে!");
+          alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে এবং মাই ক্যাশ থেকে ব্যালেন্স কেটে নেওয়া হয়েছে!");
           window.location.href = "profile.html";
         } catch (error) {
           console.error("Error:", error);
