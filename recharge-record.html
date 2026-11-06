@@ -52,7 +52,7 @@
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const listContainer = document.getElementById('rechargeHistoryList');
-          
+
           try {
             // শুধু বর্তমান লগইন করা ইউজারের রিচার্জ রিকোয়েস্টগুলো ফিল্টার করে আনা
             const q = query(collection(db, "recharge_requests"), where("userId", "==", user.uid));
@@ -77,8 +77,26 @@
                   statusText = "রিজেক্টেড (Rejected)";
               }
 
+              // ফায়ারবেসের টাইমস্ট্যাম্প থেকে সঠিক তারিখ ও সময় বের করার লজিক
+              let formattedDate = "N/A";
+              const timeData = data.createdAt || data.timestamp;
+              
+              if (timeData) {
+                  const dateObj = timeData.toDate ? timeData.toDate() : new Date(timeData);
+                  if (!isNaN(dateObj)) {
+                      formattedDate = dateObj.toLocaleString('bn-BD', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                      });
+                  }
+              }
+
               listContainer.innerHTML += `
                 <div class="request-card">
+                  <p>তারিখ ও সময়: <strong style="color: #333;">${formattedDate}</strong></p>
                   <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
                   <p>মেথড: <strong>${data.method || 'N/A'}</strong></p>
                   <p>TrxID: <strong style="color: #007bff;">${data.trxId || 'N/A'}</strong></p>
