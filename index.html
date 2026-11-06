@@ -80,31 +80,34 @@
     </div>
 </section>
 
-<!-- অটো স্লাইডার স্ক্রিপ্ট -->
+<div class="slider-container">
+    <!-- লুপ ছাড়া শুধু id এবং স্টাইল দিয়ে ভিডিও ট্যাগ -->
+    <video id="slider-video" autoplay muted playsinline style="width: 100%; border-radius: 8px; transition: opacity 0.3s ease;"></video>
+</div>
+
 <script>
-    // এখানে আপনার স্লাইডারের সব ছবির লিংকগুলো দিয়ে দিন
-    const images = [
-        "https://raw.githubusercontent.com/taskora90/task/main/WhatsApp%20Image%202026-11-06%20at%204.04.31%20PM.jpeg", // ১ম ছবি
-        "https://raw.githubusercontent.com/taskora90/task/main/1793959161766.jpg", // ২য় ছবি
-        "https://raw.githubusercontent.com/taskora90/task/main/WhatsApp%20Image%202026-11-06%20at%204.04.32%20PM.jpeg",  // ৩য় ছবি (কমা যুক্ত করা হয়েছে)
-        "https://raw.githubusercontent.com/taskora90/task/main/1793959448269.jpg"   // ৪র্থ ছবি
+    // এখানে আপনার একাধিক ভিডিওর লিংক বসিয়ে দিতে পারেন
+    const videos = [
+        ".mp4",
+        "আপনার_২য়_ভিডিওর_লিংক.mp4"
     ];
 
-    let currentIndex = 0;
-    const sliderImg = document.getElementById("slider-img");
+    let currentVideoIndex = 0;
+    const videoElement = document.getElementById("slider-video");
 
-    function changeImage() {
-        currentIndex = (currentIndex + 1) % images.length;
-        sliderImg.style.opacity = 0; // স্মুথ ফেড আউট
-        
+    videoElement.src = videos[currentVideoIndex];
+    videoElement.play();
+
+    // একটি ভিডিও শেষ হলে পরের ভিডিওতে চলে যাবে এবং লিস্ট শেষ হলে আবার প্রথম থেকে শুরু হবে
+    videoElement.addEventListener('ended', () => {
+        currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+        videoElement.style.opacity = 0;
         setTimeout(() => {
-            sliderImg.src = images[currentIndex];
-            sliderImg.style.opacity = 1; // স্মুথ ফেড ইন
+            videoElement.src = videos[currentVideoIndex];
+            videoElement.play();
+            videoElement.style.opacity = 1;
         }, 300);
-    }
-
-    // প্রতি ৩ সেকেন্ড (৩০০০ মিলিসেকেন্ড) পরপর ছবি পরিবর্তন হবে
-    setInterval(changeImage, 3000);
+    });
 </script>
 
 
