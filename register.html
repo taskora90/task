@@ -136,18 +136,7 @@
       const bengaliDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};
       phone = phone.replace(/[০-৯]/g, match => bengaliDigits[match]).replace(/\s+/g, '');
 
-      // ফোন নম্বরের সাথে অটোমেটিক +880 যুক্ত করা
-      if (!phone.startsWith('+88')) {
-        if (phone.startsWith('88')) {
-          phone = '+' + phone;
-        } else if (phone.startsWith('0')) {
-          phone = '+88' + phone;
-        } else {
-          phone = '+880' + phone;
-        }
-      }
-
-      // ফায়ারবেসের জন্য ভার্চুয়াল ইমেল তৈরি (+88017XXXXXXXX@taskora.app)
+      // সরাসরি ফোন নম্বর দিয়ে ভার্চুয়াল ইমেল তৈরি (কান্ট্রি কোড ছাড়াই, যেমন: 018XXXXXXXX@taskora.app)[span_1](start_span)[span_1](end_span)
       const virtualEmail = `${phone}@taskora.app`;
 
       submitBtn.disabled = true;
@@ -162,7 +151,7 @@
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           name: name,
-          phone: phone, // ডেটাবেজে +880 সহ সেভ হবে
+          phone: phone, // ডেটাবেজে সরাসরি ফোন নম্বর সেভ হবে
           taskCash: 0,
           myCash: 0,
           package: "none",
