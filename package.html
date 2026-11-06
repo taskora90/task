@@ -148,7 +148,7 @@
         </div>
 
         <div class="balance-box">
-            মাই ক্যাশ ব্যালেন্স: ৳ <span id="myCashBalance">0.00</span>
+            মাই রিচার্জ ব্যালেন্স: ৳ <span id="myCashBalance">0.00</span>
         </div>
 
         <!-- প্যাকেজ ১ -->
@@ -280,7 +280,7 @@
 
         const currentMyCash = userData.myCash || 0;
         if (currentMyCash < price) {
-          alert("আপনার 'মাই ক্যাশ' এ পর্যাপ্ত ব্যালেন্স নেই! দয়া করে রিচার্জ করুন।");
+          alert("আপনার রিচার্জ ক্যাশ' এ পর্যাপ্ত ব্যালেন্স নেই! দয়া করে রিচার্জ করুন।");
           return;
         }
 
@@ -361,7 +361,7 @@
           if (previousPackageRefund > 0) {
             msg += `• আগের প্যাকেজের ৮০% রিফান্ড: ৳ ${previousPackageRefund}\n`;
           }
-          msg += `• মোট যোগ হলো: ৳ ${totalTaskCashBonus} টাস্ক ক্যাশ!\n`;
+          msg += `• মোট যোগ হলো: ৳ ${totalTaskCashBonus} মাই ক্যাশ!\n`;
           if (bonusSpins > 0) {
             msg += `• সাথে ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
           }
