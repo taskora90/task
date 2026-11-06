@@ -76,11 +76,10 @@
     </section>
 
    <!-- ৪. প্রমো ব্যানার (স্লাইডার/কারোসেল) -->
-<<!-- ৪. প্রমো ব্যানার (স্লাইডার/কারোসেল) -->
 <section class="promo-slider" style="width: 100%; text-align: center; overflow: hidden;">
     <div class="slider-container">
         <!-- স্লাইডার ভিডিও ট্যাগ -->
-        <video id="promo-video" autoplay muted playsinline style="width: 100%; border-radius: 8px; transition: opacity 0.4s ease;">
+        <video id="promo-video" autoplay muted playsinline style="width: 100%; border-radius: 8px;">
             আপনার ব্রাউজার ভিডিও ট্যাগ সমর্থন করে না।
         </video>
     </div>
@@ -92,13 +91,13 @@
     const videoList = [
         "https://raw.githubusercontent.com/taskora90/task/main/VID-20261106-WA0049.mp4",
         "https://raw.githubusercontent.com/taskora90/task/main/VID-20261106-WA0057.mp4",
-        "https://raw.githubusercontent.com/taskora90/task/main/VID-20261106-WA0058.mp4" // ৩ নম্বর ভিডিও লিংকটি আপনার প্রয়োজন অনুযায়ী বদলে নিতে পারেন
+        "https://raw.githubusercontent.com/taskora90/task/main/VID-20261106-WA0058.mp4"
     ];
 
     let currentVideoIndex = 0;
     const videoElement = document.getElementById("promo-video");
 
-    // প্রথম ভিডিও লোড ও প্লে করা
+    // ভিডিও লোড ও প্লে করার ফাংশন
     function loadVideo(index) {
         videoElement.src = videoList[index];
         videoElement.play().catch(error => console.log("Autoplay issue:", error));
@@ -107,16 +106,10 @@
     // প্রথম ভিডিওটি দিয়ে শুরু
     loadVideo(currentVideoIndex);
 
-    // একটি ভিডিও শেষ (ended) হলেই পরের ভিডিওতে চলে যাবে
+    // একটি ভিডিও শেষ হলেই সাথে সাথে সরাসরি পরের ভিডিও চালু হবে
     videoElement.addEventListener('ended', () => {
-        currentVideoIndex = (currentVideoIndex + 1) % videoList.length; // ৩টি শেষ হলে আবার ১ নম্বরে ফিরে যাবে
-        
-        // হালকা ফেড-আউট এবং ফেড-ইন ইফেক্ট
-        videoElement.style.opacity = 0;
-        setTimeout(() => {
-            loadVideo(currentVideoIndex);
-            videoElement.style.opacity = 1;
-        }, 400);
+        currentVideoIndex = (currentVideoIndex + 1) % videoList.length;
+        loadVideo(currentVideoIndex);
     });
 </script>
 
