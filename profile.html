@@ -399,16 +399,15 @@
           const teamComm = Number(data.teamCommission || 0);
           const dailyTsk = Number(data.dailyTaskIncome || data.dailyTask || 0);
           const myCsh = Number(data.myCash || 0);
+          const taskCsh = Number(data.taskCash || 0);
 
-          // ডাটাবেসে থাকা মূল taskCash রিড করা, যদি না থাকে তবে ডেইলি টাস্ক + টিম কমিশন যোগ হবে
-          const taskCsh = Number(data.taskCash !== undefined ? data.taskCash : (dailyTsk + teamComm));
-
-          // মোট আয় = টাস্ক ক্যাশ
-          const total = taskCsh;
+          // মোট আয় (Total Earnings): এটি আলাদা ফিল্ড হিসেবে ডাটাবেসে সেভ থাকবে যাতে উইথড্র করলেও কমে না যায়।
+          // যদি ডাটাবেসে 'totalEarnings' ফিল্ডটি না থাকে, তবে বাই-ডিফল্ট টাস্ক ক্যাশ বা অন্যান্য ইনকামের যোগফল দেখাবে।
+          const totalEarn = Number(data.totalEarnings !== undefined ? data.totalEarnings : (taskCsh + teamComm + dailyTsk));
 
           // স্ক্রিনে দেখানো
           document.getElementById('totalIncome').innerText =
-            total.toFixed(2);
+            totalEarn.toFixed(2);
 
           document.getElementById('teamCommission').innerText =
             teamComm.toFixed(2);
