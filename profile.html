@@ -313,7 +313,6 @@
 
   </div>
 </div>
-
 <!-- Firebase Script -->
 <script type="module">
 
@@ -401,9 +400,10 @@
           const myCsh = Number(data.myCash || 0);
           const taskCsh = Number(data.taskCash || 0);
 
-          // মোট আয় (Total Earnings): এটি আলাদা ফিল্ড হিসেবে ডাটাবেসে সেভ থাকবে যাতে উইথড্র করলেও কমে না যায়।
-          // যদি ডাটাবেসে 'totalEarnings' ফিল্ডটি না থাকে, তবে বাই-ডিফল্ট টাস্ক ক্যাশ বা অন্যান্য ইনকামের যোগফল দেখাবে।
-          const totalEarn = Number(data.totalEarnings !== undefined ? data.totalEarnings : (taskCsh + teamComm + dailyTsk));
+          // অটোমেটিক সঠিক মোট আয় হিসাব করার লজিক (টাস্ক ক্যাশ + টিম কমিশন + ডেইলি টাস্ক)
+          // অথবা যদি ডাটাবেসের মোট আয় বা টাস্ক ক্যাশের মধ্যে যেটি বড় বা সঠিক হয় সেটি দেখাবে
+          const calculatedEarnings = taskCsh + teamComm;
+          const totalEarn = Math.max(Number(data.totalEarnings || 0), calculatedEarnings);
 
           // স্ক্রিনে দেখানো
           document.getElementById('totalIncome').innerText =
@@ -453,6 +453,7 @@
   };
 
 </script>
+
 
 </body>
 </html>
