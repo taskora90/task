@@ -147,13 +147,14 @@
         const userCredential = await createUserWithEmailAndPassword(auth, virtualEmail, password);
         const user = userCredential.user;
 
-        // ২. ফায়ারস্টোরে নতুন ইউজারের নিজস্ব ডাটা তৈরি (serverTimestamp সহ)
+        // ২. ফায়ারস্টোরে নতুন ইউজারের নিজস্ব ডাটা তৈরি (totalEarnings সহ)
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           name: name,
           phone: phone,
           taskCash: 0,
           myCash: 0,
+          totalEarnings: 0, // <--- নতুন ইউজারের জন্য মোট আয়ের স্থায়ী ফিল্ড যুক্ত করা হলো
           package: "none",
           referredBy: refCode || "none",
           createdAt: serverTimestamp() // সার্ভার টাইমস্ট্যাম্প ব্যবহার করা হলো
