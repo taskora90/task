@@ -115,19 +115,19 @@
 
 
 
-<!-- নোটিশ বোর্ড সেকশন (ভিডিওর নিচের ফাঁকা জায়গায় বসানোর জন্য) -->
+<!-- নোটিশ বোর্ড সেকশন (সংশোধিত ও আপডেট কোড) -->
 <div id="notice-board-container" style="padding: 10px 15px; margin-bottom: 20px;">
     
     <!-- ১. নোটিশ লিস্ট ভিউ -->
     <div id="notice-list-view">
         <div style="display: flex; align-items: center; margin-bottom: 12px;">
             <span style="font-size: 18px; margin-right: 8px;">📢</span>
-            <h3 style="margin: 0; font-size: 16px; color: #ececec; font-weight: bold;">জরুরি নোটিশ বোর্ড</h3>
+            <h3 style="margin: 0; font-size: 16px; color: #ffffff; font-weight: bold;">জরুরি নোটিশ বোর্ড</h3>
         </div>
         
-        <!-- ফায়ারবেস থেকে লোড হওয়া নোটিশ এখানে দেখাবে -->
+        <!-- নোটিশ কার্ড বা লোডিং স্টেট -->
         <div id="notice-cards-wrapper" style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="color: #bbb; font-size: 13px;">নোটিশ লোড হচ্ছে...</div>
+            <div style="color: #cccccc; font-size: 13px; background: #2a2d32; padding: 12px 15px; border-radius: 10px; border: 1px solid #3d4148;">নোটিশ লোড হচ্ছে...</div>
         </div>
     </div>
 
@@ -137,14 +137,14 @@
             ← পেছনের লিস্টে ফিরে যান
         </button>
         <h3 id="detail-title" style="margin: 0 0 8px 0; font-size: 16px; color: #ffffff;"></h3>
-        <p id="detail-date" style="margin: 0 0 12px 0; font-size: 11px; color: #aaa;"></p>
+        <p id="detail-date" style="margin: 0 0 12px 0; font-size: 11px; color: #aaaaaa;"></p>
         <hr style="border: none; border-top: 1px solid #3d4148; margin-bottom: 12px;">
-        <div id="detail-body" style="font-size: 13px; color: #ddd; line-height: 1.6; white-space: pre-line;"></div>
+        <div id="detail-body" style="font-size: 13px; color: #dddddd; line-height: 1.6; white-space: pre-line;"></div>
     </div>
 
 </div>
 
-<!-- ছাই থিম স্টাইল -->
+<!-- স্টাইল -->
 <style>
     .notice-card {
         background: #2a2d32;
@@ -164,7 +164,6 @@
 
 <!-- ফায়ারবেস ডেটা লোড করার জাভাস্ক্রিপ্ট -->
 <script type="module">
-    // আপনার প্রজেক্টের firebase-config.js ফাইল থেকে db ইমপোর্ট করা হচ্ছে
     import { db } from "./firebase-config.js";
     import { collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -174,7 +173,6 @@
         const wrapper = document.getElementById('notice-cards-wrapper');
         
         try {
-            // ফায়ারবেসের 'notices' কালেকশন থেকে ডেটা আনা (নতুনগুলো উপরে দেখানোর জন্য orderBy ব্যবহার করা হয়েছে)
             const q = query(collection(db, "notices"), orderBy("timestamp", "desc"));
             const querySnapshot = await getDocs(q);
             
@@ -182,7 +180,7 @@
             wrapper.innerHTML = '';
 
             if (querySnapshot.empty) {
-                wrapper.innerHTML = '<div style="color: #aaa; font-size: 13px;">কোনো নোটিশ পাওয়া যায়নি।</div>';
+                wrapper.innerHTML = '<div style="color: #cccccc; font-size: 13px; background: #2a2d32; padding: 12px; border-radius: 10px;">কোনো নোটিশ পাওয়া যায়নি।</div>';
                 return;
             }
 
@@ -190,25 +188,22 @@
                 const notice = { id: doc.id, ...doc.data() };
                 fetchedNotices.push(notice);
 
-                // প্রতিটি নোটিশের জন্য কার্ড তৈরি
                 const card = document.createElement('div');
                 card.className = 'notice-card';
                 card.innerHTML = `
-                    <div style="font-size: 13px; font-weight: bold; color: #ececec; margin-bottom: 4px;">${notice.title}</div>
-                    <div style="font-size: 11px; color: #aaa;">তারিখ: ${notice.date}</div>
+                    <div style="font-size: 13px; font-weight: bold; color: #ffffff; margin-bottom: 4px;">${notice.title}</div>
+                    <div style="font-size: 11px; color: #aaaaaa;">তারিখ: ${notice.date}</div>
                 `;
                 
-                // শিরোনামে ক্লিক করলে বিস্তারিত পেজ ওপেন হবে
                 card.onclick = () => window.showNoticeDetail(notice.id);
                 wrapper.appendChild(card);
             });
         } catch (error) {
             console.error("Notice load error: ", error);
-            wrapper.innerHTML = '<div style="color: #ff6b6b; font-size: 13px;">নোটিশ লোড করতে সমস্যা হয়েছে।</div>';
+            wrapper.innerHTML = `<div style="color: #ff6b6b; font-size: 12px; background: #2a2d32; padding: 10px; border-radius: 8px;">লোড করতে সমস্যা হয়েছে: ${error.message}</div>`;
         }
     }
 
-    // নির্দিষ্ট নোটিশের পুরো বিবরণ দেখানোর ফাংশন
     window.showNoticeDetail = function(id) {
         const notice = fetchedNotices.find(n => n.id === id);
         if (!notice) return;
@@ -221,16 +216,13 @@
         document.getElementById('notice-detail-view').style.display = 'block';
     }
 
-    // ব্যাক বাটন ফাংশন (লিস্টে ফিরে যাওয়ার জন্য)
     window.backToNoticeList = function() {
         document.getElementById('notice-detail-view').style.display = 'none';
         document.getElementById('notice-list-view').style.display = 'block';
     }
 
-    // পেজ লোড হওয়ার সাথে সাথে ফায়ারবেস থেকে নোটিশগুলো নিয়ে আসবে
     loadNoticesFromFirebase();
 </script>
-
 
 
 
