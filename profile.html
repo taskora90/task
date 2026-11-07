@@ -394,16 +394,16 @@
 
           }
 
-          // Firebase থেকে সঠিক আয়ের তথ্য ফেচ করা
+                    // Firebase থেকে সঠিক আয়ের তথ্য ফেচ করা
           const teamComm = Number(data.teamCommission || 0);
           const dailyTsk = Number(data.dailyTaskIncome || data.dailyTask || 0);
           const myCsh = Number(data.myCash || 0);
           const taskCsh = Number(data.taskCash || 0);
 
-          // অটোমেটিক সঠিক মোট আয় হিসাব করার লজিক (টাস্ক ক্যাশ + টিম কমিশন + ডেইলি টাস্ক)
-          // অথবা যদি ডাটাবেসের মোট আয় বা টাস্ক ক্যাশের মধ্যে যেটি বড় বা সঠিক হয় সেটি দেখাবে
-          const calculatedEarnings = taskCsh + teamComm;
-          const totalEarn = Math.max(Number(data.totalEarnings || 0), calculatedEarnings);
+          // সঠিক মোট আয় হিসাব করার লজিক: 
+          // টিম কমিশন এবং টাস্ক ক্যাশ যোগ করে মোট আয় নির্ধারণ করা হচ্ছে
+          const totalEarn = teamComm + taskCsh;
+
 
           // স্ক্রিনে দেখানো
           document.getElementById('totalIncome').innerText =
