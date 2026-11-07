@@ -115,36 +115,38 @@
 
 
 
-<!-- নোটিশ বোর্ড সেকশন (সংশোধিত ও আপডেট কোড) -->
-<div id="notice-board-container" style="padding: 10px 15px; margin-bottom: 20px;">
+<!-- ৪. ফায়ারবেস ডাইনামিক নোটিশ বোর্ড সেকশন (পপআপ মডাল স্টাইল ও সঠিক পজিশন) -->
+<div id="notice-board-container" style="padding: 10px 15px; margin: 15px 0 70px 0;">
     
-    <!-- ১. নোটিশ লিস্ট ভিউ -->
+    <!-- নোটিশ লিস্ট হেডার ও কার্ডস -->
     <div id="notice-list-view">
         <div style="display: flex; align-items: center; margin-bottom: 12px;">
             <span style="font-size: 18px; margin-right: 8px;">📢</span>
             <h3 style="margin: 0; font-size: 16px; color: #ffffff; font-weight: bold;">জরুরি নোটিশ বোর্ড</h3>
         </div>
         
-        <!-- নোটিশ কার্ড বা লোডিং স্টেট -->
         <div id="notice-cards-wrapper" style="display: flex; flex-direction: column; gap: 10px;">
             <div style="color: #cccccc; font-size: 13px; background: #2a2d32; padding: 12px 15px; border-radius: 10px; border: 1px solid #3d4148;">নোটিশ লোড হচ্ছে...</div>
         </div>
     </div>
 
-    <!-- ২. নোটিশের বিস্তারিত ভিউ (ডিফল্টভাবে লুকানো থাকবে) -->
-    <div id="notice-detail-view" style="display: none; background: #2a2d32; padding: 15px; border-radius: 12px; border: 1px solid #3d4148; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-        <button onclick="backToNoticeList()" style="background: none; border: none; color: #64b5f6; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; margin-bottom: 10px; padding: 0;">
-            ← পেছনের লিস্টে ফিরে যান
-        </button>
-        <h3 id="detail-title" style="margin: 0 0 8px 0; font-size: 16px; color: #ffffff;"></h3>
-        <p id="detail-date" style="margin: 0 0 12px 0; font-size: 11px; color: #aaaaaa;"></p>
-        <hr style="border: none; border-top: 1px solid #3d4148; margin-bottom: 12px;">
-        <div id="detail-body" style="font-size: 13px; color: #dddddd; line-height: 1.6; white-space: pre-line;"></div>
-    </div>
-
 </div>
 
-<!-- স্টাইল -->
+<!-- নোটিশ ডিটেইলস পপআপ মডাল (স্ক্রিনের উপরে ভাসমান পর্দা) -->
+<div id="notice-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: #2a2d32; width: 100%; max-width: 400px; padding: 20px; border-radius: 14px; border: 1px solid #3d4148; box-shadow: 0 8px 24px rgba(0,0,0,0.5); position: relative; animation: modalScale 0.3s ease;">
+        
+        <!-- ক্লোজ বাটন (×) -->
+        <button onclick="closeNoticeModal()" style="position: absolute; top: 12px; right: 15px; background: none; border: none; color: #ff6b6b; font-size: 22px; font-weight: bold; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+        
+        <h3 id="modal-title" style="margin: 0 0 8px 0; font-size: 16px; color: #ffffff; padding-right: 20px;"></h3>
+        <p id="modal-date" style="margin: 0 0 12px 0; font-size: 11px; color: #aaaaaa;"></p>
+        <hr style="border: none; border-top: 1px solid #3d4148; margin-bottom: 12px;">
+        <div id="modal-body" style="font-size: 13px; color: #dddddd; line-height: 1.6; white-space: pre-line; max-height: 60vh; overflow-y: auto;"></div>
+    </div>
+</div>
+
+<!-- স্টাইল ও অ্যানিমেশন -->
 <style>
     .notice-card {
         background: #2a2d32;
@@ -160,9 +162,13 @@
         transform: scale(0.98);
         background: #33373e;
     }
+    @keyframes modalScale {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
 </style>
 
-<!-- ফায়ারবেস ডেটা লোড করার জাভাস্ক্রিপ্ট -->
+<!-- ফায়ারবেস ডেটা লোড এবং পপআপ লজিক -->
 <script type="module">
     import { db } from "./firebase-config.js";
     import { collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -195,7 +201,7 @@
                     <div style="font-size: 11px; color: #aaaaaa;">তারিখ: ${notice.date}</div>
                 `;
                 
-                card.onclick = () => window.showNoticeDetail(notice.id);
+                card.onclick = () => window.openNoticeModal(notice.id);
                 wrapper.appendChild(card);
             });
         } catch (error) {
@@ -204,21 +210,19 @@
         }
     }
 
-    window.showNoticeDetail = function(id) {
+    window.openNoticeModal = function(id) {
         const notice = fetchedNotices.find(n => n.id === id);
         if (!notice) return;
 
-        document.getElementById('detail-title').innerText = notice.title;
-        document.getElementById('detail-date').innerText = "প্রকাশের তারিখ: " + notice.date;
-        document.getElementById('detail-body').innerText = notice.details;
+        document.getElementById('modal-title').innerText = notice.title;
+        document.getElementById('modal-date').innerText = "প্রকাশের তারিখ: " + notice.date;
+        document.getElementById('modal-body').innerText = notice.details;
 
-        document.getElementById('notice-list-view').style.display = 'none';
-        document.getElementById('notice-detail-view').style.display = 'block';
+        document.getElementById('notice-modal').style.display = 'flex';
     }
 
-    window.backToNoticeList = function() {
-        document.getElementById('notice-detail-view').style.display = 'none';
-        document.getElementById('notice-list-view').style.display = 'block';
+    window.closeNoticeModal = function() {
+        document.getElementById('notice-modal').style.display = 'none';
     }
 
     loadNoticesFromFirebase();
