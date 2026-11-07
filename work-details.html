@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>কাজের বিবরণ</title>
+    <title>সকল আয়ের বিবরণ</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -50,8 +50,25 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border-left: 4px solid #6b7280;
         }
+        .task-info {
+            display: flex;
+            align-items: center;
+        }
+        .task-icon {
+            width: 38px;
+            height: 38px;
+            background-color: #e5e9f0;
+            color: #3b4252;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
         .task-info h4 {
-            margin: 0 0 5px 0;
+            margin: 0 0 3px 0;
             color: #2e3440;
             font-size: 15px;
         }
@@ -82,7 +99,7 @@
         <!-- টপ বার -->
         <div class="header-bar">
             <a href="profile.html"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>কাজের বিবরণ</h2>
+            <h2>সকল আয়ের বিবরণ</h2>
         </div>
 
         <!-- আয়ের তালিকা এখানে ফায়ারবেস থেকে লোড হবে -->
@@ -91,11 +108,11 @@
         </div>
     </div>
 
-    <!-- Firebase Logic to Fetch Task History -->
+    <!-- Firebase Logic to Fetch All Earning Histories -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -116,37 +133,93 @@
           const container = document.getElementById("taskListContainer");
 
           try {
-            // taskHistory সাব-কালেকশন থেকে আয়ের ইতিহাস ফেচ করা হচ্ছে
-            const earningsRef = collection(db, "users", user.uid, "taskHistory");
-            const querySnapshot = await getDocs(earningsRef);
+            let allEarnings = [];
 
-            if (querySnapshot.empty) {
-              container.innerHTML = `<p class="no-data">এখনো কোনো কাজের বিবরণ নেই।</p>`;
+            // ১. মূল টাস্ক হিস্ট্রি সাব-কালেকশন ফেচ করা
+            const taskRef = collection(db, "users", user.uid, "taskHistory");
+            const taskSnap = await getDocs(taskRef);
+
+            taskSnap.forEach((docItem) => {
+              const data = docItem.data();
+              allEarnings.push({
+                title: `টাস্ক #${data.taskNumber || 'কম্প্লিট'}`,
+                desc: "ডেইলি ভিডিও টাস্ক সম্পন্ন হয়েছে",
+                amount: Number(data.amount || 0),
+                timestamp: data.timestamp,
+                icon: 'fa-tasks'
+              });
+            });
+
+            // ২. স্পিন বা অন্যান্য হিস্ট্রি সাব-কালেকশন (যদি থাকে) ফেচ করা
+            try {
+              const spinRef = collection(db, "users", user.uid, "spinHistory");
+              const spinSnap = await getDocs(spinRef);
+              spinSnap.forEach((docItem) => {
+                const data = docItem.data();
+                allEarnings.push({
+                  title: `লাকি স্পিন`,
+                  desc: "স্পিন বোনাস অর্জিত হয়েছে",
+                  amount: Number(data.amount || 0),
+                  timestamp: data.timestamp,
+                  icon: 'fa-rotate'
+                });
+              });
+            } catch (e) {
+              // স্পিন সাব-কালেকশন না থাকলে স্কিপ করবে
+            }
+
+            // ৩. রেফার বা প্যাকেজ বোনাস হিস্ট্রি সাব-কালেকশন (যদি থাকে) ফেচ করা
+            try {
+              const referRef = collection(db, "users", user.uid, "referralHistory");
+              const referSnap = await getDocs(referRef);
+              referSnap.forEach((docItem) => {
+                const data = docItem.data();
+                allEarnings.push({
+                  title: `রেফার কমিশন`,
+                  desc: data.description || "টিম রেফারেল বোনাস",
+                  amount: Number(data.amount || 0),
+                  timestamp: data.timestamp,
+                  icon: 'fa-users'
+                });
+              });
+            } catch (e) {
+              // রেফার সাব-কালেকশন না থাকলে স্কিপ করবে
+            }
+
+            // যদি কোনো হিস্ট্রি না পাওয়া যায়
+            if (allEarnings.length === 0) {
+              container.innerHTML = `<p class="no-data">এখনো কোনো আয়ের বিবরণ নেই।</p>`;
               return;
             }
 
+            // সময় অনুযায়ী সোর্ট করা (নতুন গুলো সবার উপরে থাকবে)
+            allEarnings.sort((a, b) => {
+              const timeA = a.timestamp && a.timestamp.toDate ? a.timestamp.toDate().getTime() : 0;
+              const timeB = b.timestamp && b.timestamp.toDate ? b.timestamp.toDate().getTime() : 0;
+              return timeB - timeA;
+            });
+
             container.innerHTML = "";
-            querySnapshot.forEach((doc) => {
-              const data = doc.data();
 
-              let title = `টাস্ক #${data.taskNumber || 'কম্প্লিট'}`;
-              let desc = "ডেইলি ভিডিও টাস্ক সফলভাবে সম্পন্ন হয়েছে";
-              let amount = data.amount || 10;
-
+            // সুন্দর Ash থিমে লিস্ট রেন্ডার করা
+            allEarnings.forEach((item) => {
               let timeStr = "আজ";
-              if (data.timestamp && data.timestamp.toDate) {
-                timeStr = data.timestamp.toDate().toLocaleString('bn-BD');
+              if (item.timestamp && item.timestamp.toDate) {
+                timeStr = item.timestamp.toDate().toLocaleString('bn-BD');
               }
 
               const itemHTML = `
                 <div class="task-item">
                     <div class="task-info">
-                        <h4>${title}</h4>
-                        <p>${desc}</p>
-                        <p>সময়: ${timeStr}</p>
+                        <div class="task-icon"><i class="fa-solid ${item.icon}"></i></div>
+                        <div>
+                            <h4>${item.title}</h4>
+                            <p>${item.desc}</p>
+                            <p>সময়: ${timeStr}</p>
+                        </div>
                     </div>
                     <div class="task-right">
-                        <div class="task-amount">+৳${amount}</div>
+                        <div class="task-amount">+৳${item.amount}</div>
                     </div>
                 </div>
               `;
@@ -155,7 +228,7 @@
 
           } catch (error) {
             console.error("হিস্ট্রি লোড করতে সমস্যা হয়েছে:", error);
-            container.innerHTML = `<p class="no-data">কাজের বিবরণ লোড করতে সমস্যা হয়েছে।</p>`;
+            container.innerHTML = `<p class="no-data">আয়ের বিবরণ লোড করতে সমস্যা হয়েছে।</p>`;
           }
         } else {
           window.location.href = "login.html";
