@@ -175,14 +175,20 @@
 
               // ৩ দিনের ট্রায়াল লজিক চেক
               let hasActivePaidPackage = userPackage && packageRules[userPackage] && userPackage !== "free_trial";
-              
+
               if (!hasActivePaidPackage) {
-                // ইউজার কোনো পেইড প্যাকেজ কেনেনি, এখন দেখবো সে ৩ দিনের ট্রায়ালের মধ্যে আছে কি না
-                let createdAt = currentUserData.createdAt; // ধরে নিচ্ছি রেজিস্ট্রেশনের সময় createdAt (Timestamp বা Date string) সেভ করা আছে
-                
-                // যদি ডাটাবেজে createdAt না থাকে, তবে সেফ সাইডের জন্য ইউজার ডকুমেন্টের আইডি বা ফায়ারবেজ মেটাডেটা থেকে সময় ধরতে পারেন অথবা ডিফল্টভাবে আজকের তৈরি ধরতে পারেন। 
-                // আমরা ফায়ারবেজের ইউজার অবজেক্টের metadata.creationTime ব্যবহার করতে পারি যদি ডাটাবেজে না থাকে:
-                let registrationTime = new Date(createdAt || user.metadata.creationTime).getTime();
+                let createdAt = currentUserData.createdAt;
+                let registrationTime = 0;
+
+                // ফায়ারস্টোর সার্ভার টাইমস্ট্যাম্প বা ডেট সেফলি হ্যান্ডেল করার নিয়ম
+                if (createdAt && typeof createdAt.toMillis === 'function') {
+                  registrationTime = createdAt.toMillis();
+                } else if (createdAt) {
+                  registrationTime = new Date(createdAt).getTime();
+                } else {
+                  registrationTime = new Date(user.metadata.creationTime).getTime();
+                }
+
                 let currentTime = new Date().getTime();
                 let threeDaysInMillis = 3 * 24 * 60 * 60 * 1000; // ৩ দিন (৭২ ঘণ্টা)
 
@@ -272,7 +278,7 @@
             timestamp: serverTimestamp()
           });
 
-          // রেফার কমিশন সিস্টেম (যদি থাকে)
+          // রেফার কমিশন সিস্টেম
           const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -307,7 +313,7 @@
                 const directL2Snap = await getDoc(doc(db, "users", level2Code));
 
                 if (directL2Snap.exists()) {
-                  level2Ref = doc(db,="users", level2Code); // Fixed minor typo
+                  level2Ref = doc(db, "users", level2Code); // এখানে `=` এর ভুল ঠিক করা হয়েছে
                 } else {
                   const q2 = query(collection(db, "users"), where("referralCode", "==", level2Code));
                   const snap2 = await getDocs(q2);
