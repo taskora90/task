@@ -63,6 +63,7 @@
         <br><br>
         <a href="profile.html" style="text-decoration: none; color: #6c757d;"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
     </div>
+
     <!-- Firebase ও উইথড্র লজিক -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -140,7 +141,7 @@
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
 
-          // ট্রানজেকশনের মাধ্যমে টাস্ক ক্যাশ থেকে টাকা কেটে উইথড্র রেকর্ড জমা করা
+          // ট্রানজেকশনের মাধ্যমে শুধুমাত্র টাস্ক ক্যাশ থেকে টাকা কমানো হচ্ছে (মোট আয় অপরিবর্তিত থাকবে)
           await runTransaction(db, async (transaction) => {
             const userDocSnap = await transaction.get(userDocRef);
             if (!userDocSnap.exists()) {
@@ -152,22 +153,21 @@
               throw new Error("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
             }
 
-            // ১. ইউজারের টাস্ক ক্যাশ থেকে টাকা কমানো
+            // এখানে শুধু taskCash কমানো হলো, totalEarnings বা মোট আয়ে কোনো হাত দেওয়া হয়নি
             transaction.update(userDocRef, {
               taskCash: latestTaskCash - amount
             });
+          });
 
-            // ২. উইথড্র রিকোয়েস্ট রেকর্ডে যোগ করা
-            const withdrawRef = collection(db, "withdrawals");
-            await addDoc(withdrawRef, {
-              userId: currentUser.uid,
-              userEmail: currentUser.email || "N/A",
-              amount: amount,
-              method: selectedMethod,
-              account: account,
-              status: "waiting",
-              timestamp: serverTimestamp()
-            });
+          // উইথড্র রিকোয়েস্ট সফলভাবে ডাটাবেজের withdrawals কালেকশনে সেভ করা
+          await addDoc(collection(db, "withdrawals"), {
+            userId: currentUser.uid,
+            userEmail: currentUser.email || currentUser.phoneNumber || "N/A",
+            amount: amount,
+            method: selectedMethod,
+            account: account,
+            status: "waiting",
+            timestamp: serverTimestamp()
           });
 
           alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে এবং মাই ক্যাশ থেকে ব্যালেন্স কেটে নেওয়া হয়েছে!");
