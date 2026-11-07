@@ -394,15 +394,15 @@
 
           }
 
-                    // Firebase থেকে সঠিক আয়ের তথ্য ফেচ করা
+       // Firebase থেকে সঠিক আয়ের তথ্য ফেচ করা
           const teamComm = Number(data.teamCommission || 0);
           const dailyTsk = Number(data.dailyTaskIncome || data.dailyTask || 0);
           const myCsh = Number(data.myCash || 0);
           const taskCsh = Number(data.taskCash || 0);
 
-          // সঠিক মোট আয় হিসাব করার লজিক: 
-          // টিম কমিশন এবং টাস্ক ক্যাশ যোগ করে মোট আয় নির্ধারণ করা হচ্ছে
-          const totalEarn = teamComm + taskCsh;
+          // সমাধান: যদি ডাটাবেজে আলাদা 'totalEarnings' ফিল্ড থাকে, সেটি দেখাবে। 
+          // না থাকলে (fallback হিসেবে) টিম কমিশন ও টাস্ক ক্যাশের যোগফল দেখাবে।
+          const totalEarn = Number(data.totalEarnings || (teamComm + taskCsh));
 
 
           // স্ক্রিনে দেখানো
