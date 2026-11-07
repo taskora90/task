@@ -3,57 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>টাকা উত্তোলনের রেকর্ড</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>সকল আয়ের বিবরণ</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f5f7; padding: 15px; margin: 0; }
-        .top-banner { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .back-btn { font-size: 18px; color: #333; text-decoration: none; }
-
-        .record-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
-        .card-top { display: flex; justify-content: space-between; align-items: center; }
-        .title-area { display: flex; align-items: center; gap: 8px; }
-        .title { font-size: 16px; font-weight: bold; color: #1a0dab; }
-        .tag { background: #e8f0fe; color: #1967d2; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
-        .amount { color: #d93025; font-size: 18px; font-weight: bold; }
-        .date-time { font-size: 12px; color: #5f6368; margin: 6px 0 2px 0; }
-        .transaction-id { font-size: 11px; color: #80868b; margin-bottom: 12px; }
-
-        /* Stepper Process UI */
-        .stepper { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 12px; position: relative; }
-        .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center; }
-        .step-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; background: #dadce0; margin-bottom: 4px; }
-        .step-label { font-size: 11px; color: #5f6368; }
-
-        /* Dynamic Colors */
-        .bg-waiting { background: #f9ab00; }
-        .bg-bank { background: #d93025; }
-        .bg-approved { background: #1e8e3e; }
-        .bg-rejected { background: #d93025; }
-
-        .text-waiting { color: #f9ab00; font-weight: bold; }
-        .text-bank { color: #d93025; font-weight: bold; }
-        .text-approved { color: #1e8e3e; font-weight: bold; }
-        .text-rejected { color: #d93025; font-weight: bold; }
+        body {
+            background-color: #f4f5f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .work-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        /* Ash Theme Header */
+        .header-bar {
+            display: flex;
+            align-items: center;
+            background-color: #3b4252;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header-bar a {
+            color: white;
+            font-size: 18px;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .header-bar h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .task-item {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-left: 4px solid #6b7280;
+        }
+        .task-info {
+            display: flex;
+            align-items: center;
+        }
+        .task-icon {
+            width: 38px;
+            height: 38px;
+            background-color: #e5e9f0;
+            color: #3b4252;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .task-info h4 {
+            margin: 0 0 3px 0;
+            color: #2e3440;
+            font-size: 15px;
+        }
+        .task-info p {
+            margin: 0;
+            color: #4c566a;
+            font-size: 12px;
+        }
+        .task-right {
+            text-align: right;
+        }
+        .task-amount {
+            font-weight: bold;
+            color: #10b981;
+            font-size: 15px;
+        }
+        .no-data {
+            text-align: center;
+            color: #4c566a;
+            margin-top: 30px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
-    <header class="top-banner">
-        <a href="profile.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>টাকা উত্তোলনের রেকর্ড</h2>
-    </header>
+    <div class="work-container">
+        <!-- টপ বার -->
+        <div class="header-bar">
+            <a href="profile.html"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2>সকল আয়ের বিবরণ</h2>
+        </div>
 
-    <div id="recordsContainer">
-        <p style="text-align:center; color:#777; margin-top: 30px;">লোড হচ্ছে...</p>
+        <!-- আয়ের তালিকা এখানে ফায়ারবেস থেকে লোড হবে -->
+        <div id="taskListContainer">
+            <p class="no-data">লোড হচ্ছে...</p>
+        </div>
     </div>
 
-    <!-- Firebase রিয়েল-টাইম রেন্ডার লজিক -->
+    <!-- Firebase Logic to Fetch All Earning Histories -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -69,112 +128,108 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => {
         if (user) {
-          const userId = user.uid;
-          const container = document.getElementById('recordsContainer');
+          const container = document.getElementById("taskListContainer");
 
-          // ফায়ারস্টোর থেকে বর্তমান ইউজারের উইথড্র রিকোয়েস্টগুলো কুয়েরি করা
-          const q = query(
-            collection(db, "withdrawals"), 
-            where("userId", "==", userId)
-          );
+          try {
+            let allEarnings = [];
 
-          // রিয়েল-টাইম লিসেনার
-          onSnapshot(q, (snapshot) => {
-            if (snapshot.empty) {
-              container.innerHTML = '<p style="text-align:center; color:#777; margin-top: 30px;">কোনো উত্তোলনের রেকর্ড পাওয়া যায়নি।</p>';
+            // ১. মূল টাস্ক হিস্ট্রি সাব-কালেকশন ফেচ করা
+            const taskRef = collection(db, "users", user.uid, "taskHistory");
+            const taskSnap = await getDocs(taskRef);
+
+            taskSnap.forEach((docItem) => {
+              const data = docItem.data();
+              allEarnings.push({
+                title: `টাস্ক #${data.taskNumber || 'কম্প্লিট'}`,
+                desc: "ডেইলি ভিডিও টাস্ক সম্পন্ন হয়েছে",
+                amount: Number(data.amount || 0),
+                timestamp: data.timestamp,
+                icon: 'fa-tasks'
+              });
+            });
+
+            // ২. স্পিন বা অন্যান্য হিস্ট্রি সাব-কালেকশন (যদি থাকে) ফেচ করা
+            try {
+              const spinRef = collection(db, "users", user.uid, "spinHistory");
+              const spinSnap = await getDocs(spinRef);
+              spinSnap.forEach((docItem) => {
+                const data = docItem.data();
+                allEarnings.push({
+                  title: `লাকি স্পিন`,
+                  desc: "স্পিন বোনাস অর্জিত হয়েছে",
+                  amount: Number(data.amount || 0),
+                  timestamp: data.timestamp,
+                  icon: 'fa-rotate'
+                });
+              });
+            } catch (e) {
+              // স্পিন সাব-কালেকশন না থাকলে স্কিপ করবে
+            }
+
+            // ৩. রেফার বা প্যাকেজ বোনাস হিস্ট্রি সাব-কালেকশন (যদি থাকে) ফেচ করা
+            try {
+              const referRef = collection(db, "users", user.uid, "referralHistory");
+              const referSnap = await getDocs(referRef);
+              referSnap.forEach((docItem) => {
+                const data = docItem.data();
+                allEarnings.push({
+                  title: `রেফার কমিশন`,
+                  desc: data.description || "টিম রেফারেল বোনাস",
+                  amount: Number(data.amount || 0),
+                  timestamp: data.timestamp,
+                  icon: 'fa-users'
+                });
+              });
+            } catch (e) {
+              // রেফার সাব-কালেকশন না থাকলে স্কিপ করবে
+            }
+
+            // যদি কোনো হিস্ট্রি না পাওয়া যায়
+            if (allEarnings.length === 0) {
+              container.innerHTML = `<p class="no-data">এখনো কোনো আয়ের বিবরণ নেই।</p>`;
               return;
             }
 
-            container.innerHTML = '';
-            const currentTime = Date.now();
-            const twentyMinutesInMs = 20 * 60 * 1000; 
-
-            // ডাটাগুলোকে লেটেস্ট সাজানোর জন্য সর্ট করা
-            let docs = [];
-            snapshot.forEach(docSnap => {
-              docs.push({ id: docSnap.id, ...docSnap.data() });
-            });
-
-            // টাইমস্ট্যাম্প অনুযায়ী ডিসেন্ডিং অর্ডারে সর্ট করা
-            docs.sort((a, b) => {
-              const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
-              const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+            // সময় অনুযায়ী সোর্ট করা (নতুন গুলো সবার উপরে থাকবে)
+            allEarnings.sort((a, b) => {
+              const timeA = a.timestamp && a.timestamp.toDate ? a.timestamp.toDate().getTime() : 0;
+              const timeB = b.timestamp && b.timestamp.toDate ? b.timestamp.toDate().getTime() : 0;
               return timeB - timeA;
             });
 
-            docs.forEach(record => {
-              // সময় হিসাব (২০ মিনিট পার হয়েছে কিনা)
-              const recordTime = record.timestamp?.toMillis ? record.timestamp.toMillis() : currentTime;
-              let isBankProcess = (currentTime - recordTime) >= twentyMinutesInMs;
-
-              let bankIconBg = isBankProcess ? 'bg-bank' : '';
-              let bankStyle = isBankProcess ? 'text-bank' : '';
-
-              let finalStepLabel = 'সিদ্ধান্তের অপেক্ষায়';
-              let finalIconBg = '';
-              let finalTextStyle = '';
-              let finalIcon = '⚙';
-
-              // স্ট্যাটাস চেক (waiting / approved / rejected)
-              const status = record.status || record.adminStatus;
-              if (status === 'approved') {
-                finalStepLabel = 'অ্যাপ্রুভড';
-                finalIconBg = 'bg-approved';
-                finalTextStyle = 'text-approved';
-                finalIcon = '✓';
-              } else if (status === 'rejected') {
-                finalStepLabel = 'রিজেক্টেড';
-                finalIconBg = 'bg-rejected';
-                finalTextStyle = 'text-rejected';
-                finalIcon = '✕';
+            container.innerHTML = "";
+            
+            // সুন্দর Ash থিমে লিস্ট রেন্ডার করা
+            allEarnings.forEach((item) => {
+              let timeStr = "আজ";
+              if (item.timestamp && item.timestamp.toDate) {
+                timeStr = item.timestamp.toDate().toLocaleString('bn-BD');
               }
 
-              // তারিখ ও সময় ফরম্যাট করা
-              let dateStr = "এখনই";
-              if (record.timestamp?.toDate) {
-                dateStr = record.timestamp.toDate().toLocaleString('bn-BD');
-              }
-
-              const cardHtml = `
-                <div class="record-card">
-                    <div class="card-top">
-                        <div class="title-area">
-                            <span class="title">টাকা উত্তোলন</span>
-                            <span class="tag">মাই ক্যাশ</span>
+              const itemHTML = `
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-icon"><i class="fa-solid ${item.icon}"></i></div>
+                        <div>
+                            <h4>${item.title}</h4>
+                            <p>${item.desc}</p>
+                            <p>সময়: ${timeStr}</p>
                         </div>
-                        <div class="amount">-৳${record.amount}.00</div>
                     </div>
-                    <div class="date-time">${dateStr} (${record.method || 'বিকাশ'})</div>
-                    <div class="transaction-id">অ্যাকাউন্ট: ${record.account || 'N/A'}</div>
-
-                    <div class="stepper">
-                        <!-- ওয়েটিং -->
-                        <div class="step-item">
-                            <div class="step-icon bg-waiting">⏳</div>
-                            <div class="step-label text-waiting">ওয়েটিং</div>
-                        </div>
-
-                        <!-- ব্যাংক প্রসেস (২০ মিনিট পর লাল হবে) -->
-                        <div class="step-item">
-                            <div class="step-icon ${bankIconBg}">🏦</div>
-                            <div class="step-label ${bankStyle}">ব্যাংক প্রসেস</div>
-                        </div>
-
-                        <!-- অ্যাপ্রুভ / রিজেক্ট -->
-                        <div class="step-item">
-                            <div class="step-icon ${finalIconBg}">${finalIcon}</div>
-                            <div class="step-label ${finalTextStyle}">${finalStepLabel}</div>
-                        </div>
+                    <div class="task-right">
+                        <div class="task-amount">+৳${item.amount}</div>
                     </div>
                 </div>
               `;
-
-              container.innerHTML += cardHtml;
+              container.innerHTML += itemHTML;
             });
-          });
 
+          } catch (error) {
+            console.error("হিস্ট্রি লোড করতে সমস্যা হয়েছে:", error);
+            container.innerHTML = `<p class="no-data">আয়ের বিবরণ লোড করতে সমস্যা হয়েছে।</p>`;
+          }
         } else {
           window.location.href = "login.html";
         }
