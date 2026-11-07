@@ -82,6 +82,34 @@
             <div class="timer-text" id="timerText" style="display: none;"></div>
         </div>
 
+        <!-- ডায়নামিক স্ট্যাটাস ও নোটিশ বক্স -->
+        <div id="dynamic-status-box" style="background: #2a2d32; border: 1px solid #3d4148; border-radius: 12px; padding: 15px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); color: #ffffff;">
+            
+            <!-- ১ নম্বর বক্স: কাজ চলমান থাকা অবস্থায় যা দেখাবে -->
+            <div id="task-ongoing-box" style="display: block;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="font-size: 16px;">💡</span>
+                    <span style="font-size: 14px; font-weight: bold; color: #64b5f6;">জরুরি নির্দেশনা</span>
+                </div>
+                <p style="margin: 0; font-size: 12px; color: #cccccc; line-height: 1.5;">
+                    কাজের নিয়মাবলী বা সতর্কতা বক্স:<br>
+                    .নিয়ম মেনে কাজ না করলে পেমেন্ট বাতিল হতে পারে।<br>
+                    .ভিপিএন বা অবৈধ মাধ্যম ব্যবহার থেকে বিরত থাকুন।<br>
+                    .সঠিক নিয়মে বিজ্ঞাপন দেখে টাস্ক সম্পন্ন করুন।<br><br>
+                    নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে পেমেন্ট বাতিল হতে পারে।
+                </p>
+            </div>
+
+            <!-- ২ নম্বর বক্স: প্যাকেজের সব কাজ শেষ হলে এটি স্বয়ংক্রিয়ভাবে আসবে -->
+            <div id="task-finished-box" style="display: none; text-align: center;">
+                <div style="font-size: 22px; margin-bottom: 5px;">🎉</div>
+                <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #4cd137; font-weight: bold;">অভিনন্দন! আজকের সকল টাস্ক সম্পন্ন</h4>
+                <p style="margin: 0; font-size: 11px; color: #aaaaaa; line-height: 1.4;">
+                    আপনার প্যাকেজের আজকের সমস্ত কাজ সফলভাবে শেষ হয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
+                </p>
+            </div>
+        </div>
+
         <div id="noPackageMsg" class="no-package-box" style="display: none;">
             <p style="font-size: 18px; color: #dc3545; font-weight: bold; margin-bottom: 20px;" id="noPackageText">কোনো সক্রিয় প্যাকেজ নেই! কাজ করতে প্যাকেজ কিনুন।</p>
             <a href="package.html" style="display: inline-block; background-color: #2d3748; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
@@ -140,7 +168,7 @@
         "task.2": { maxTasks: 15, reward: 10 },
         "task.3": { maxTasks: 20, reward: 10 },
         "task.4": { maxTasks: 25, reward: 10 },
-        "free_trial": { maxTasks: 2, reward: 10 } // ৩ দিনের ট্রায়াল প্যাকেজ রুল
+        "free_trial": { maxTasks: 2, reward: 10 }
       };
 
       let userDocRef = null;
@@ -148,6 +176,22 @@
       let currentTaskCount = 0;
       let currentUser = null;
       let currentUserData = null;
+
+      // নোটিশ বক্স বদলানোর ফাংশন
+      function updateTaskStatusBox(completedTasks, totalPackageTasks) {
+        const ongoingBox = document.getElementById('task-ongoing-box');
+        const finishedBox = document.getElementById('task-finished-box');
+
+        if (!ongoingBox || !finishedBox) return;
+
+        if (completedTasks >= totalPackageTasks && totalPackageTasks > 0) {
+            ongoingBox.style.display = 'none';
+            finishedBox.style.display = 'block';
+        } else {
+            ongoingBox.style.display = 'block';
+            finishedBox.style.display = 'none';
+        }
+      }
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -173,14 +217,12 @@
 
               currentTaskCount = currentUserData.dailyTaskCount || 0;
 
-              // ৩ দিনের ট্রায়াল লজিক চেক
               let hasActivePaidPackage = userPackage && packageRules[userPackage] && userPackage !== "free_trial";
 
               if (!hasActivePaidPackage) {
                 let createdAt = currentUserData.createdAt;
                 let registrationTime = 0;
 
-                // ফায়ারস্টোর সার্ভার টাইমস্ট্যাম্প বা ডেট সেফলি হ্যান্ডেল করার নিয়ম
                 if (createdAt && typeof createdAt.toMillis === 'function') {
                   registrationTime = createdAt.toMillis();
                 } else if (createdAt) {
@@ -190,15 +232,14 @@
                 }
 
                 let currentTime = new Date().getTime();
-                let threeDaysInMillis = 3 * 24 * 60 * 60 * 1000; // ৩ দিন (৭২ ঘণ্টা)
+                let threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
 
                 if ((currentTime - registrationTime) <= threeDaysInMillis) {
-                  // ট্রায়াল পিরিয়ডের মধ্যে আছে
                   userPackage = "free_trial";
                 } else {
-                  // ৩ দিন পার হয়ে গেছে এবং কোনো প্যাকেজ কেনেনি
                   document.getElementById('taskCard').style.display = 'none';
                   document.getElementById('userInfoBox').style.display = 'none';
+                  document.getElementById('dynamic-status-box').style.display = 'none';
                   document.getElementById('noPackageMsg').style.display = 'block';
                   document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! কাজ করতে প্যাকেজ কিনুন।";
                   return;
@@ -208,6 +249,9 @@
               activePackageRule = packageRules[userPackage];
               document.getElementById('userPackageText').innerText = userPackage === "free_trial" ? "ফ্রি ট্রায়াল (৩ দিন)" : userPackage;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
+
+              // নোটিশ বক্স আপডেট কল করা হলো
+              updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
 
               document.getElementById('userInfoBox').style.display = 'block';
               document.getElementById('taskCard').style.display = 'block';
@@ -278,7 +322,6 @@
             timestamp: serverTimestamp()
           });
 
-          // রেফার কমিশন সিস্টেম
           const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -313,7 +356,7 @@
                 const directL2Snap = await getDoc(doc(db, "users", level2Code));
 
                 if (directL2Snap.exists()) {
-                  level2Ref = doc(db, "users", level2Code); // এখানে `=` এর ভুল ঠিক করা হয়েছে
+                  level2Ref = doc(db, "users", level2Code);
                 } else {
                   const q2 = query(collection(db, "users"), where("referralCode", "==", level2Code));
                   const snap2 = await getDocs(q2);
@@ -346,38 +389,5 @@
         }
       }
     </script>
-
-
-<!-- ডায়নামিক স্ট্যাটাস ও নোটিশ বক্স -->
-<div id="dynamic-status-box" style="background: #2a2d32; border: 1px solid #3d4148; border-radius: 12px; padding: 15px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-    
-    <!-- ১ নম্বর বক্স: কাজ চলমান থাকা অবস্থায় যা দেখাবে -->
-    <div id="task-ongoing-box" style="display: block; visibility: visible;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <span style="font-size: 16px;">💡</span>
-            <span style="font-size: 14px; font-weight: bold; color: #64b5f6;">জরুরি নির্দেশনা</span>
-        </div>
-        <p style="margin: 0; font-size: 12px; color: #cccccc; line-height: 1.5;">
-            কাজের নিয়মাবলী বা সতর্কতা বক্স:
-.নিয়ম মেনে কাজ না করলে পেমেন্ট বাতিল হতে পারে।
-.ভিপিএন বা অবৈধ মাধ্যম ব্যবহার থেকে বিরত থাকুন।
-.সঠিক নিয়মে বিজ্ঞাপন দেখে টাস্ক সম্পন্ন করুন। 
-
-নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে পেমেন্ট বাতিল হতে পারে।
-
-        </p>
-    </div>
-
-    <!-- ২ নম্বর বক্স: প্যাকেজের সব কাজ শেষ হলে এটি স্বয়ংক্রিয়ভাবে আসবে -->
-    <div id="task-finished-box" style="display: none; visibility: hidden; text-align: center;">
-        <div style="font-size: 22px; margin-bottom: 5px;">🎉</div>
-        <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #4cd137; font-weight: bold;">অভিনন্দন! আজকের সকল টাস্ক সম্পন্ন</h4>
-        <p style="margin: 0; font-size: 11px; color: #aaaaaa; line-height: 1.4;">
-            আপনার প্যাকেজের আজকের সমস্ত কাজ সফলভাবে শেষ হয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
-        </p>
-    </div>
-
-</div>
-
 </body>
 </html>
