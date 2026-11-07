@@ -262,20 +262,20 @@
         const prize = items[selectedIndex];
 
         try {
-          // স্পিন সংখ্যা ১ কমানো এবং taskCash ও totalEarned এ পুরস্কারের টাকা যোগ করা
+          // স্পিন সংখ্যা ১ কমানো এবং taskCash ও totalEarnings এ পুরস্কারের টাকা যোগ করা
           let updateData = {
             luckySpinCount: increment(-1)
           };
 
           if (prize.amount > 0) {
             updateData.taskCash = increment(prize.amount);
-            updateData.totalEarned = increment(prize.amount);
+            updateData.totalEarnings = increment(prize.amount); // ড্যাশবোর্ডের সাথে মিলিয়ে 'totalEarnings' করা হলো
           }
 
           await updateDoc(userDocRef, updateData);
 
           if (prize.amount > 0) {
-            alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার মাই ক্যাশে জমা হয়েছে।`);
+            alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
             let currentReward = parseFloat(document.getElementById('reward-display').innerText);
             document.getElementById('reward-display').innerText = (currentReward + prize.amount).toFixed(2);
           } else {
