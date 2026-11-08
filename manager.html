@@ -10,12 +10,12 @@
       font-family: Arial, sans-serif;
       background-color: #f4f6f9;
       margin: 0;
-      padding: 20px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 90vh;
+      min-height: 95vh;
       box-sizing: border-box;
     }
     .support-card {
@@ -23,39 +23,59 @@
       width: 100%;
       margin: 0 auto;
       background: #fff;
-      padding: 25px;
+      padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       text-align: center;
       box-sizing: border-box;
     }
     .icon-box {
-      font-size: 50px;
+      font-size: 40px;
       color: #343a40;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
     h2 {
-      margin: 0 0 10px 0;
+      margin: 0 0 8px 0;
       color: #2b2d42;
+      font-size: 20px;
     }
     p {
       color: #6c757d;
-      font-size: 14px;
-      margin-bottom: 25px;
+      font-size: 13px;
+      margin-bottom: 15px;
+      line-height: 1.4;
     }
+    /* সাপোর্ট টাইম ইনফো বক্স */
+    .support-info {
+      background: #f8f9fa;
+      border: 1px solid #e5e9f0;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 12px;
+      color: #4c566a;
+      text-align: left;
+    }
+    .support-info div {
+      margin-bottom: 4px;
+    }
+    .support-info div:last-child {
+      margin-bottom: 0;
+    }
+
     /* বড় ও আকর্ষণীয় সাপোর্ট বাটন */
     .btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      padding: 15px;
+      gap: 10px;
+      padding: 12px;
       border-radius: 8px;
       color: white;
       text-decoration: none;
       font-weight: bold;
-      margin-bottom: 15px;
-      font-size: 17px;
+      margin-bottom: 12px;
+      font-size: 16px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       transition: opacity 0.2s;
     }
@@ -69,15 +89,20 @@
       background-color: #25d366;
     }
 
-    /* অটো ব্যানার এড সেশন (ফাঁকা জায়গা পূরণের জন্য) */
+    /* দুটি ছোট ব্যানার এড স্লটের কন্টেইনার */
+    .ads-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 12px 0;
+    }
     .ad-banner-container {
-      margin-top: 20px;
-      padding: 10px;
+      padding: 6px;
       background: #f8f9fa;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid #e5e9f0;
       text-align: center;
-      min-height: 50px;
+      min-height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -86,10 +111,10 @@
 
     .back-btn {
       display: inline-block;
-      margin-top: 15px;
+      margin-top: 10px;
       color: #6c757d;
       text-decoration: none;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
     }
     .back-btn:hover {
@@ -104,9 +129,15 @@
       <i class="fa-solid fa-headset"></i>
     </div>
     <h2>ম্যানেজার সাপোর্ট</h2>
-    <p>যে কোনো সমস্যা বা অনুসন্ধানের জন্য সরাসরি আমাদের সাথে যোগাযোগ করুন[span_1](start_span)[span_1](end_span)।</p>
+    <p>যে কোনো সমস্যা বা অনুসন্ধানের জন্য সরাসরি আমাদের সাথে যোগাযোগ করুন।</p>
 
-    <!-- টেলিগ্রাম লিংক -->
+    <!-- সাপোর্ট সময় ও রেসপন্স টাইম ইনফো -->
+    <div class="support-info">
+      <div>🕒 <strong>সাপোর্ট সময়:</strong> সকাল ১০:০০ টা - রাত ১০:০০ টা</div>
+      <div>⚡ <strong>উত্তর পাওয়ার সময়:</strong> ৫ থেকে ১৫ মিনিট</div>
+    </div>
+
+    <!-- টেলিগ্রাম লিংক (WebView ফ্রেন্ডলি) -->
     <a href="https://t.me/your_telegram_username" target="_blank" class="btn telegram-btn">
       <i class="fa-brands fa-telegram fa-lg"></i> টেলিগ্রামে মেসেজ দিন
     </a>
@@ -116,13 +147,19 @@
       <i class="fa-brands fa-whatsapp fa-lg"></i> হোয়াটসঅ্যাপে কথা বলুন
     </a>
 
-    <!-- অটো ব্যানার অ্যাড স্লট (এখানে আপনার ব্যানার এডের স্ক্রিপ্ট ট্যাগ বসিয়ে দেবেন) -->
-    <div class="ad-banner-container">
-      <!-- Monetag বা Adsterra এর ব্যানার অ্যাড স্ক্রিপ্ট এখানে পেস্ট করবেন -->
-      <script type="text/javascript">
-        // আপনার ব্যানার এডের স্ক্রিপ্ট কোড এখানে বসবে
-      </script>
-      <span style="font-size: 12px; color: #a0aec0;">[ ব্যানার অ্যাড শো হবে ]</span>
+    <!-- দুটি ছোট ব্যানার অ্যাড স্লট -->
+    <div class="ads-wrapper">
+      <!-- ব্যানার স্লট ১ -->
+      <div class="ad-banner-container">
+        <!-- <script type="text/javascript">...</script> -->
+        <span style="font-size: 11px; color: #a0aec0;">[ ব্যানার অ্যাড ১ ]</span>
+      </div>
+
+      <!-- ব্যানার স্লট ২ -->
+      <div class="ad-banner-container">
+        <!-- <script type="text/javascript">...</script> -->
+        <span style="font-size: 11px; color: #a0aec0;">[ ব্যানার অ্যাড ২ ]</span>
+      </div>
     </div>
 
     <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> হোম পেজে ফিরে যান</a>
