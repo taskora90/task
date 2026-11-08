@@ -42,10 +42,9 @@
     p {
       color: #6c757d;
       font-size: 13px;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       line-height: 1.4;
     }
-    /* সাপোর্ট টাইম ইনফো বক্স */
     .support-info {
       background: #f8f9fa;
       border: 1px solid #e5e9f0;
@@ -62,8 +61,6 @@
     .support-info div:last-child {
       margin-bottom: 0;
     }
-
-    /* বড় ও আকর্ষণীয় সাপোর্ট বাটন */
     .btn {
       display: flex;
       align-items: center;
@@ -88,8 +85,6 @@
     .whatsapp-btn {
       background-color: #25d366;
     }
-
-    /* দুটি ছোট ব্যানার এড স্লটের কন্টেইনার */
     .ads-wrapper {
       display: flex;
       flex-direction: column;
@@ -108,7 +103,6 @@
       justify-content: center;
       overflow: hidden;
     }
-
     .back-btn {
       display: inline-block;
       margin-top: 10px;
@@ -131,14 +125,13 @@
     <h2>ম্যানেজার সাপোর্ট</h2>
     <p>যে কোনো সমস্যা বা অনুসন্ধানের জন্য সরাসরি আমাদের সাথে যোগাযোগ করুন।</p>
 
-    <!-- সাপোর্ট সময় ও রেসপন্স টাইম ইনফো -->
     <div class="support-info">
       <div>🕒 <strong>সাপোর্ট সময়:</strong> সকাল ১০:০০ টা - রাত ১০:০০ টা</div>
       <div>⚡ <strong>উত্তর পাওয়ার সময়:</strong> ৫ থেকে ১৫ মিনিট</div>
     </div>
 
-    <!-- টেলিগ্রাম লিংক (WebView ফ্রেন্ডলি) -->
-    <a href="https://t.me/your_telegram_username" target="_blank" class="btn telegram-btn">
+    <!-- টেলিগ্রাম লিংক (অ্যাপ ইনটেন্ট সহ) -->
+    <a href="https://t.me/your_telegram_username" onclick="openTelegram(event)" class="btn telegram-btn">
       <i class="fa-brands fa-telegram fa-lg"></i> টেলিগ্রামে মেসেজ দিন
     </a>
 
@@ -147,23 +140,30 @@
       <i class="fa-brands fa-whatsapp fa-lg"></i> হোয়াটসঅ্যাপে কথা বলুন
     </a>
 
-    <!-- দুটি ছোট ব্যানার অ্যাড স্লট -->
+    <!-- দুটি ব্যানার স্লট -->
     <div class="ads-wrapper">
-      <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
-        <!-- <script type="text/javascript">...</script> -->
         <span style="font-size: 11px; color: #a0aec0;">[ ব্যানার অ্যাড ১ ]</span>
       </div>
-
-      <!-- ব্যানার স্লট ২ -->
       <div class="ad-banner-container">
-        <!-- <script type="text/javascript">...</script> -->
         <span style="font-size: 11px; color: #a0aec0;">[ ব্যানার অ্যাড ২ ]</span>
       </div>
     </div>
 
     <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> হোম পেজে ফিরে যান</a>
   </div>
+
+  <script>
+    function openTelegram(e) {
+      e.preventDefault();
+      const username = "your_telegram_username"; // আপনার টেলিগ্রাম ইউজারনেম এখানে দিন
+      // অ্যান্ড্রয়েড অ্যাপ বা ব্রাউজারের জন্য স্মার্ট রিডাইরেক্ট
+      window.location.href = "tg://resolve?domain=" + username;
+      setTimeout(function() {
+        window.open("https://t.me/" + username, "_blank");
+      }, 500);
+    }
+  </script>
 
 </body>
 </html>
