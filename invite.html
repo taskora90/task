@@ -259,25 +259,34 @@
       alert('রেফারেল লিংক কপি করা হয়েছে!');
     }
 
-       // সোশ্যাল শেয়ারিং ফাংশন (ওয়েব ভিউ এবং ব্রাউজার ফ্রেন্ডলি)
+           // WhatsApp শেয়ার
     window.shareWhatsApp = function() {
       if(!fullInviteLink) return;
       const text = encodeURIComponent(`TaskOra অ্যাপে যোগ দিন এবং প্রতিদিন ইনকাম করুন! আমার রেফারেল লিংক: ${fullInviteLink}`);
       window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
     }
 
+    // Telegram সরাসরি অ্যাপে শেয়ার
     window.shareTelegram = function() {
       if(!fullInviteLink) return;
-      const text = encodeURIComponent(`TaskOra অ্যাপে যোগ দিন এবং কাজ করে আয় করুন!`);
-      window.open(`https://t.me/share/url?url=${encodeURIComponent(fullInviteLink)}&text=${text}`, '_blank');
+      const text = encodeURIComponent(`TaskOra অ্যাপে যোগ দিন এবং কাজ করে আয় করুন! লিংক: ${fullInviteLink}`);
+      // টেলিগ্রাম অ্যাপ স্কিম ইনটেন্ট
+      window.location.href = `tg://msg?text=${text}`;
+      setTimeout(function() {
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(fullInviteLink)}&text=${text}`, '_blank');
+      }, 500);
     }
 
+    // Messenger সরাসরি অ্যাপে শেয়ার
     window.shareMessenger = function() {
       if(!fullInviteLink) return;
-      // ফেসবুকের অফিসিয়াল ওয়েব শেয়ার লিংক (WebView এরর মুক্ত)
-      const fbShareUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(fullInviteLink)}&app_id=291494419107518&redirect_uri=${encodeURIComponent(fullInviteLink)}`;
-      window.open(fbShareUrl, '_blank');
+      // ফেসবুক মেসেঞ্জার অ্যাপ ইনটেন্ট স্কিম
+      window.location.href = `fb-messenger://share/?link=${encodeURIComponent(fullInviteLink)}`;
+      setTimeout(function() {
+        window.open(`https://www.facebook.com/dialog/send?link=${encodeURIComponent(fullInviteLink)}&app_id=291494419107518&redirect_uri=${encodeURIComponent(fullInviteLink)}`, '_blank');
+      }, 500);
     }
+
 
   </script>
 
