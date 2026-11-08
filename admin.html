@@ -152,6 +152,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getAuth, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -165,9 +166,29 @@
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
+      const auth = getAuth(app);
 
       const ADMIN_PASSWORD = "TarekHasan@36";        
       const USER_SECRET_PASSWORD = "NIRJONA@36"; 
+
+      // --- ২ মিনিট নিষ্ক্রিয় থাকলে অটো লগআউট সিস্টেম ---
+      let inactivityTimer;
+      const INACTIVITY_LIMIT = 2 * 60 * 1000; // ২ মিনিট (মিলি সেকেন্ডে)
+
+      function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+          inactivityTimer = setTimeout(() => {
+            alert("⚠️ ২ মিনিট কোনো কার্যক্রম না থাকায় নিরাপত্তা সুরক্ষায় অ্যাডমিন প্যানেল স্বয়ংক্রিয়ভাবে লগআউট হয়ে গেছে!");
+            adminLogout();
+          }, INACTIVITY_LIMIT);
+        }
+      }
+
+      // মাউস মুভ, ক্লিক বা কিবোর্দ প্রেস করলে টাইমার রিসেট হবে
+      ['mousemove', 'keydown', 'click', 'touchstart'].forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+      });
 
       window.verifyAdminPassword = function() {
         const inputPass = document.getElementById('adminPassInput').value;
@@ -177,6 +198,7 @@
           sessionStorage.setItem('isAdminLoggedIn', 'true');
           errorEl.style.display = 'none';
           showDashboardMenu();
+          resetInactivityTimer();
         } else {
           errorEl.style.display = 'block';
         }
@@ -197,6 +219,7 @@
           document.getElementById('adminDashboard').style.display = 'block';
           document.getElementById('usersSection').style.display = 'block';
           loadAllUsers();
+          resetInactivityTimer();
         } else {
           errorEl.style.display = 'block';
         }
@@ -209,6 +232,7 @@
       window.adminLogout = function() {
         sessionStorage.removeItem('isAdminLoggedIn');
         sessionStorage.removeItem('isUserSecUnlocked');
+        clearTimeout(inactivityTimer);
         document.getElementById('adminDashboard').style.display = 'none';
         document.getElementById('userSecPassSection').style.display = 'none';
         document.getElementById('loginSection').style.display = 'block';
@@ -233,13 +257,14 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
-          showDashboardMenu();
-        }
+        // পেজ রিফ্রেশ করলেই বা নতুন করে ঢুকলেই পাসওয়ার্ড চাইতে চাইলে নিচের লাইনটি সেশন চেক করবে
+        sessionStorage.removeItem('isAdminLoggedIn');
+        sessionStorage.removeItem('isUserSecUnlocked');
       });
 
       window.openSection = function(type) {
         document.getElementById('dashboardMenuSection').style.display = 'none';
+        resetInactivityTimer();
         
         if(type === 'recharge') {
           document.getElementById('rechargeSection').style.display = 'block';
@@ -455,7 +480,7 @@
           alert("সমস্যা হয়েছে!");
         }
       }
-      // --- ইউজার ডিটেলস, এডিট এবং সিকিউর ডিলিট ---
+      // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
       let allUsersData = [];
 
       async function loadAllUsers() {
@@ -528,6 +553,7 @@
               <tr><td>ইউজার আইডি (UID)</td><td>${userId || 'N/A'}</td></tr>
               <tr><td>পূর্ণ নাম</td><td><span id="view_name">${user.name || ''}</span><input type="text" id="edit_name" class="edit-input" value="${user.name || ''}" style="display:none;"></td></tr>
               <tr><td>ফোন নম্বর</td><td><span id="view_phone">${user.phone || ''}</span><input type="text" id="edit_phone" class="edit-input" value="${user.phone || ''}" style="display:none;"></td></tr>
+              <tr><td>নতুন পাসওয়ার্ড (রিসেট)</td><td><span id="view_pass" style="color: #ebcb8b;">পরিবর্তন করতে এডিট মোডে যান</span><input type="text" id="edit_password" class="edit-input" placeholder="নতুন পাসওয়ার্ড লিখুন (খালি রাখলে অপরিবর্তিত থাকবে)" style="display:none;"></td></tr>
               <tr><td>টাস্ক ক্যাশ (Task Cash)</td><td><span id="view_taskCash">${user.taskCash || 0}</span><input type="number" id="edit_taskCash" class="edit-input" value="${user.taskCash || 0}" style="display:none;"></td></tr>
               <tr><td>মাই ক্যাশ (My Cash)</td><td><span id="view_myCash">${user.myCash || 0}</span><input type="number" id="edit_myCash" class="edit-input" value="${user.myCash || 0}" style="display:none;"></td></tr>
               <tr><td>মোট আয় (Total Earnings)</td><td><span id="view_totalEarnings">${user.totalEarnings || 0}</span><input type="number" id="edit_totalEarnings" class="edit-input" value="${user.totalEarnings || 0}" style="display:none;"></td></tr>
@@ -535,7 +561,7 @@
               <tr><td>রেফারকারী</td><td>${user.referredBy || 'none'}</td></tr>
             </table>
 
-            <button id="editBtn" class="btn-edit-mode" onclick="enableUserEdit()"><i class="fa-solid fa-pen-to-square"></i> তথ্য এডিট করুন</button>
+            <button id="editBtn" class="btn-edit-mode" onclick="enableUserEdit()"><i class="fa-solid fa-pen-to-square"></i> তথ্য ও পাসওয়ার্ড এডিট করুন</button>
             <button id="saveBtn" class="btn-save" style="display:none;" onclick="saveUserData('${userId}')"><i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সংরক্ষণ করুন</button>
             <button class="btn-delete-user" onclick="deleteUserAccount('${userId}', '${user.name || 'ইউজার'}')"><i class="fa-solid fa-trash-can"></i> অ্যাকাউন্ট ডিলিট করুন</button>
           </div>
@@ -544,7 +570,7 @@
       }
 
       window.enableUserEdit = function() {
-        const fields = ['name', 'phone', 'taskCash', 'myCash', 'totalEarnings', 'package'];
+        const fields = ['name', 'phone', 'password', 'taskCash', 'myCash', 'totalEarnings', 'package'];
         fields.forEach(field => {
           const viewSpan = document.getElementById(`view_${field}`);
           const editInput = document.getElementById(`edit_${field}`);
@@ -561,11 +587,13 @@
         try {
           const newName = document.getElementById('edit_name').value.trim();
           const newPhone = document.getElementById('edit_phone').value.trim();
+          const newPassword = document.getElementById('edit_password').value.trim();
           const newTaskCash = Number(document.getElementById('edit_taskCash').value);
           const newMyCash = Number(document.getElementById('edit_myCash').value);
           const newTotalEarnings = Number(document.getElementById('edit_totalEarnings').value);
           const newPackage = document.getElementById('edit_package').value.trim();
 
+          // ১. ফায়ারস্টোরে ইউজার ডেটা আপডেট
           const userRef = doc(db, "users", userId);
           await updateDoc(userRef, {
             name: newName,
@@ -576,7 +604,21 @@
             package: newPackage
           });
 
-          alert("ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!");
+          // ২. যদি নতুন পাসওয়ার্ড দেওয়া হয়ে থাকে, তবে ফায়ারবেস অথেনটিকেশনে আপডেট করার চেষ্টা
+          if (newPassword !== "") {
+            try {
+              // Firebase Auth এ ইউজার আপডেট করার জন্য রুলস চেক
+              const userAuthRecord = await auth.getUser(userId);
+              await updatePassword(userAuthRecord, newPassword);
+              alert("ইউজারের তথ্য এবং পাসওয়ার্ড উভয়ই সফলভাবে আপডেট করা হয়েছে!");
+            } catch (authError) {
+              console.log("Auth password update note:", authError);
+              alert("ইউজারের ডেটা আপডেট হয়েছে, তবে পাসওয়ার্ড অথেনটিকেশনে আপডেট করতে ফায়ারবেস অ্যাডমিন পারমিশন বা রুলস প্রয়োজন হতে পারে।");
+            }
+          } else {
+            alert("ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!");
+          }
+
           loadAllUsers();
           document.getElementById('userSearchInput').style.display = 'block';
         } catch (error) {
