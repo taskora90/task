@@ -266,12 +266,33 @@
 <div id="homeNoticeModal" class="notice-modal-overlay">
     <div class="notice-modal-content">
         <span class="notice-close-btn" onclick="closeHomeNotice()">&times;</span>
-        <!-- এখানে টেক্সটের বদলে আপনার ফটো বা ইমেজ ট্যাগ ব্যবহার করুন -->
         <div class="notice-image-container">
-            <img src="আপনার_ছবির_লিংক_বা_ফোল্ডার_পাথ/image.jpg" alt="Notice Image" style="width: 100%; border-radius: 8px;">
+            <img src="আপনার_ছবির_লিংক_বা_ফোল্ডার_পাথ" alt="Notice" style="width: 100%; border-radius: 8px;">
         </div>
     </div>
 </div>
+
+<style>
+.notice-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9999;
+}
+.notice-modal-content {
+    background-color: #3b4252;
+    padding: 20px; border-radius: 12px;
+    width: 90%; max-width: 350px; position: relative;
+}
+.notice-close-btn {
+    position: absolute; top: 10px; right: 15px;
+    color: #fff; font-size: 24px; font-weight: bold; cursor: pointer;
+    background: #4c566a; width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; z-index: 10;
+}
+</style>
+
 
 
 <script>
