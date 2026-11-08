@@ -21,7 +21,7 @@
         .btn-logout { background: #4c566a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .btn-logout:hover { background: #5f6f8a; }
 
-        /* ব্যানার স্টাইল মেনু */
+        /* ব্যানার মেনু */
         .dashboard-menu { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
         .banner-card { background: #2e3440; border: 1px solid #4c566a; padding: 16px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
         .banner-card:hover { background: #4c566a; border-color: #81a1c1; }
@@ -37,8 +37,11 @@
 
         .btn-save { background: #a3be8c; color: #2e3440; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px; }
         .btn-save:hover { background: #8fbcbb; }
+
+        .btn-delete-user { background: #bf616a; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; margin-left: 8px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-delete-user:hover { background: #d08770; }
         
-        .btn-notice-submit { background: #5e81ac; color: #white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; margin-top: 10px; }
+        .btn-notice-submit { background: #5e81ac; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; margin-top: 10px; }
         .btn-notice-submit:hover { background: #81a1c1; }
 
         .request-card { background: #2e3440; border: 1px solid #4c566a; padding: 14px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; word-break: break-all; color: #d8dee9; }
@@ -90,7 +93,7 @@
             <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> লগআউট</button>
         </div>
 
-        <!-- ব্যানার মেনু (৪টি অপশন) -->
+        <!-- ব্যানার মেনু -->
         <div id="dashboardMenuSection" class="dashboard-menu">
             <div class="banner-card" onclick="openSection('recharge')">
                 <h3><i class="fa-solid fa-wallet"></i> রিচার্জ রিকোয়েস্ট</h3>
@@ -258,7 +261,7 @@
         }
       }
 
-      // --- নোটিশ ম্যানেজমেন্ট ফাংশনসমূহ ---
+      // --- নোটিশ ম্যানেজমেন্ট ---
       window.postNewNotice = async function() {
         const title = document.getElementById('noticeTitleInput').value.trim();
         const details = document.getElementById('noticeDetailsInput').value.trim();
@@ -282,7 +285,6 @@
           document.getElementById('noticeDetailsInput').value = '';
           loadAdminNotices();
         } catch (error) {
-          console.error("Notice post error:", error);
           alert("নোটিশ পোস্ট করতে সমস্যা হয়েছে: " + error.message);
         }
       }
@@ -313,7 +315,6 @@
             `;
           });
         } catch (error) {
-          console.error("Admin notice load error:", error);
           listEl.innerHTML = "নোটিশ লোড করতে সমস্যা হয়েছে।";
         }
       }
@@ -330,7 +331,7 @@
         }
       }
 
-      // --- রিচার্জ রিকোয়েস্ট হ্যান্ডলার ---
+      // --- রিচার্জ রিকোয়েস্ট ---
       async function loadRechargeRequests() {
         const listEl = document.getElementById('rechargeList');
         if (!listEl) return;
@@ -369,7 +370,6 @@
             listEl.innerHTML = "কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।";
           }
         } catch (error) {
-          console.error("রিচার্জ লোড ত্রুটি:", error);
           listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।";
         }
       }
@@ -399,7 +399,7 @@
         }
       }
 
-      // --- উত্তোলন রিকোয়েস্ট হ্যান্ডলার ---
+      // --- উত্তোলন রিকোয়েস্ট ---
       async function loadWithdrawRequests() {
         const listEl = document.getElementById('withdrawList');
         if (!listEl) return;
@@ -454,8 +454,7 @@
           alert("সমস্যা হয়েছে!");
         }
       }
-
-      // --- ইউজার ডিটেলস ও এডিট হ্যান্ডলার ---
+      // --- ইউজার ডিটেলস, এডিট এবং সিকিউর ডিলিট ---
       let allUsersData = [];
 
       async function loadAllUsers() {
@@ -516,6 +515,7 @@
 
       window.showUserDetailModal = function(user) {
         const container = document.getElementById('userListContainer');
+        const userId = user.uid || user.id;
         
         container.innerHTML = `
           <button class="btn-back" onclick="loadAllUsers(); document.getElementById('userSearchInput').style.display='block';"><i class="fa-solid fa-arrow-left"></i> ইউজার লিস্টে ফিরুন</button>
@@ -524,7 +524,7 @@
             
             <table class="user-details-table">
               <tr><th>ফিল্ডের নাম</th><th>মান (Value)</th></tr>
-              <tr><td>ইউজার আইডি (UID)</td><td>${user.uid || user.id || 'N/A'}</td></tr>
+              <tr><td>ইউজার আইডি (UID)</td><td>${userId || 'N/A'}</td></tr>
               <tr><td>পূর্ণ নাম</td><td><span id="view_name">${user.name || ''}</span><input type="text" id="edit_name" class="edit-input" value="${user.name || ''}" style="display:none;"></td></tr>
               <tr><td>ফোন নম্বর</td><td><span id="view_phone">${user.phone || ''}</span><input type="text" id="edit_phone" class="edit-input" value="${user.phone || ''}" style="display:none;"></td></tr>
               <tr><td>টাস্ক ক্যাশ (Task Cash)</td><td><span id="view_taskCash">${user.taskCash || 0}</span><input type="number" id="edit_taskCash" class="edit-input" value="${user.taskCash || 0}" style="display:none;"></td></tr>
@@ -535,7 +535,8 @@
             </table>
 
             <button id="editBtn" class="btn-edit-mode" onclick="enableUserEdit()"><i class="fa-solid fa-pen-to-square"></i> তথ্য এডিট করুন</button>
-            <button id="saveBtn" class="btn-save" style="display:none;" onclick="saveUserData('${user.uid || user.id}')"><i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সংরক্ষণ করুন</button>
+            <button id="saveBtn" class="btn-save" style="display:none;" onclick="saveUserData('${userId}')"><i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সংরক্ষণ করুন</button>
+            <button class="btn-delete-user" onclick="deleteUserAccount('${userId}', '${user.name || 'ইউজার'}')"><i class="fa-solid fa-trash-can"></i> অ্যাকাউন্ট ডিলিট করুন</button>
           </div>
         `;
         document.getElementById('userSearchInput').style.display = 'none';
@@ -579,6 +580,28 @@
           document.getElementById('userSearchInput').style.display = 'block';
         } catch (error) {
           alert("তথ্য আপডেট করতে সমস্যা হয়েছে: " + error.message);
+        }
+      }
+
+      // --- ডাবল ওয়ার্নিং সহ ইউজার ডিলিট ফাংশন ---
+      window.deleteUserAccount = async function(userId, userName) {
+        const firstConfirm = confirm(`⚠️ সাবধান!\n\nআপনি কি নিশ্চিতভাবে "${userName}"-এর সম্পূর্ণ অ্যাকাউন্টটি ফায়ারবেস থেকে মুছে ফেলতে চান?`);
+        
+        if (firstConfirm) {
+          const secondConfirm = prompt(`অ্যাকাউন্টটি চিরতরে মুছে ফেলার জন্য নিচে "DELETE" শব্দটি অথবা ইউজারের নাম (${userName}) লিখুন:`);
+          
+          if (secondConfirm && (secondConfirm.trim() === "DELETE" || secondConfirm.trim() === userName.trim())) {
+            try {
+              await deleteDoc(doc(db, "users", userId));
+              alert(`"${userName}"-এর অ্যাকাউন্টটি সফলভাবে ফায়ারবেস থেকে স্থায়ীভাবে ডিলিট করা হয়েছে!`);
+              loadAllUsers();
+              document.getElementById('userSearchInput').style.display = 'block';
+            } catch (error) {
+              alert("ইউজার ডিলিট করতে সমস্যা হয়েছে: " + error.message);
+            }
+          } else {
+            alert("সঠিকভাবে টাইপ না করার কারণে ডিলিট প্রক্রিয়া বাতিল করা হয়েছে। ইউজার নিরাপদ আছে!");
+          }
         }
       }
     </script>
