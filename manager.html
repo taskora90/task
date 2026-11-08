@@ -73,8 +73,12 @@
       font-weight: bold;
       margin-bottom: 12px;
       font-size: 16px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       transition: opacity 0.2s;
+      box-sizing: border-box;
     }
     .btn:hover {
       opacity: 0.9;
@@ -130,15 +134,15 @@
       <div>⚡ <strong>উত্তর পাওয়ার সময়:</strong> ৫ থেকে ১৫ মিনিট</div>
     </div>
 
-    <!-- টেলিগ্রাম লিংক -->
-    <a href="https://t.me/your_telegram_username" target="_blank" class="btn telegram-btn">
+    <!-- টেলিগ্রাম সাপোর্ট বাটন -->
+    <button class="btn telegram-btn" onclick="openTelegramSupport()">
       <i class="fa-brands fa-telegram fa-lg"></i> টেলিগ্রামে মেসেজ দিন
-    </a>
+    </button>
 
-    <!-- হোয়াটসঅ্যাপ লিংক -->
-    <a href="https://wa.me/8801700000000" target="_blank" class="btn whatsapp-btn">
+    <!-- হোয়াটসঅ্যাপ সাপোর্ট বাটন -->
+    <button class="btn whatsapp-btn" onclick="openWhatsAppSupport()">
       <i class="fa-brands fa-whatsapp fa-lg"></i> হোয়াটসঅ্যাপে কথা বলুন
-    </a>
+    </button>
 
     <!-- দুটি ব্যানার স্লট -->
     <div class="ads-wrapper">
@@ -157,6 +161,36 @@
 
     <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> হোম পেজে ফিরে যান</a>
   </div>
+
+  <script>
+    // টেলিগ্রাম সাপোর্ট লিংক খোলার নিরাপদ ফাংশন
+    function openTelegramSupport() {
+      const telegramUrl = "https://t.me/your_telegram_username"; // আপনার টেলিগ্রাম লিংক এখানে দিন
+      if (navigator.share) {
+        navigator.share({
+          title: 'ম্যানেজার সাপোর্ট',
+          text: 'টেলিগ্রামে যোগাযোগ করুন:',
+          url: telegramUrl,
+        }).catch(() => {});
+      } else {
+        window.open(telegramUrl, '_blank');
+      }
+    }
+
+    // হোয়াটসঅ্যাপ সাপোর্ট লিংক খোলার নিরাপদ ফাংশন
+    function openWhatsAppSupport() {
+      const whatsappUrl = "https://wa.me/8801700000000"; // আপনার হোয়াটসঅ্যাপ নাম্বার এখানে দিন
+      if (navigator.share) {
+        navigator.share({
+          title: 'ম্যানেজার সাপোর্ট',
+          text: 'হোয়াটসঅ্যাপে যোগাযোগ করুন:',
+          url: whatsappUrl,
+        }).catch(() => {});
+      } else {
+        window.open(whatsappUrl, '_blank');
+      }
+    }
+  </script>
 
 </body>
 </html>
