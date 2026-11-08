@@ -273,6 +273,17 @@
     </div>
 </div>
 
+// পপ-আপ বন্ধ করার ফাংশন
+function closeHomeNotice() {
+    document.getElementById('homeNoticeModal').style.display = 'none';
+}
+
+// ইনডেক্স পেজে ঢোকার সাথে সাথে প্রতিবার পপ-আপ দেখানোর জন্য
+window.addEventListener('DOMContentLoaded', (event) => {
+    const modal = document.getElementById('homeNoticeModal');
+    // পেজ লোড হলে মোডাল ডিসপ্লে ফ্লেক্স বা দৃশ্যমান হবে
+    modal.style.display = 'flex';
+});
 
 
 
