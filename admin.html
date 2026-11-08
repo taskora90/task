@@ -6,31 +6,56 @@
     <title>অ্যাডমিন ড্যাশবোর্ড</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 15px; }
-        .admin-container { max-width: 100%; width: 100%; margin: 0 auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
-        
+        body { font-family: Arial, sans-serif; background: #3b4252; color: #d8dee9; margin: 0; padding: 15px; }
+        .admin-container { max-width: 800px; width: 100%; margin: 0 auto; background: #434c5e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); box-sizing: border-box; }
+
         /* পাসওয়ার্ড লগইন বক্স স্টাইল */
-        .login-box { max-width: 350px; margin: 60px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        .login-box h3 { margin-top: 0; color: #333; margin-bottom: 20px; }
-        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; outline: none; }
-        .login-btn { width: 100%; background: #007bff; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .login-btn:hover { background: #0056b3; }
-        .error-msg { color: #dc3545; font-size: 14px; margin-top: 10px; display: none; }
+        .login-box { max-width: 380px; margin: 60px auto; background: #434c5e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; border: 1px solid #4c566a; }
+        .login-box h3 { margin-top: 0; color: #eceff4; margin-bottom: 20px; }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #4c566a; background: #2e3440; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 15px; outline: none; }
+        .login-btn { width: 100%; background: #5e81ac; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .login-btn:hover { background: #81a1c1; }
+        .error-msg { color: #bf616a; font-size: 14px; margin-top: 10px; display: none; }
 
-        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn-logout { background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #4c566a; padding-bottom: 12px; }
+        .btn-logout { background: #4c566a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-logout:hover { background: #5f6f8a; }
 
-        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
-        .tab-btn { flex: 1; padding: 12px 5px; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 15px; text-align: center; }
-        .tab-btn.active { border-bottom: 3px solid #007bff; color: #007bff; }
-        .request-card { background: #fafafa; border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin-bottom: 10px; font-size: 14px; word-break: break-all; }
-        .btn-approve { background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px; }
-        .btn-reject { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+        /* ব্যানার স্টাইল থ্রি-বাটন ড্যাশবোর্ড মেনু */
+        .dashboard-menu { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .banner-card { background: #2e3440; border: 1px solid #4c566a; padding: 16px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .banner-card:hover { background: #4c566a; border-color: #81a1c1; }
+        .banner-card h3 { margin: 0; color: #eceff4; font-size: 17px; display: flex; align-items: center; gap: 10px; }
+        .banner-card i { color: #81a1c1; }
+
+        /* ব্যাক বাটন */
+        .btn-back { background: #4c566a; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-back:hover { background: #5f6f8a; }
+
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #4c566a; }
+        .tab-btn { flex: 1; padding: 12px 5px; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 15px; text-align: center; color: #99aab5; }
+        .tab-btn.active { border-bottom: 3px solid #81a1c1; color: #eceff4; }
+        
+        .request-card { background: #2e3440; border: 1px solid #4c566a; padding: 14px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; word-break: break-all; color: #d8dee9; }
+        .request-card p { margin: 6px 0; }
+        
+        .btn-approve { background: #a3be8c; color: #2e3440; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; }
+        .btn-approve:hover { background: #8fbcbb; }
+        .btn-reject { background: #bf616a; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; margin-left: 6px; }
+        .btn-reject:hover { background: #d08770; }
+
+        /* ইউজার ডিটেলস স্টাইল */
+        .search-box { width: 100%; padding: 10px 14px; background: #2e3440; border: 1px solid #4c566a; border-radius: 6px; color: #fff; font-size: 15px; margin-bottom: 15px; box-sizing: border-box; outline: none; }
+        .user-list-item { background: #2e3440; border: 1px solid #4c566a; padding: 12px 16px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .user-list-item:hover { background: #4c566a; }
+        .user-details-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #2e3440; border-radius: 6px; overflow: hidden; }
+        .user-details-table th, .user-details-table td { padding: 10px 12px; border: 1px solid #4c566a; text-align: left; font-size: 14px; }
+        .user-details-table th { background: #4c566a; color: #eceff4; }
     </style>
 </head>
 <body>
 
-    <!-- লগইন ফর্ম সেকশন -->
+    <!-- ১. মূল অ্যাডমিন লগইন ফর্ম -->
     <div id="loginSection" class="login-box">
         <h3><i class="fa-solid fa-lock"></i> অ্যাডমিন লগইন</h3>
         <input type="password" id="adminPassInput" class="login-input" placeholder="পাসওয়ার্ড লিখুন...">
@@ -38,30 +63,62 @@
         <div id="loginError" class="error-msg">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
     </div>
 
-    <!-- মূল অ্যাডমিন ড্যাশবোর্ড (ডিফল্টভাবে হাইড থাকবে) -->
+    <!-- ২. ইউজার ডিটেলস পাসওয়ার্ড প্রম্পট বক্স (আলাদা সিকিউরিটি) -->
+    <div id="userSecPassSection" class="login-box" style="display: none;">
+        <h3><i class="fa-solid fa-user-shield"></i> ইউজার ডিটেলস সিকিউরিটি</h3>
+        <p style="font-size: 13px; color: #99aab5; margin-bottom: 15px;">গোপন তথ্য দেখতে আলাদা পাসওয়ার্ড দিন</p>
+        <input type="password" id="userSecPassInput" class="login-input" placeholder="ইউজার প্যানেল পাসওয়ার্ড...">
+        <button class="login-btn" onclick="verifyUserSecPassword()">আনলক করুন</button>
+        <button class="btn-back" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="backToDashboardMenu()">ফিরে যান</button>
+        <div id="userSecError" class="error-msg">ভুল পাসওয়ার্ড!</div>
+    </div>
+
+    <!-- ৩. মূল অ্যাডমিন ড্যাশবোর্ড (ব্যানার মেনু ও সেকশন) -->
     <div id="adminDashboard" class="admin-container" style="display: none;">
         <div class="header-bar">
-            <h2 style="margin: 0;">অ্যাডমিন ড্যাশবোর্ড</h2>
+            <h2 style="margin: 0; color: #eceff4;">অ্যাডমিন ড্যাশবোর্ড</h2>
             <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> লগআউট</button>
         </div>
 
-        <div class="tabs">
-            <button class="tab-btn active" id="rechargeTabBtn" onclick="switchTab('recharge')">রিচার্জ রিকোয়েস্ট</button>
-            <button class="tab-btn" id="withdrawTabBtn" onclick="switchTab('withdraw')">উত্তোলন রিকোয়েস্ট</button>
+        <!-- ব্যানার স্টাইল ৩টি অপশন মেনু -->
+        <div id="dashboardMenuSection" class="dashboard-menu">
+            <div class="banner-card" onclick="openSection('recharge')">
+                <h3><i class="fa-solid fa-wallet"></i> রিচার্জ রিকোয়েস্ট</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="banner-card" onclick="openSection('withdraw')">
+                <h3><i class="fa-solid fa-money-bill-transfer"></i> উত্তোলন রিকোয়েস্ট</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="banner-card" onclick="openSection('users')">
+                <h3><i class="fa-solid fa-users-gear"></i> ইউজার ডিটেলস (সিক্রেট)</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
         </div>
 
         <!-- রিচার্জ সেকশন -->
-        <div id="rechargeSection">
+        <div id="rechargeSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
             <h3>রিচার্জ রিকোয়েস্ট তালিকা</h3>
             <div id="rechargeList">লোড হচ্ছে...</div>
         </div>
 
         <!-- উত্তোলন সেকশন -->
         <div id="withdrawSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
             <h3>উত্তোলন রিকোয়েস্ট তালিকা</h3>
             <div id="withdrawList">লোড হচ্ছে...</div>
         </div>
+
+        <!-- ইউজার ডিটেলস সেকশন -->
+        <div id="usersSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
+            <h3>ইউজার ডিটেলস ও তথ্য তালিকা</h3>
+            <input type="text" id="userSearchInput" class="search-box" placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন..." onkeyup="filterUserList()">
+            <div id="userListContainer">ইউজার ডেটা লোড হচ্ছে...</div>
+        </div>
     </div>
+
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -80,10 +137,11 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // অ্যাডমিন পাসওয়ার্ড (প্রয়োজনে পরিবর্তন করুন)
-      const ADMIN_PASSWORD = "TarekHasan@36";
+      // পাসওয়ার্ডসমূহ
+      const ADMIN_PASSWORD = "TarekHasan@36";        // মূল অ্যাডমিন পাসওয়ার্ড
+      const USER_SECRET_PASSWORD = "SecretUserPass@123"; // ইউজার ডিটেলস দেখার গোপন পাসওয়ার্ড
 
-      // পাসওয়ার্ড ভেরিফিকেশন ফানশন
+      // মূল অ্যাডমিন পাসওয়ার্ড ভেরিফিকেশন
       window.verifyAdminPassword = function() {
         const inputPass = document.getElementById('adminPassInput').value;
         const errorEl = document.getElementById('loginError');
@@ -91,51 +149,88 @@
         if (inputPass === ADMIN_PASSWORD) {
           sessionStorage.setItem('isAdminLoggedIn', 'true');
           errorEl.style.display = 'none';
-          showDashboard();
+          showDashboardMenu();
         } else {
           errorEl.style.display = 'block';
         }
       }
 
-      // কীবোর্ডের Enter চাপলে লগইন হওয়া
       document.getElementById('adminPassInput').addEventListener('keyup', (e) => {
         if (e.key === 'Enter') verifyAdminPassword();
       });
 
-      // লগআউট ফানশন
-      window.adminLogout = function() {
-        sessionStorage.removeItem('isAdminLoggedIn');
-        document.getElementById('adminDashboard').style.display = 'none';
-        document.getElementById('loginSection').style.display = 'block';
-        document.getElementById('adminPassInput').value = '';
+      // ইউজার সিক্রেট পাসওয়ার্ড ভেরিফিকেশন
+      window.verifyUserSecPassword = function() {
+        const inputPass = document.getElementById('userSecPassInput').value;
+        const errorEl = document.getElementById('userSecError');
+
+        if (inputPass === USER_SECRET_PASSWORD) {
+          sessionStorage.setItem('isUserSecUnlocked', 'true');
+          errorEl.style.display = 'none';
+          document.getElementById('userSecPassSection').style.display = 'none';
+          document.getElementById('adminDashboard').style.display = 'block';
+          showSection('users');
+        } else {
+          errorEl.style.display = 'block';
+        }
       }
 
-      function showDashboard() {
+      document.getElementById('userSecPassInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') verifyUserSecPassword();
+      });
+
+      // লগআউট ফাংশন
+      window.adminLogout = function() {
+        sessionStorage.removeItem('isAdminLoggedIn');
+        sessionStorage.removeItem('isUserSecUnlocked');
+        document.getElementById('adminDashboard').style.display = 'none';
+        document.getElementById('userSecPassSection').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('adminPassInput').value = '';
+        document.getElementById('userSecPassInput').value = '';
+      }
+
+      function showDashboardMenu() {
         document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('userSecPassSection').style.display = 'none';
         document.getElementById('adminDashboard').style.display = 'block';
-        loadRechargeRequests();
+        
+        document.getElementById('dashboardMenuSection').style.display = 'flex';
+        document.getElementById('rechargeSection').style.display = 'none';
+        document.getElementById('withdrawSection').style.display = 'none';
+        document.getElementById('usersSection').style.display = 'none';
+      }
+
+      window.backToDashboardMenu = function() {
+        showDashboardMenu();
       }
 
       // পেজ লোড চেক
       document.addEventListener("DOMContentLoaded", () => {
         if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
-          showDashboard();
+          showDashboardMenu();
         }
       });
 
-      window.switchTab = function(type) {
+      // সেকশন সুইচিং হ্যান্ডলার
+      window.openSection = function(type) {
+        document.getElementById('dashboardMenuSection').style.display = 'none';
+        
         if(type === 'recharge') {
           document.getElementById('rechargeSection').style.display = 'block';
-          document.getElementById('withdrawSection').style.display = 'none';
-          document.getElementById('rechargeTabBtn').classList.add('active');
-          document.getElementById('withdrawTabBtn').classList.remove('active');
           loadRechargeRequests();
-        } else {
-          document.getElementById('rechargeSection').style.display = 'none';
+        } else if(type === 'withdraw') {
           document.getElementById('withdrawSection').style.display = 'block';
-          document.getElementById('withdrawTabBtn').classList.add('active');
-          document.getElementById('rechargeTabBtn').classList.remove('active');
           loadWithdrawRequests();
+        } else if(type === 'users') {
+          if (sessionStorage.getItem('isUserSecUnlocked') === 'true') {
+            document.getElementById('usersSection').style.display = 'block';
+            loadAllUsers();
+          } else {
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('userSecPassSection').style.display = 'block';
+            document.getElementById('userSecPassInput').value = '';
+          }
         }
       }
 
@@ -165,7 +260,7 @@
                   <p>ফোন/ইমেইল: <strong>${data.userPhone || data.userEmail || 'N/A'}</strong></p>
                   <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
                   <p>মেথড: <strong>${data.method}</strong></p>
-                  <p>TrxID: <strong style="color: #007bff;">${data.trxId}</strong></p>
+                  <p>TrxID: <strong style="color: #81a1c1;">${data.trxId}</strong></p>
                   <p>স্ট্যাটাস: <em>${data.status || 'pending'}</em></p>
                   <button class="btn-approve" onclick="handleRecharge('${d.id}', '${data.userId}', ${data.amount})">এপ্রুভ</button>
                   <button class="btn-reject" onclick="handleRejection('${d.id}')">রিজেক্ট</button>
@@ -183,7 +278,7 @@
         }
       }
 
-      // রিচার্জ এপ্রুভ (myCash এ যোগ হবে)
+      // রিচার্জ এপ্রুভ
       window.handleRecharge = async function(rechargeId, userId, amount) {
         try {
           const userRef = doc(db, "users", userId);
@@ -224,7 +319,7 @@
         try {
           const querySnap = await getDocs(collection(db, "withdrawals"));
           if (querySnap.empty) {
-            listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই। সাবমিট করা ডেটা নেই।";
+            listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।";
             return;
           }
 
@@ -274,6 +369,96 @@
           console.error("Error:", error);
           alert("সমস্যা হয়েছে!");
         }
+      }
+
+      // ফায়ারস্টোর থেকে সমস্ত ইউজার ফেচ এবং ডিটেলস ভিউ
+      let allUsersData = [];
+
+      async function loadAllUsers() {
+        const container = document.getElementById('userListContainer');
+        container.innerHTML = "ইউজার ডেটা লোড হচ্ছে...";
+
+        try {
+          const querySnap = await getDocs(collection(db, "users"));
+          if (querySnap.empty) {
+            container.innerHTML = "কোনো ইউজার পাওয়া যায়নি।";
+            return;
+          }
+
+          allUsersData = [];
+          querySnap.forEach((docSnap) => {
+            allUsersData.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          renderUserList(allUsersData);
+        } catch (error) {
+          console.error("ইউজার ডেটা লোড এরর:", error);
+          container.innerHTML = "ইউজার ডেটা লোড করতে সমস্যা হয়েছে।";
+        }
+      }
+
+      function renderUserList(users) {
+        const container = document.getElementById('userListContainer');
+        if (users.length === 0) {
+          container.innerHTML = "কোনো ইউজার পাওয়া যায়নি।";
+          return;
+        }
+
+        container.innerHTML = "";
+        users.forEach((user) => {
+          const name = user.name || 'নাম নেই';
+          const phone = user.phone || 'নম্বর নেই';
+
+          container.innerHTML += `
+            <div class="user-list-item" onclick='showUserDetailModal(${JSON.stringify(user)})'>
+              <div>
+                <strong>${name}</strong><br>
+                <span style="font-size: 13px; color: #99aab5;"><i class="fa-solid fa-phone"></i> ${phone}</span>
+              </div>
+              <i class="fa-solid fa-chevron-right" style="color: #81a1c1;"></i>
+            </div>
+          `;
+        });
+      }
+
+      // সার্চ ফিল্টার ফাংশন
+      window.filterUserList = function() {
+        const query = document.getElementById('userSearchInput').value.toLowerCase();
+        const filtered = allUsersData.filter(user => {
+          const name = (user.name || '').toLowerCase();
+          const phone = (user.phone || '').toLowerCase();
+          return name.includes(query) || phone.includes(query);
+        });
+        renderUserList(filtered);
+      }
+
+      // ইউজারের বিস্তারিত টেবিল ভিউ
+      window.showUserDetailModal = function(user) {
+        const container = document.getElementById('userListContainer');
+        
+        container.innerHTML = `
+          <button class="btn-back" onclick="loadAllUsers(); document.getElementById('userSearchInput').style.display='block';"><i class="fa-solid fa-arrow-left"></i> ইউজার লিস্টে ফিরুন</button>
+          <div style="background: #2e3440; border: 1px solid #4c566a; padding: 16px; border-radius: 8px;">
+            <h3 style="margin-top: 0; color: #eceff4; border-bottom: 1px solid #4c566a; padding-bottom: 8px;">👤 ${user.name || 'N/A'} - বিস্তারিত তথ্য</h3>
+            
+            <table class="user-details-table">
+              <tr>
+                <th>ফিল্ডের নাম</th>
+                <th>মান (Value)</th>
+              </tr>
+              <tr><td>ইউজার আইডি (UID)</td><td>${user.uid || user.id || 'N/A'}</td></tr>
+              <tr><td>পূর্ণ নাম</td><td>${user.name || 'N/A'}</td></tr>
+              <tr><td>ফোন নম্বর</td><td>${user.phone || 'N/A'}</td></tr>
+              <tr><td>টাস্ক ক্যাশ (Task Cash)</td><td><strong style="color: #a3be8c;">৳ ${user.taskCash || 0}</strong></td></tr>
+              <tr><td>মাই ক্যাশ (My Cash)</td><td><strong style="color: #a3be8c;">৳ ${user.myCash || 0}</strong></td></tr>
+              <tr><td>মোট আয় (Total Earnings)</td><td><strong style="color: #81a1c1;">৳ ${user.totalEarnings || 0}</strong></td></tr>
+              <tr><td>সক্রিয় প্যাকেজ</td><td>${user.package || 'none'}</td></tr>
+              <tr><td>রেফারকারী (Referred By)</td><td>${user.referredBy || 'none'}</td></tr>
+              <tr><td>একাউন্ট খোলার সময়</td><td>${user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleString() : 'N/A'}</td></tr>
+            </table>
+          </div>
+        `;
+        document.getElementById('userSearchInput').style.display = 'none';
       }
     </script>
 </body>
