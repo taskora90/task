@@ -130,8 +130,8 @@
       <div>⚡ <strong>উত্তর পাওয়ার সময়:</strong> ৫ থেকে ১৫ মিনিট</div>
     </div>
 
-    <!-- টেলিগ্রাম লিংক (অ্যাপ ইনটেন্ট সহ) -->
-    <a href="https://t.me/your_telegram_username" onclick="openTelegram(event)" class="btn telegram-btn">
+    <!-- টেলিগ্রাম লিংক -->
+    <a href="https://t.me/your_telegram_username" target="_blank" class="btn telegram-btn">
       <i class="fa-brands fa-telegram fa-lg"></i> টেলিগ্রামে মেসেজ দিন
     </a>
 
@@ -142,28 +142,21 @@
 
     <!-- দুটি ব্যানার স্লট -->
     <div class="ads-wrapper">
+      <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
+        <!-- এখানে আপনার Monetag ব্যানার অ্যাড স্ক্রিপ্ট কোড বসাবেন -->
         <span style="font-size: 11px; color: #a0aec0;">[ ব্যানার অ্যাড ১ ]</span>
       </div>
+
+      <!-- ব্যানার স্লট ২ -->
       <div class="ad-banner-container">
+        <!-- এখানে আপনার Monetag ব্যানার অ্যাড স্ক্রিপ্ট কোড বসাবেন -->
         <span style="font-size: 11px; color: #a0aec0;">[ ব্যানার অ্যাড ২ ]</span>
       </div>
     </div>
 
     <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> হোম পেজে ফিরে যান</a>
   </div>
-
-  <script>
-    function openTelegram(e) {
-      e.preventDefault();
-      const username = "your_telegram_username"; // আপনার টেলিগ্রাম ইউজারনেম এখানে দিন
-      // অ্যান্ড্রয়েড অ্যাপ বা ব্রাউজারের জন্য স্মার্ট রিডাইরেক্ট
-      window.location.href = "tg://resolve?domain=" + username;
-      setTimeout(function() {
-        window.open("https://t.me/" + username, "_blank");
-      }, 500);
-    }
-  </script>
 
 </body>
 </html>
