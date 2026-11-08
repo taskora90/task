@@ -167,7 +167,7 @@
       const db = getFirestore(app);
 
       const ADMIN_PASSWORD = "TarekHasan@36";        
-      const USER_SECRET_PASSWORD = "NIRJONA@36"; 
+      const USER_SECRET_PASSWORD = "SecretUserPass@123"; 
 
       window.verifyAdminPassword = function() {
         const inputPass = document.getElementById('adminPassInput').value;
@@ -195,7 +195,8 @@
           errorEl.style.display = 'none';
           document.getElementById('userSecPassSection').style.display = 'none';
           document.getElementById('adminDashboard').style.display = 'block';
-          openSection('users');
+          document.getElementById('usersSection').style.display = 'block';
+          loadAllUsers();
         } else {
           errorEl.style.display = 'block';
         }
