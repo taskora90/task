@@ -259,25 +259,46 @@
       alert('রেফারেল লিংক কপি করা হয়েছে!');
     }
 
-               // WhatsApp শেয়ার
+                   // WhatsApp শেয়ার
     window.shareWhatsApp = function() {
       if(!fullInviteLink) return;
-      const text = encodeURIComponent(`TaskOra অ্যাপে যোগ দিন এবং প্রতিদিন ইনকাম করুন! আমার রেফারেল লিংক: ${fullInviteLink}`);
-      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+      if (navigator.share) {
+        navigator.share({
+          title: 'TaskOra ইনভাইট',
+          text: 'TaskOra অ্যাপে যোগ দিন এবং প্রতিদিন ইনকাম করুন! আমার রেফারেল লিংক:',
+          url: fullInviteLink,
+        }).catch(() => {});
+      } else {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('TaskOra অ্যাপে যোগ দিন! লিংক: ' + fullInviteLink)}`, '_blank');
+      }
     }
 
-    // Telegram ১০০% সেফ ওয়েব শেয়ার (কোনো এরর আসবে না)
+    // Telegram ১০০% সেফ নেটিভ/ওয়েব শেয়ার
     window.shareTelegram = function() {
       if(!fullInviteLink) return;
-      const text = encodeURIComponent(`TaskOra অ্যাপে যোগ দিন এবং কাজ করে আয় করুন! লিংক: ${fullInviteLink}`);
-      window.open(`https://t.me/share/url?url=${encodeURIComponent(fullInviteLink)}&text=${text}`, '_blank');
+      if (navigator.share) {
+        navigator.share({
+          title: 'TaskOra ইনভাইট',
+          text: 'TaskOra অ্যাপে কাজ করে আয় করুন! লিংক:',
+          url: fullInviteLink,
+        }).catch(() => {});
+      } else {
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(fullInviteLink)}&text=${encodeURIComponent('TaskOra অ্যাপে যোগ দিন!')}`, '_blank');
+      }
     }
 
-    // Messenger ১০০% সেফ ওয়েব শেয়ার (কোনো এরর আসবে না)
+    // Messenger ১০০% সেফ নেটিভ/ওয়েব শেয়ার
     window.shareMessenger = function() {
       if(!fullInviteLink) return;
-      // ফেসবুকের অফিশিয়াল ওয়েব শেয়ার ডায়ালগ
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullInviteLink)}`, '_blank');
+      if (navigator.share) {
+        navigator.share({
+          title: 'TaskOra ইনভাইট',
+          text: 'TaskOra অ্যাপে যোগ দিন! লিংক:',
+          url: fullInviteLink,
+        }).catch(() => {});
+      } else {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullInviteLink)}`, '_blank');
+      }
     }
 
   </script>
