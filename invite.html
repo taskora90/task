@@ -259,7 +259,7 @@
       alert('রেফারেল লিংক কপি করা হয়েছে!');
     }
 
-    // সোশ্যাল শেয়ারিং ফাংশন (সরাসরি অ্যাপে খোলার জন্য)
+       // সোশ্যাল শেয়ারিং ফাংশন (ওয়েব ভিউ এবং ব্রাউজার ফ্রেন্ডলি)
     window.shareWhatsApp = function() {
       if(!fullInviteLink) return;
       const text = encodeURIComponent(`TaskOra অ্যাপে যোগ দিন এবং প্রতিদিন ইনকাম করুন! আমার রেফারেল লিংক: ${fullInviteLink}`);
@@ -268,15 +268,17 @@
 
     window.shareTelegram = function() {
       if(!fullInviteLink) return;
-      const text = encodeURIComponent(`TaskOra অ্যাপে যোগ দিন এবং কাজ করে আয় করুন! লিংক: ${fullInviteLink}`);
+      const text = encodeURIComponent(`TaskOra অ্যাপে যোগ দিন এবং কাজ করে আয় করুন!`);
       window.open(`https://t.me/share/url?url=${encodeURIComponent(fullInviteLink)}&text=${text}`, '_blank');
     }
 
     window.shareMessenger = function() {
       if(!fullInviteLink) return;
-      // ফেসবুক মেসেঞ্জার শেয়ার স্কিম
-      window.open(`fb-messenger://share/?link=${encodeURIComponent(fullInviteLink)}`, '_blank');
+      // ফেসবুকের অফিসিয়াল ওয়েব শেয়ার লিংক (WebView এরর মুক্ত)
+      const fbShareUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(fullInviteLink)}&app_id=291494419107518&redirect_uri=${encodeURIComponent(fullInviteLink)}`;
+      window.open(fbShareUrl, '_blank');
     }
+
   </script>
 
 </body>
