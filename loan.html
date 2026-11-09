@@ -35,6 +35,21 @@
             margin: 0;
             font-size: 15px;
         }
+        /* বাটন স্টাইল */
+        .loan-btn {
+            background-color: #ffc107;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .loan-btn:hover {
+            background-color: #e0a800;
+        }
         /* আপনার দেওয়া অ্যাড স্টাইল */
         .ads-wrapper {
             margin-top: 20px;
@@ -43,37 +58,23 @@
             text-align: center;
         }
     </style>
-
-
-
-<div class="loan-status-box" id="loanStatusBox">
-    <h3 id="statusTitle">লোডিং...</h3>
-    <p id="statusDesc">আপনার অ্যাকাউন্টের ডাটা লোড হচ্ছে, অপেক্ষা করুন...</p>
-    
-    <!-- লোন নেওয়ার বাটন -->
-    <div id="actionArea" style="margin-top: 15px; display: none;">
-        <button id="acceptLoanBtn" onclick="takeLoan()" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer;">
-            ১,০০০ টাকা লোন গ্রহণ করুন
-        </button>
-    </div>
-</div>
-
-
-
-
-
 </head>
 <body>
 
     <div class="main-container">
 
-        <!-- লোন স্ট্যাটাস মেসেজ -->
-        <div class="loan-status-box">
-            <h3>⚠️ কোনো লোন কার্যকর নেই</h3>
-            <p>দুঃখিত, এই মুহূর্তে আপনার অ্যাকাউন্টে বা প্ল্যাটফর্মে কোনো লোন কার্যকর নেই। নতুন লোন কার্যক্রম আসলে নোটিশের মাধ্যমে এখানে দেখতে পাবেন।</p>
+        <!-- লোন স্ট্যাটাস মেসেজ বক্স -->
+        <div class="loan-status-box" id="loanStatusBox">
+            <h3 id="statusTitle">লোড হচ্ছে...</h3>
+            <p id="statusDesc">দয়া করে একটু অপেক্ষা করুন, আপনার ডাটা চেক করা হচ্ছে...</p>
+            
+            <!-- ডাইনামিক বাটন বা অ্যাকশন এরিয়া -->
+            <div id="actionArea" style="margin-top: 15px; display: none;">
+                <!-- জাভাস্ক্রিপ্ট দিয়ে এখানে বাটন আসবে -->
+            </div>
         </div>
 
-        <!-- ব্যানার অ্যাড সেクション -->
+        <!-- ব্যানার অ্যাড সেকশন -->
         <div class="ads-wrapper">
             <!-- ব্যানার স্লট ১ -->
             <div class="ad-banner-container">
@@ -85,7 +86,97 @@
 
     </div>
 
+    <!-- Firebase এবং লোন লজিক স্ক্রিপ্ট -->
+    <script type="module">
+        // আপনার প্রজেক্টের ফায়ারবেস কনফিগারেশন ফাইলটি এখানে ইমপোর্ট করুন (পাথ ঠিক করে নিবেন)
+        import { db, auth } from './firebase-config.js'; 
+        import { doc, getDoc, setDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+        const loanAmount = 1000; // ফিক্সড লোন অ্যামাউন্ট (প্রয়োজনে পরিবর্তন করতে পারেন)
+
+        // ইউজার লগইন আছে কি না চেক করে রিয়েল-টাইম ডাটা লোড করা
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                listenUserLoanStatus(user.uid);
+            } else {
+                document.getElementById('statusTitle').innerText = "⚠️ লগইন প্রয়োজন";
+                document.getElementById('statusDesc').innerText = "লোন পেজ দেখতে বা রিকোয়েস্ট পাঠাতে দয়া করে প্রথমে আপনার অ্যাকাউন্টে লগইন করুন।";
+            }
+        });
+
+        // ইউজারের লোন স্ট্যাটাস ট্র্যাক করার ফাংশন
+        function listenUserLoanStatus(userId) {
+            const userRef = doc(db, "users", userId);
+
+            onSnapshot(userRef, (docSnap) => {
+                const titleEl = document.getElementById('statusTitle');
+                const descEl = document.getElementById('statusDesc');
+                const actionArea = document.getElementById('actionArea');
+
+                let loanStatus = "none";
+                if (docSnap.exists()) {
+                    loanStatus = docSnap.data().loan_status || "none";
+                }
+
+                if (loanStatus === "none") {
+                    titleEl.innerText = "⚠️ কোনো লোন কার্যকর নেই";
+                    descEl.innerText = `দুঃখিত, এই মুহূর্তে আপনার কোনো লোন নেই। আপনি চাইলে ১,০০০ টাকার জন্য লোন রিকোয়েস্ট পাঠাতে পারেন।`;
+                    actionArea.style.display = "block";
+                    actionArea.innerHTML = `<button class="loan-btn" onclick="sendLoanRequest()">লোন রিকোয়েস্ট পাঠান</button>`;
+                } 
+                else if (loanStatus === "pending") {
+                    titleEl.innerText = "⏳ লোন রিকোয়েস্ট পেন্ডিং আছে";
+                    descEl.innerText = "আপনার লোন রিকোয়েস্টটি অ্যাডমিন প্যানেলে পর্যালোচনায় রয়েছে। অনুগ্রহ করে অ্যাডমিন অ্যাপ্রুভ করার পর্যন্ত অপেক্ষা করুন।";
+                    actionArea.style.display = "none";
+                } 
+                else if (loanStatus === "active") {
+                    titleEl.innerText = "✅ লোন কার্যকর রয়েছে";
+                    descEl.innerText = `আপনার ${loanAmount} টাকার লোন সফলভাবে অ্যাপ্রুভ হয়েছে এবং আপনার My Cash ব্যালেন্সে যুক্ত করা হয়েছে।`;
+                    actionArea.style.display = "none";
+                }
+            });
+        }
+
+        // লোন রিকোয়েস্ট সার্ভারে পাঠানোর গ্লোবাল ফাংশন
+        window.sendLoanRequest = async function() {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("দয়া করে প্রথমে লগইন করুন।");
+                return;
+            }
+
+            if (!confirm(`আপনি কি ${loanAmount} টাকার জন্য লোন রিকোয়েস্ট পাঠাতে চান?`)) return;
+
+            try {
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                const userData = userSnap.exists() ? userSnap.data() : {};
+
+                // ১. users কালেকশনে লোন স্ট্যাটাস 'pending' করা
+                await setDoc(userRef, {
+                    loan_status: "pending",
+                    loan_amount: loanAmount
+                }, { merge: true });
+
+                // ২. loan_requests কালেকশনে অ্যাডমিনের দেখার জন্য রিকোয়েস্ট সেভ করা
+                await addDoc(collection(db, "loan_requests"), {
+                    userId: user.uid,
+                    userName: userData.name || userData.fullName || "Unknown User",
+                    userPhone: userData.phone || user.email || "N/A",
+                    amount: loanAmount,
+                    status: "pending",
+                    request_date: new Date().toISOString()
+                });
+
+                alert("আপনার লোন রিকোয়েস্ট সফলভাবে অ্যাডমিনের কাছে পাঠানো হয়েছে!");
+
+            } catch (error) {
+                console.error("Error sending loan request: ", error);
+                alert("রিকোয়েস্ট পাঠাতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।");
+            }
+        };
+    </script>
 
 </body>
 </html>
