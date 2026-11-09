@@ -17,8 +17,6 @@
 
         .payment-methods { display: flex; gap: 15px; margin-bottom: 20px; }
         .method-box { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; text-align: center; background: #eef2f5; color: #333; }
-        .method-btn { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; background: #fff; transition: 0.3s; }
-        .method-btn.active { background-color: #007bff; color: white; border-color: #007bff; }
 
         .amount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .amount-btn { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; background: #fbfbfb; transition: 0.3s; }
@@ -48,7 +46,7 @@
             বর্তমান মাই ক্যাশ: <strong id="availableTaskCash" style="color: #007bff;">৳ 0</strong>
         </div>
 
-        <!-- ১. উইথড্র প্রোফাইল তৈরির সেকশন (যদি আগে তৈরি না থাকে তবেই দেখাবে) -->
+        <!-- ১. উইথড্র প্রোফাইল তৈরির সেকশন -->
         <div id="profileSetupSection" class="profile-setup-box" style="display: none;">
             <h3>উইথড্র প্রোফাইল তৈরি করুন</h3>
             <div class="form-group">
@@ -65,7 +63,7 @@
             <button class="submit-btn" id="saveProfileBtn" style="background-color: #007bff;">প্রোফাইল সেভ করুন</button>
         </div>
 
-        <!-- ২. মূল উইথড্র সেকশন (প্রোফাইল তৈরি থাকলে এটি দেখাবে) -->
+        <!-- ২. মূল উইথড্র সেকশন -->
         <div id="mainWithdrawSection" style="display: none;">
             <h3>পেমেন্ট মাধ্যম:</h3>
             <div class="payment-methods">
@@ -119,7 +117,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -151,36 +149,43 @@
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
+
+          // ১. ইউজারের মূল ব্যালেন্স ফেচ করা
           const userDocRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
-            const data = userDoc.data();
-            currentTaskCash = data.taskCash || 0;
+            currentTaskCash = userDoc.data().taskCash || 0;
             document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
-
-            userWithdrawMethod = data.withdrawMethod;
-            userWithdrawAccount = data.withdrawAccount;
-
-            // প্রোফাইল চেক: যদি মেথড বা অ্যাকাউন্ট না থাকে, তবে প্রোফাইল তৈরির ফর্ম দেখাবে
-            if (!userWithdrawMethod || !userWithdrawAccount) {
-              document.getElementById('profileSetupSection').style.display = 'block';
-              document.getElementById('mainWithdrawSection').style.display = 'none';
-            } else {
-              // প্রোফাইল করা থাকলে মূল উইথড্র পেজ দেখাবে এবং লক করা তথ্য বসিয়ে দিবে
-              document.getElementById('profileSetupSection').style.display = 'none';
-              document.getElementById('mainWithdrawSection').style.display = 'block';
-
-              document.getElementById('displayMethod').innerText = userWithdrawMethod === 'bKash' ? 'বিকাশ' : 'নগদ';
-              document.getElementById('displayAccountNo').value = userWithdrawAccount;
-            }
           }
+
+          // ২. আলাদা কালেকشن (withdrawProfiles) থেকে ইউজারের প্রোফাইল চেক করা
+          const profileDocRef = doc(db, "withdrawProfiles", user.uid);
+          const profileDoc = await getDoc(profileDocRef);
+
+          if (profileDoc.exists()) {
+            const profileData = profileDoc.data();
+            userWithdrawMethod = profileData.method;
+            userWithdrawAccount = profileData.account;
+
+            // প্রোফাইল থাকলে মূল উইথড্র সেকশন দেখাবে
+            document.getElementById('profileSetupSection').style.display = 'none';
+            document.getElementById('mainWithdrawSection').style.display = 'block';
+
+            document.getElementById('displayMethod').innerText = userWithdrawMethod === 'bKash' ? 'বিকাশ' : 'নগদ';
+            document.getElementById('displayAccountNo').value = userWithdrawAccount;
+          } else {
+            // প্রোফাইল না থাকলে তৈরির ফর্ম দেখাবে
+            document.getElementById('profileSetupSection').style.display = 'block';
+            document.getElementById('mainWithdrawSection').style.display = 'none';
+          }
+
         } else {
           window.location.href = "login.html";
         }
       });
 
-      // ১. উইথড্র প্রোফাইল সেভ করার লজিক
+      // ৩. আলাদা কালেকশনে উইথড্র প্রোফাইল সেভ করার লজিক
       document.getElementById('saveProfileBtn').onclick = async () => {
         const method = document.getElementById('setupMethod').value;
         const account = document.getElementById('setupAccountNo').value.trim();
@@ -195,11 +200,13 @@
         saveBtn.innerText = "সেভ হচ্ছে...";
 
         try {
-          const userDocRef = doc(db, "users", currentUser.uid);
-          // ইউজারের ফায়ারবেস ডকুমেন্টে পার্মানেন্ট সেভ হয়ে গেল
-          await updateDoc(userDocRef, {
-            withdrawMethod: method,
-            withdrawAccount: account
+          // 'withdrawProfiles' নামের আলাদা কালেকশনে ইউজারের UID দিয়ে ডকুমেন্ট তৈরি হবে
+          const profileDocRef = doc(db, "withdrawProfiles", currentUser.uid);
+          await setDoc(profileDocRef, {
+            userId: currentUser.uid,
+            method: method,
+            account: account,
+            createdAt: serverTimestamp()
           });
 
           alert("উইথড্র প্রোফাইল সফলভাবে তৈরি হয়েছে!");
@@ -212,7 +219,7 @@
         }
       };
 
-      // ২. টাকা উত্তোলন রিকোয়েস্ট পাঠানোর লজিক
+      // ৪. টাকা উত্তোলন রিকোয়েস্ট পাঠানোর লজিক
       document.getElementById('withdrawBtn').onclick = async () => {
         const amount = selectedAmount;
 
