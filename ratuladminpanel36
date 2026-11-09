@@ -1,1 +1,797 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অ্যাডমিন ড্যাশবোর্ড</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #3b4252; color: #d8dee9; margin: 0; padding: 15px; }
+        .admin-container { max-width: 800px; width: 100%; margin: 0 auto; background: #434c5e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); box-sizing: border-box; }
 
+        /* পাসওয়ার্ড লগইন বক্স স্টাইল */
+        .login-box { max-width: 380px; margin: 60px auto; background: #434c5e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; border: 1px solid #4c566a; }
+        .login-box h3 { margin-top: 0; color: #eceff4; margin-bottom: 20px; }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #4c566a; background: #2e3440; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 15px; outline: none; }
+        .login-btn { width: 100%; background: #5e81ac; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .login-btn:hover { background: #81a1c1; }
+        .error-msg { color: #bf616a; font-size: 14px; margin-top: 10px; display: none; }
+
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #4c566a; padding-bottom: 12px; }
+        .btn-logout { background: #4c566a; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-logout:hover { background: #5f6f8a; }
+
+        /* ব্যানার মেনু */
+        .dashboard-menu { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .banner-card { background: #2e3440; border: 1px solid #4c566a; padding: 16px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .banner-card:hover { background: #4c566a; border-color: #81a1c1; }
+        .banner-card h3 { margin: 0; color: #eceff4; font-size: 17px; display: flex; align-items: center; gap: 10px; }
+        .banner-card i { color: #81a1c1; }
+
+        /* ব্যাক বাটন ও অ্যাকশন বাটন */
+        .btn-back { background: #4c566a; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-back:hover { background: #5f6f8a; }
+
+        .btn-edit-mode { background: #ebcb8b; color: #2e3440; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-edit-mode:hover { background: #f0d59c; }
+
+        .btn-save { background: #a3be8c; color: #2e3440; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-save:hover { background: #8fbcbb; }
+        .btn-delete-user { background: #bf616a; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; margin-left: 8px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-delete-user:hover { background: #d08770; }
+
+        .btn-notice-submit { background: #5e81ac; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; margin-top: 10px; }
+        .btn-notice-submit:hover { background: #81a1c1; }
+
+        .request-card { background: #2e3440; border: 1px solid #4c566a; padding: 14px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; word-break: break-all; color: #d8dee9; }
+        .request-card p { margin: 6px 0; }
+
+        .btn-approve { background: #a3be8c; color: #2e3440; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; }
+        .btn-approve:hover { background: #8fbcbb; }
+        .btn-reject { background: #bf616a; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; margin-left: 6px; }
+        .btn-reject:hover { background: #d08770; }
+        .btn-delete-notice { background: #bf616a; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 6px; }
+
+        /* ইউজার ডিটেলস ও নোটিশ ফর্ম স্টাইল */
+        .search-box { width: 100%; padding: 10px 14px; background: #2e3440; border: 1px solid #4c566a; border-radius: 6px; color: #fff; font-size: 15px; margin-bottom: 15px; box-sizing: border-box; outline: none; }
+        .notice-input { width: 100%; padding: 10px 12px; margin-bottom: 12px; background: #2e3440; border: 1px solid #4c566a; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; }
+        .notice-textarea { width: 100%; padding: 10px 12px; margin-bottom: 12px; background: #2e3440; border: 1px solid #4c566a; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; resize: vertical; height: 100px; }
+
+        .user-list-item { background: #2e3440; border: 1px solid #4c566a; padding: 12px 16px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .user-list-item:hover { background: #4c566a; }
+        .user-details-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #2e3440; border-radius: 6px; overflow: hidden; }
+        .user-details-table th, .user-details-table td { padding: 10px 12px; border: 1px solid #4c566a; text-align: left; font-size: 14px; }
+        .user-details-table th { background: #4c566a; color: #eceff4; }
+        .edit-input { width: 100%; padding: 6px 10px; background: #3b4252; border: 1px solid #81a1c1; color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <!-- ১. মূল অ্যাডমিন লগইন ফর্ম -->
+    <div id="loginSection" class="login-box">
+        <h3><i class="fa-solid fa-lock"></i> অ্যাডমিন লগইন</h3>
+        <input type="password" id="adminPassInput" class="login-input" placeholder="পাসওয়ার্ড লিখুন...">
+        <button class="login-btn" onclick="verifyAdminPassword()">প্রবেশ করুন</button>
+        <div id="loginError" class="error-msg">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
+    </div>
+    <!-- ২. ইউজার ডিটেলস পাসওয়ার্ড প্রম্পট বক্স (সিক্রেট) -->
+    <div id="userSecPassSection" class="login-box" style="display: none;">
+        <h3><i class="fa-solid fa-user-shield"></i> ইউজার ডিটেলস সিকিউরিটি</h3>
+        <p style="font-size: 13px; color: #99aab5; margin-bottom: 15px;">গোপন তথ্য দেখতে আলাদা পাসওয়ার্ড দিন</p>
+        <input type="password" id="userSecPassInput" class="login-input" placeholder="ইউজার প্যানেল পাসওয়ার্ড...">
+        <button class="login-btn" onclick="verifyUserSecPassword()">আনলক করুন</button>
+        <button class="btn-back" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="backToDashboardMenu()">ফিরে যান</button>
+        <div id="userSecError" class="error-msg">ভুল পাসওয়ার্ড!</div>
+    </div>
+
+    <!-- ২.১. প্যাকেজ ম্যানেজমেন্ট পাসওয়ার্ড প্রম্পট বক্স -->
+    <div id="pkgSecPassSection" class="login-box" style="display: none;">
+        <h3><i class="fa-solid fa-box-archive"></i> প্যাকেজ সিকিউরিটি</h3>
+        <p style="font-size: 13px; color: #99aab5; margin-bottom: 15px;">প্যাকেজ ম্যানেজ করতে পাসওয়ার্ড দিন</p>
+        <input type="password" id="pkgSecPassInput" class="login-input" placeholder="প্যাকেজ পাসওয়ার্ড ...">
+        <button class="login-btn" onclick="verifyPkgSecPassword()">আনলক করুন</button>
+        <button class="btn-back" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="backToDashboardMenu()">ফিরে যান</button>
+        <div id="pkgSecError" class="error-msg">ভুল পাসওয়ার্ড!</div>
+    </div>
+
+    <!-- ৩. মূল অ্যাডমিন ড্যাশবোর্ড -->
+    <div id="adminDashboard" class="admin-container" style="display: none;">
+        <div class="header-bar">
+            <h2 style="margin: 0; color: #eceff4;">অ্যাডমিন ড্যাশবোর্ড</h2>
+            <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> লগআউট</button>
+        </div>
+
+        <!-- ব্যানার মেনু -->
+        <div id="dashboardMenuSection" class="dashboard-menu">
+            <div class="banner-card" onclick="openSection('recharge')">
+                <h3><i class="fa-solid fa-wallet"></i> রিচার্জ রিকোয়েস্ট</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="banner-card" onclick="openSection('withdraw')">
+                <h3><i class="fa-solid fa-money-bill-transfer"></i> উত্তোলন রিকোয়েস্ট</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="banner-card" onclick="openSection('notice')">
+                <h3><i class="fa-solid fa-bullhorn"></i> নোটিশ ম্যানেজমেন্ট</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="banner-card" onclick="openSection('packages')">
+                <h3><i class="fa-solid fa-box"></i> প্যাকেজ ম্যানেজমেন্ট (সিক্রেট)</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="banner-card" onclick="openSection('users')">
+                <h3><i class="fa-solid fa-users-gear"></i> ইউজার ডিটেলস (সিক্রেট)</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <!-- রিচার্জ সেকশন -->
+        <div id="rechargeSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
+            <h3>রিচার্জ রিকোয়েস্ট তালিকা</h3>
+            <div id="rechargeList">লোড হচ্ছে...</div>
+        </div>
+
+        <!-- উত্তোলন সেকশন -->
+        <div id="withdrawSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
+            <h3>উত্তোলন রিকোয়েস্ট তালিকা</h3>
+            <div id="withdrawList">লোড হচ্ছে...</div>
+        </div>
+
+        <!-- নোটিশ ম্যানেজমেন্ট সেকশন -->
+        <div id="noticeSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
+            <h3>নতুন নোটিশ প্রকাশ করুন</h3>
+            <div style="background: #2e3440; padding: 15px; border-radius: 8px; border: 1px solid #4c566a; margin-bottom: 20px;">
+                <input type="text" id="noticeTitleInput" class="notice-input" placeholder="নোটিশের শিরোনাম...">
+                <textarea id="noticeDetailsInput" class="notice-textarea" placeholder="নোটিশের বিস্তারিত বিবরণ এখানে লিখুন..."></textarea>
+                <button class="btn-notice-submit" onclick="postNewNotice()"><i class="fa-solid fa-paper-plane"></i> নোটিশ পাবলিশ করুন</button>
+            </div>
+
+            <h3>সকল নোটিশ তালিকা</h3>
+            <div id="adminNoticeList">নোটিশ লোড হচ্ছে...</div>
+        </div>
+
+        <!-- প্যাকেজ ম্যানেজমেন্ট সেকশন -->
+        <div id="packagesSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
+            <h3>নতুন প্যাকেজ যোগ করুন</h3>
+            <div style="background: #2e3440; padding: 15px; border-radius: 8px; border: 1px solid #4c566a; margin-bottom: 20px;">
+                <input type="text" id="pkgIdInput" class="notice-input" placeholder="প্যাকেজ আইডি (যেমন: task.5 বা task_5)">
+                <input type="text" id="pkgNameInput" class="notice-input" placeholder="প্যাকেজের নাম (যেমন: টাস্ক প্যাকেজ ৫)">
+                <input type="number" id="pkgPriceInput" class="notice-input" placeholder="মূল্য (টাকায়, যেমন: 10000)">
+                <input type="number" id="pkgLevelInput" class="notice-input" placeholder="লেভেল (সংখ্যা, যেমন: 5)">
+                <input type="number" id="pkgTasksInput" class="notice-input" placeholder="প্রতিদিনের টাস্ক লিমিট (যেমন: 30)">
+                <input type="number" id="pkgSpinInput" class="notice-input" placeholder="লাকি স্পিন সংখ্যা (যেমন: 4)">
+                <input type="number" id="pkgBonusInput" class="notice-input" placeholder="নির্দিষ্ট ক্যাশ বোনাস (যেমন: 600)">
+                <button class="btn-notice-submit" onclick="addNewPackage()"><i class="fa-solid fa-plus"></i> প্যাকেজ সেভ করুন</button>
+            </div>
+
+            <h3>সকল প্যাকেজ তালিকা</h3>
+            <div id="adminPackageList">প্যাকেজ লোড হচ্ছে...</div>
+        </div>
+
+        <!-- ইউজার ডিটেলস সেকশন -->
+        <div id="usersSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
+            <h3>ইউজার ডিটেলস ও তথ্য তালিকা</h3>
+            <input type="text" id="userSearchInput" class="search-box" placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন..." onkeyup="filterUserList()">
+            <div id="userListContainer">ইউজার ডেটা লোড হচ্ছে...</div>
+        </div>
+    </div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getAuth, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      const ADMIN_PASSWORD = "TarekHasan@36";        
+      const USER_SECRET_PASSWORD = "NIRJONA@36"; 
+      const PKG_SECRET_PASSWORD = "Kawtha@36";
+
+      // --- ২ মিনিট নিষ্ক্রিয় থাকলে অটো লগআউট সিস্টেম ---
+      let inactivityTimer;
+      const INACTIVITY_LIMIT = 2 * 60 * 1000; // ২ মিনিট
+
+      function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+          inactivityTimer = setTimeout(() => {
+            alert("⚠️ ২ মিনিট কোনো কার্যক্রম না থাকায় নিরাপত্তা সুরক্ষায় অ্যাডমিন প্যানেল স্বয়ংক্রিয়ভাবে লগআউট হয়ে গেছে!");
+            adminLogout();
+          }, INACTIVITY_LIMIT);
+        }
+      }
+
+      ['mousemove', 'keydown', 'click', 'touchstart'].forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+      });
+
+      window.verifyAdminPassword = function() {
+        const inputPass = document.getElementById('adminPassInput').value;
+        const errorEl = document.getElementById('loginError');
+
+        if (inputPass === ADMIN_PASSWORD) {
+          sessionStorage.setItem('isAdminLoggedIn', 'true');
+          errorEl.style.display = 'none';
+          showDashboardMenu();
+          resetInactivityTimer();
+        } else {
+          errorEl.style.display = 'block';
+        }
+      }
+
+      document.getElementById('adminPassInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') verifyAdminPassword();
+      });
+
+      window.verifyUserSecPassword = function() {
+        const inputPass = document.getElementById('userSecPassInput').value;
+        const errorEl = document.getElementById('userSecError');
+
+        if (inputPass === USER_SECRET_PASSWORD) {
+          sessionStorage.setItem('isUserSecUnlocked', 'true');
+          errorEl.style.display = 'none';
+          document.getElementById('userSecPassSection').style.display = 'none';
+          document.getElementById('adminDashboard').style.display = 'block';
+          document.getElementById('usersSection').style.display = 'block';
+          loadAllUsers();
+          resetInactivityTimer();
+        } else {
+          errorEl.style.display = 'block';
+        }
+      }
+
+      document.getElementById('userSecPassInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') verifyUserSecPassword();
+      });
+
+      window.verifyPkgSecPassword = function() {
+        const inputPass = document.getElementById('pkgSecPassInput').value;
+        const errorEl = document.getElementById('pkgSecError');
+
+        if (inputPass === PKG_SECRET_PASSWORD) {
+          sessionStorage.setItem('isPkgSecUnlocked', 'true');
+          errorEl.style.display = 'none';
+          document.getElementById('pkgSecPassSection').style.display = 'none';
+          document.getElementById('adminDashboard').style.display = 'block';
+          document.getElementById('packagesSection').style.display = 'block';
+          loadAdminPackages();
+          resetInactivityTimer();
+        } else {
+          errorEl.style.display = 'block';
+        }
+      }
+
+      document.getElementById('pkgSecPassInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') verifyPkgSecPassword();
+      });
+
+      window.adminLogout = function() {
+        sessionStorage.removeItem('isAdminLoggedIn');
+        sessionStorage.removeItem('isUserSecUnlocked');
+        sessionStorage.removeItem('isPkgSecUnlocked');
+        clearTimeout(inactivityTimer);
+        document.getElementById('adminDashboard').style.display = 'none';
+        document.getElementById('userSecPassSection').style.display = 'none';
+        document.getElementById('pkgSecPassSection').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('adminPassInput').value = '';
+        document.getElementById('userSecPassInput').value = '';
+        document.getElementById('pkgSecPassInput').value = '';
+      }
+
+      function showDashboardMenu() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('userSecPassSection').style.display = 'none';
+        document.getElementById('pkgSecPassSection').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'block';
+
+        document.getElementById('dashboardMenuSection').style.display = 'flex';
+        document.getElementById('rechargeSection').style.display = 'none';
+        document.getElementById('withdrawSection').style.display = 'none';
+        document.getElementById('noticeSection').style.display = 'none';
+        document.getElementById('packagesSection').style.display = 'none';
+        document.getElementById('usersSection').style.display = 'none';
+      }
+
+      window.backToDashboardMenu = function() {
+        showDashboardMenu();
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        sessionStorage.removeItem('isAdminLoggedIn');
+        sessionStorage.removeItem('isUserSecUnlocked');
+        sessionStorage.removeItem('isPkgSecUnlocked');
+      });
+
+      window.openSection = function(type) {
+        document.getElementById('dashboardMenuSection').style.display = 'none';
+        resetInactivityTimer();
+
+        if(type === 'recharge') {
+          document.getElementById('rechargeSection').style.display = 'block';
+          loadRechargeRequests();
+        } else if(type === 'withdraw') {
+          document.getElementById('withdrawSection').style.display = 'block';
+          loadWithdrawRequests();
+        } else if(type === 'notice') {
+          document.getElementById('noticeSection').style.display = 'block';
+          loadAdminNotices();
+        } else if(type === 'packages') {
+          if (sessionStorage.getItem('isPkgSecUnlocked') === 'true') {
+            document.getElementById('packagesSection').style.display = 'block';
+            loadAdminPackages();
+          } else {
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('pkgSecPassSection').style.display = 'block';
+            document.getElementById('pkgSecPassInput').value = '';
+          }
+        } else if(type === 'users') {
+          if (sessionStorage.getItem('isUserSecUnlocked') === 'true') {
+            document.getElementById('usersSection').style.display = 'block';
+            loadAllUsers();
+          } else {
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('userSecPassSection').style.display = 'block';
+            document.getElementById('userSecPassInput').value = '';
+          }
+        }
+      }
+
+      // --- প্যাকেজ ম্যানেজমেন্ট ---
+      window.addNewPackage = async function() {
+        const pkgId = document.getElementById('pkgIdInput').value.trim();
+        const name = document.getElementById('pkgNameInput').value.trim();
+        const price = Number(document.getElementById('pkgPriceInput').value);
+        const level = Number(document.getElementById('pkgLevelInput').value);
+        const tasksLimit = Number(document.getElementById('pkgTasksInput').value);
+        const luckySpin = Number(document.getElementById('pkgSpinInput').value);
+        const fixedCashBonus = Number(document.getElementById('pkgBonusInput').value);
+
+        if(!pkgId || !name || !price || !level) {
+          alert("অনুগ্রহ করে প্যাকেজ আইডি, নাম, মূল্য এবং লেভেল পূরণ করুন!");
+          return;
+        }
+
+        try {
+          await setDoc(doc(db, "packages", pkgId), {
+            packageId: pkgId,
+            name: name,
+            price: price,
+            level: level,
+            tasksLimit: tasksLimit || 10,
+            luckySpin: luckySpin || 1,
+            fixedCashBonus: fixedCashBonus || 100
+          });
+
+          alert("নতুন প্যাকেজ সফলভাবে যুক্ত করা হয়েছে!");
+          document.getElementById('pkgIdInput').value = '';
+          document.getElementById('pkgNameInput').value = '';
+          document.getElementById('pkgPriceInput').value = '';
+          document.getElementById('pkgLevelInput').value = '';
+          document.getElementById('pkgTasksInput').value = '';
+          document.getElementById('pkgSpinInput').value = '';
+          document.getElementById('pkgBonusInput').value = '';
+          loadAdminPackages();
+        } catch (error) {
+          alert("প্যাকেজ যোগ করতে সমস্যা হয়েছে: " + error.message);
+        }
+      }
+
+      async function loadAdminPackages() {
+        const listEl = document.getElementById('adminPackageList');
+        listEl.innerHTML = "লোড হচ্ছে...";
+
+        try {
+          const q = query(collection(db, "packages"), orderBy("level", "asc"));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+            listEl.innerHTML = "কোনো প্যাকেজ পাওয়া যায়নি।";
+            return;
+          }
+
+          listEl.innerHTML = "";
+          querySnapshot.forEach((d) => {
+            const pkg = d.data();
+            listEl.innerHTML += `
+              <div class="request-card">
+                <h4 style="margin: 0 0 5px 0; color: #fff;">${pkg.name} (${pkg.packageId})</h4>
+                <p>মূল্য: ৳ ${pkg.price} | লেভেল: ${pkg.level}</p>
+                <p>প্রতিদিন টাস্ক: ${pkg.tasksLimit} | স্পিন: ${pkg.luckySpin} | বোনাস: ৳ ${pkg.fixedCashBonus}</p>
+                <button class="btn-delete-notice" onclick="deletePackage('${d.id}')"><i class="fa-solid fa-trash"></i> প্যাকেজ ডিলিট করুন</button>
+              </div>
+            `;
+          });
+        } catch (error) {
+          listEl.innerHTML = "প্যাকেজ লোড করতে সমস্যা হয়েছে।";
+        }
+      }
+
+      window.deletePackage = async function(docId) {
+        if(confirm("আপনি কি নিশ্চিতভাবে এই প্যাকেজটি ডিলিট করতে চান?")) {
+          try {
+            await deleteDoc(doc(db, "packages", docId));
+            alert("প্যাকেজ সফলভাবে ডিলিট করা হয়েছে!");
+            loadAdminPackages();
+          } catch (error) {
+            alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message);
+          }
+        }
+      }
+      // --- নোটিশ ম্যানেজমেন্ট ---
+      window.postNewNotice = async function() {
+        const title = document.getElementById('noticeTitleInput').value.trim();
+        const details = document.getElementById('noticeDetailsInput').value.trim();
+
+        if(!title || !details) {
+          alert("অনুগ্রহ করে শিরোনাম এবং বিস্তারিত উভয়ই লিখুন!");
+          return;
+        }
+
+        try {
+          const currentDate = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+          await addDoc(collection(db, "notices"), {
+            title: title,
+            details: details,
+            date: currentDate,
+            timestamp: serverTimestamp()
+          });
+
+          alert("নোটিশ সফলভাবে পাবলিশ করা হয়েছে!");
+          document.getElementById('noticeTitleInput').value = '';
+          document.getElementById('noticeDetailsInput').value = '';
+          loadAdminNotices();
+        } catch (error) {
+          alert("নোটিশ পোস্ট করতে সমস্যা হয়েছে: " + error.message);
+        }
+      }
+
+      async function loadAdminNotices() {
+        const listEl = document.getElementById('adminNoticeList');
+        listEl.innerHTML = "লোড হচ্ছে...";
+
+        try {
+          const q = query(collection(db, "notices"), orderBy("timestamp", "desc"));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+            listEl.innerHTML = "কোনো নোটিশ পাওয়া যায়নি।";
+            return;
+          }
+
+          listEl.innerHTML = "";
+          querySnapshot.forEach((d) => {
+            const notice = d.data();
+            listEl.innerHTML += `
+              <div class="request-card">
+                <h4 style="margin: 0 0 5px 0; color: #fff;">${notice.title}</h4>
+                <p style="font-size: 11px; color: #aaaaaa; margin-bottom: 6px;">তারিখ: ${notice.date}</p>
+                <p style="font-size: 13px; color: #dddddd; white-space: pre-line; margin-bottom: 8px;">${notice.details}</p>
+                <button class="btn-delete-notice" onclick="deleteNotice('${d.id}')"><i class="fa-solid fa-trash"></i> ডিলিট করুন</button>
+              </div>
+            `;
+          });
+        } catch (error) {
+          listEl.innerHTML = "নোটিশ লোড করতে সমস্যা হয়েছে।";
+        }
+      }
+
+      window.deleteNotice = async function(noticeId) {
+        if(confirm("আপনি কি নিশ্চিতভাবে এই নোটিশটি ডিলিট করতে চান?")) {
+          try {
+            await deleteDoc(doc(db, "notices", noticeId));
+            alert("নোটিশ সফলভাবে ডিলিট করা হয়েছে!");
+            loadAdminNotices();
+          } catch (error) {
+            alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message);
+          }
+        }
+      }
+
+      // --- রিচার্জ রিকোয়েস্ট ---
+      async function loadRechargeRequests() {
+        const listEl = document.getElementById('rechargeList');
+        if (!listEl) return;
+        listEl.innerHTML = "লোড হচ্ছে...";
+
+        try {
+          const querySnap = await getDocs(collection(db, "recharge_requests"));
+          if (querySnap.empty) {
+            listEl.innerHTML = "কোনো রিচার্জ রিকোয়েস্ট নেই।";
+            return;
+          }
+
+          listEl.innerHTML = "";
+          let count = 0;
+
+          querySnap.forEach((d) => {
+            const data = d.data();
+            if (!data.status || data.status === 'pending') {
+              count++;
+              listEl.innerHTML += `
+                <div class="request-card">
+                  <p>ইউজার নাম: <strong>${data.userName || 'N/A'}</strong></p>
+                  <p>ফোন/ইমেইল: <strong>${data.userPhone || data.userEmail || 'N/A'}</strong></p>
+                  <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
+                  <p>মেথড: <strong>${data.method}</strong></p>
+                  <p>TrxID: <strong style="color: #81a1c1;">${data.trxId}</strong></p>
+                  <p>স্ট্যাটাস: <em>${data.status || 'pending'}</em></p>
+                  <button class="btn-approve" onclick="handleRecharge('${d.id}', '${data.userId}', ${data.amount})">এপ্রুভ</button>
+                  <button class="btn-reject" onclick="handleRejection('${d.id}')">রিজেক্ট</button>
+                </div>
+              `;
+            }
+          });
+
+          if(count === 0) {
+            listEl.innerHTML = "কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।";
+          }
+        } catch (error) {
+          listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।";
+        }
+      }
+
+      window.handleRecharge = async function(rechargeId, userId, amount) {
+        try {
+          const userRef = doc(db, "users", userId);
+          const rechargeRef = doc(db, "recharge_requests", rechargeId);
+
+          await updateDoc(userRef, { myCash: increment(amount) });
+          await updateDoc(rechargeRef, { status: 'approved' });
+          alert("রিচার্জ সফলভাবে অনুমোদিত হয়েছে!");
+          loadRechargeRequests();
+        } catch (error) {
+          alert("সমস্যা হয়েছে!");
+        }
+      }
+
+      window.handleRejection = async function(rechargeId) {
+        try {
+          const rechargeRef = doc(db, "recharge_requests", rechargeId);
+          await updateDoc(rechargeRef, { status: 'rejected' });
+          alert("রিচার্জ রিকোয়েস্ট বাতিল করা হয়েছে।");
+          loadRechargeRequests();
+        } catch (error) {
+          alert("সমস্যা হয়েছে!");
+        }
+      }
+
+      // --- উত্তোলন রিকোয়েস্ট ---
+      async function loadWithdrawRequests() {
+        const listEl = document.getElementById('withdrawList');
+        if (!listEl) return;
+        listEl.innerHTML = "লোড হচ্ছে...";
+
+        try {
+          const querySnap = await getDocs(collection(db, "withdrawals"));
+          if (querySnap.empty) {
+            listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।";
+            return;
+          }
+
+          listEl.innerHTML = "";
+          let count = 0;
+          querySnap.forEach((d) => {
+            const data = d.data();
+            if (!data.status || data.status === 'waiting' || data.status === 'processing') {
+              count++;
+              listEl.innerHTML += `
+                <div class="request-card">
+                  <p>ইউজার: <strong>${data.userEmail || data.userName || 'N/A'}</strong></p>
+                  <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
+                  <p>মেথড: ${data.method || ''} (${data.account || ''})</p>
+                  <p>স্ট্যাটাস: <em>${data.status || 'waiting'}</em></p>
+                  <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${data.amount}, 'approve')">এপ্রুভ</button>
+                  <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${data.amount}, 'reject')">রিজেক্ট</button>
+                </div>
+              `;
+            }
+          });
+
+          if(count === 0) {
+            listEl.innerHTML = "কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।";
+          }
+        } catch (error) {
+          listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।";
+        }
+      }
+
+      window.handleWithdraw = async function(withdrawId, userId, amount, action) {
+        try {
+          const withdrawRef = doc(db, "withdrawals", withdrawId);
+          if (action === 'approve') {
+            await updateDoc(withdrawRef, { status: 'approved' });
+            alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
+          } else {
+            await updateDoc(withdrawRef, { status: 'rejected' });
+            alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে।");
+          }
+          loadWithdrawRequests();
+        } catch (error) {
+          alert("সমস্যা হয়েছে!");
+        }
+      }
+
+      // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
+      let allUsersData = [];
+
+      async function loadAllUsers() {
+        const container = document.getElementById('userListContainer');
+        container.innerHTML = "ইউজার ডেটা লোড হচ্ছে...";
+
+        try {
+          const querySnap = await getDocs(collection(db, "users"));
+          if (querySnap.empty) {
+            container.innerHTML = "কোনো ইউজার পাওয়া যায়নি।";
+            return;
+          }
+
+          allUsersData = [];
+          querySnap.forEach((docSnap) => {
+            allUsersData.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          renderUserList(allUsersData);
+        } catch (error) {
+          container.innerHTML = "ইউজার ডেটা লোড করতে সমস্যা হয়েছে।";
+        }
+      }
+
+      function renderUserList(users) {
+        const container = document.getElementById('userListContainer');
+        if (users.length === 0) {
+          container.innerHTML = "কোনো ইউজার পাওয়া যায়নি।";
+          return;
+        }
+
+        container.innerHTML = "";
+        users.forEach((user) => {
+          const name = user.name || 'নাম নেই';
+          const phone = user.phone || 'নম্বর নেই';
+
+          container.innerHTML += `
+            <div class="user-list-item" onclick='showUserDetailModal(${JSON.stringify(user)})'>
+              <div>
+                <strong>${name}</strong><br>
+                <span style="font-size: 13px; color: #99aab5;"><i class="fa-solid fa-phone"></i> ${phone}</span>
+              </div>
+              <i class="fa-solid fa-chevron-right" style="color: #81a1c1;"></i>
+            </div>
+          `;
+        });
+      }
+
+      window.filterUserList = function() {
+        const query = document.getElementById('userSearchInput').value.toLowerCase();
+        const filtered = allUsersData.filter(user => {
+          const name = (user.name || '').toLowerCase();
+          const phone = (user.phone || '').toLowerCase();
+          return name.includes(query) || phone.includes(query);
+        });
+        renderUserList(filtered);
+      }
+
+      window.showUserDetailModal = function(user) {
+        const container = document.getElementById('userListContainer');
+        const userId = user.uid || user.id;
+
+        container.innerHTML = `
+          <button class="btn-back" onclick="loadAllUsers(); document.getElementById('userSearchInput').style.display='block';"><i class="fa-solid fa-arrow-left"></i> ইউজার লিস্টে ফিরুন</button>
+          <div style="background: #2e3440; border: 1px solid #4c566a; padding: 16px; border-radius: 8px;">
+            <h3 style="margin-top: 0; color: #eceff4; border-bottom: 1px solid #4c566a; padding-bottom: 8px;">👤 ${user.name || 'N/A'} - বিস্তারিত তথ্য</h3>
+            
+            <table class="user-details-table">
+              <tr><th>ফিল্ডের নাম</th><th>মান (Value)</th></tr>
+              <tr><td>ইউজার আইডি (UID)</td><td>${userId || 'N/A'}</td></tr>
+              <tr><td>পূর্ণ নাম</td><td><span id="view_name">${user.name || ''}</span><input type="text" id="edit_name" class="edit-input" value="${user.name || ''}" style="display:none;"></td></tr>
+              <tr><td>ফোন নম্বর</td><td><span id="view_phone">${user.phone || ''}</span><input type="text" id="edit_phone" class="edit-input" value="${user.phone || ''}" style="display:none;"></td></tr>
+              <tr><td>নতুন পাসওয়ার্ড (রিসেট)</td><td><span id="view_pass" style="color: #ebcb8b;">পরিবর্তন করতে এডিট মোডে যান</span><input type="text" id="edit_password" class="edit-input" placeholder="নতুন পাসওয়ার্ড লিখুন (খালি রাখলে অপরিবর্তিত থাকবে)" style="display:none;"></td></tr>
+              <tr><td>টাস্ক ক্যাশ (Task Cash)</td><td><span id="view_taskCash">${user.taskCash || 0}</span><input type="number" id="edit_taskCash" class="edit-input" value="${user.taskCash || 0}" style="display:none;"></td></tr>
+              <tr><td>মাই ক্যাশ (My Cash)</td><td><span id="view_myCash">${user.myCash || 0}</span><input type="number" id="edit_myCash" class="edit-input" value="${user.myCash || 0}" style="display:none;"></td></tr>
+              <tr><td>মোট আয় (Total Earnings)</td><td><span id="view_totalEarnings">${user.totalEarnings || 0}</span><input type="number" id="edit_totalEarnings" class="edit-input" value="${user.totalEarnings || 0}" style="display:none;"></td></tr>
+              <tr><td>সক্রিয় প্যাকেজ</td><td><span id="view_package">${user.package || 'none'}</span><input type="text" id="edit_package" class="edit-input" value="${user.package || 'none'}" style="display:none;"></td></tr>
+              <tr><td>রেফারকারী</td><td>${user.referredBy || 'none'}</td></tr>
+            </table>
+
+            <button id="editBtn" class="btn-edit-mode" onclick="enableUserEdit()"><i class="fa-solid fa-pen-to-square"></i> তথ্য ও পাসওয়ার্ড এডিট করুন</button>
+            <button id="saveBtn" class="btn-save" style="display:none;" onclick="saveUserData('${userId}')"><i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সংরক্ষণ করুন</button>
+            <button class="btn-delete-user" onclick="deleteUserAccount('${userId}', '${user.name || 'ইউজার'}')"><i class="fa-solid fa-trash-can"></i> অ্যাকাউন্ট ডিলিট করুন</button>
+          </div>
+        `;
+        document.getElementById('userSearchInput').style.display = 'none';
+      }
+
+      window.enableUserEdit = function() {
+        const fields = ['name', 'phone', 'password', 'taskCash', 'myCash', 'totalEarnings', 'package'];
+        fields.forEach(field => {
+          const viewSpan = document.getElementById(`view_${field}`);
+          const editInput = document.getElementById(`edit_${field}`);
+          if(viewSpan && editInput) {
+            viewSpan.style.display = 'none';
+            editInput.style.display = 'block';
+          }
+        });
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'inline-flex';
+      }
+
+      window.saveUserData = async function(userId) {
+        try {
+          const newName = document.getElementById('edit_name').value.trim();
+          const newPhone = document.getElementById('edit_phone').value.trim();
+          const newPassword = document.getElementById('edit_password').value.trim();
+          const newTaskCash = Number(document.getElementById('edit_taskCash').value);
+          const newMyCash = Number(document.getElementById('edit_myCash').value);
+          const newTotalEarnings = Number(document.getElementById('edit_totalEarnings').value);
+          const newPackage = document.getElementById('edit_package').value.trim();
+
+          const userRef = doc(db, "users", userId);
+          await updateDoc(userRef, {
+            name: newName,
+            phone: newPhone,
+            taskCash: newTaskCash,
+            myCash: newMyCash,
+            totalEarnings: newTotalEarnings,
+            package: newPackage
+          });
+
+          if (newPassword !== "") {
+            try {
+              const userAuthRecord = await auth.getUser(userId);
+              await updatePassword(userAuthRecord, newPassword);
+              alert("ইউজারের তথ্য এবং পাসওয়ার্ড উভয়ই সফলভাবে আপডেট করা হয়েছে!");
+            } catch (authError) {
+              console.log("Auth password update note:", authError);
+              alert("ইউজারের ডেটা আপডেট হয়েছে, তবে পাসওয়ার্ড অথেনটিকেশনে আপডেট করতে ফায়ারবেস অ্যাডমিন পারমিশন বা রুলস প্রয়োজন হতে পারে।");
+            }
+          } else {
+            alert("ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!");
+          }
+
+          loadAllUsers();
+          document.getElementById('userSearchInput').style.display = 'block';
+        } catch (error) {
+          alert("তথ্য আপডেট করতে সমস্যা হয়েছে: " + error.message);
+        }
+      }
+
+      // --- ডাবল ওয়ার্নিং সহ ইউজার ডিলিট ফাংশন ---
+      window.deleteUserAccount = async function(userId, userName) {
+        const firstConfirm = confirm(`⚠️ সাবধান!\n\nআপনি কি নিশ্চিতভাবে "${userName}"-এর সম্পূর্ণ অ্যাকাউন্টটি ফায়ারবেস থেকে মুছে ফেলতে চান?`);
+
+        if (firstConfirm) {
+          const secondConfirm = prompt(`অ্যাকাউন্টটি চিরতরে মুছে ফেলার জন্য নিচে "DELETE" শব্দটি অথবা ইউজারের নাম (${userName}) লিখুন:`);
+
+          if (secondConfirm && (secondConfirm.trim() === "DELETE" || secondConfirm.trim() === userName.trim())) {
+            try {
+              await deleteDoc(doc(db, "users", userId));
+              alert(`"${userName}"-এর অ্যাকাউন্টটি সফলভাবে ফায়ারবেস থেকে স্থায়ীভাবে ডিলিট করা হয়েছে!`);
+              loadAllUsers();
+              document.getElementById('userSearchInput').style.display = 'block';
+            } catch (error) {
+              alert("ইউজার ডিলিট করতে সমস্যা হয়েছে: " + error.message);
+            }
+          } else {
+            alert("সঠিকভাবে টাইপ না করার কারণে ডিলিট প্রক্রিয়া বাতিল করা হয়েছে। ইউজার নিরাপদ আছে!");
+          }
+        }
+      }
+    </script>
+</body>
+</html>
