@@ -31,22 +31,21 @@
         /* ব্যাক বাটন ও অ্যাকশন বাটন */
         .btn-back { background: #4c566a; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 8px; }
         .btn-back:hover { background: #5f6f8a; }
-        
+
         .btn-edit-mode { background: #ebcb8b; color: #2e3440; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px; }
         .btn-edit-mode:hover { background: #f0d59c; }
 
         .btn-save { background: #a3be8c; color: #2e3440; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px; }
         .btn-save:hover { background: #8fbcbb; }
-
         .btn-delete-user { background: #bf616a; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; margin-left: 8px; display: inline-flex; align-items: center; gap: 8px; }
         .btn-delete-user:hover { background: #d08770; }
-        
+
         .btn-notice-submit { background: #5e81ac; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; margin-top: 10px; }
         .btn-notice-submit:hover { background: #81a1c1; }
 
         .request-card { background: #2e3440; border: 1px solid #4c566a; padding: 14px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; word-break: break-all; color: #d8dee9; }
         .request-card p { margin: 6px 0; }
-        
+
         .btn-approve { background: #a3be8c; color: #2e3440; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; }
         .btn-approve:hover { background: #8fbcbb; }
         .btn-reject { background: #bf616a; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; margin-left: 6px; }
@@ -57,7 +56,7 @@
         .search-box { width: 100%; padding: 10px 14px; background: #2e3440; border: 1px solid #4c566a; border-radius: 6px; color: #fff; font-size: 15px; margin-bottom: 15px; box-sizing: border-box; outline: none; }
         .notice-input { width: 100%; padding: 10px 12px; margin-bottom: 12px; background: #2e3440; border: 1px solid #4c566a; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; }
         .notice-textarea { width: 100%; padding: 10px 12px; margin-bottom: 12px; background: #2e3440; border: 1px solid #4c566a; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; resize: vertical; height: 100px; }
-        
+
         .user-list-item { background: #2e3440; border: 1px solid #4c566a; padding: 12px 16px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
         .user-list-item:hover { background: #4c566a; }
         .user-details-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #2e3440; border-radius: 6px; overflow: hidden; }
@@ -75,7 +74,6 @@
         <button class="login-btn" onclick="verifyAdminPassword()">প্রবেশ করুন</button>
         <div id="loginError" class="error-msg">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
     </div>
-
     <!-- ২. ইউজার ডিটেলস পাসওয়ার্ড প্রম্পট বক্স (সিক্রেট) -->
     <div id="userSecPassSection" class="login-box" style="display: none;">
         <h3><i class="fa-solid fa-user-shield"></i> ইউজার ডিটেলস সিকিউরিটি</h3>
@@ -84,6 +82,16 @@
         <button class="login-btn" onclick="verifyUserSecPassword()">আনলক করুন</button>
         <button class="btn-back" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="backToDashboardMenu()">ফিরে যান</button>
         <div id="userSecError" class="error-msg">ভুল পাসওয়ার্ড!</div>
+    </div>
+
+    <!-- ২.১. প্যাকেজ ম্যানেজমেন্ট পাসওয়ার্ড প্রম্পট বক্স -->
+    <div id="pkgSecPassSection" class="login-box" style="display: none;">
+        <h3><i class="fa-solid fa-box-archive"></i> প্যাকেজ সিকিউরিটি</h3>
+        <p style="font-size: 13px; color: #99aab5; margin-bottom: 15px;">প্যাকেজ ম্যানেজ করতে পাসওয়ার্ড দিন</p>
+        <input type="password" id="pkgSecPassInput" class="login-input" placeholder="প্যাকেজ পাসওয়ার্ড (Kawtha@36)...">
+        <button class="login-btn" onclick="verifyPkgSecPassword()">আনলক করুন</button>
+        <button class="btn-back" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="backToDashboardMenu()">ফিরে যান</button>
+        <div id="pkgSecError" class="error-msg">ভুল পাসওয়ার্ড!</div>
     </div>
 
     <!-- ৩. মূল অ্যাডমিন ড্যাশবোর্ড -->
@@ -105,6 +113,10 @@
             </div>
             <div class="banner-card" onclick="openSection('notice')">
                 <h3><i class="fa-solid fa-bullhorn"></i> নোটিশ ম্যানেজমেন্ট</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="banner-card" onclick="openSection('packages')">
+                <h3><i class="fa-solid fa-box"></i> প্যাকেজ ম্যানেজমেন্ট (সিক্রেট)</h3>
                 <i class="fa-solid fa-chevron-right"></i>
             </div>
             <div class="banner-card" onclick="openSection('users')">
@@ -141,6 +153,25 @@
             <div id="adminNoticeList">নোটিশ লোড হচ্ছে...</div>
         </div>
 
+        <!-- প্যাকেজ ম্যানেজমেন্ট সেকশন -->
+        <div id="packagesSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
+            <h3>নতুন প্যাকেজ যোগ করুন</h3>
+            <div style="background: #2e3440; padding: 15px; border-radius: 8px; border: 1px solid #4c566a; margin-bottom: 20px;">
+                <input type="text" id="pkgIdInput" class="notice-input" placeholder="প্যাকেজ আইডি (যেমন: task.5 বা task_5)">
+                <input type="text" id="pkgNameInput" class="notice-input" placeholder="প্যাকেজের নাম (যেমন: টাস্ক প্যাকেজ ৫)">
+                <input type="number" id="pkgPriceInput" class="notice-input" placeholder="মূল্য (টাকায়, যেমন: 10000)">
+                <input type="number" id="pkgLevelInput" class="notice-input" placeholder="লেভেল (সংখ্যা, যেমন: 5)">
+                <input type="number" id="pkgTasksInput" class="notice-input" placeholder="প্রতিদিনের টাস্ক লিমিট (যেমন: 30)">
+                <input type="number" id="pkgSpinInput" class="notice-input" placeholder="লাকি স্পিন সংখ্যা (যেমন: 4)">
+                <input type="number" id="pkgBonusInput" class="notice-input" placeholder="নির্দিষ্ট ক্যাশ বোনাস (যেমন: 600)">
+                <button class="btn-notice-submit" onclick="addNewPackage()"><i class="fa-solid fa-plus"></i> প্যাকেজ সেভ করুন</button>
+            </div>
+
+            <h3>সকল প্যাকেজ তালিকা</h3>
+            <div id="adminPackageList">প্যাকেজ লোড হচ্ছে...</div>
+        </div>
+
         <!-- ইউজার ডিটেলস সেকশন -->
         <div id="usersSection" style="display: none;">
             <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
@@ -151,7 +182,7 @@
     </div>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
       import { getAuth, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
       const firebaseConfig = {
@@ -170,10 +201,11 @@
 
       const ADMIN_PASSWORD = "TarekHasan@36";        
       const USER_SECRET_PASSWORD = "NIRJONA@36"; 
+      const PKG_SECRET_PASSWORD = "Kawtha@36";
 
       // --- ২ মিনিট নিষ্ক্রিয় থাকলে অটো লগআউট সিস্টেম ---
       let inactivityTimer;
-      const INACTIVITY_LIMIT = 2 * 60 * 1000; // ২ মিনিট (মিলি সেকেন্ডে)
+      const INACTIVITY_LIMIT = 2 * 60 * 1000; // ২ মিনিট
 
       function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
@@ -185,7 +217,6 @@
         }
       }
 
-      // মাউস মুভ, ক্লিক বা কিবোর্দ প্রেস করলে টাইমার রিসেট হবে
       ['mousemove', 'keydown', 'click', 'touchstart'].forEach(event => {
         window.addEventListener(event, resetInactivityTimer);
       });
@@ -229,26 +260,52 @@
         if (e.key === 'Enter') verifyUserSecPassword();
       });
 
+      window.verifyPkgSecPassword = function() {
+        const inputPass = document.getElementById('pkgSecPassInput').value;
+        const errorEl = document.getElementById('pkgSecError');
+
+        if (inputPass === PKG_SECRET_PASSWORD) {
+          sessionStorage.setItem('isPkgSecUnlocked', 'true');
+          errorEl.style.display = 'none';
+          document.getElementById('pkgSecPassSection').style.display = 'none';
+          document.getElementById('adminDashboard').style.display = 'block';
+          document.getElementById('packagesSection').style.display = 'block';
+          loadAdminPackages();
+          resetInactivityTimer();
+        } else {
+          errorEl.style.display = 'block';
+        }
+      }
+
+      document.getElementById('pkgSecPassInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') verifyPkgSecPassword();
+      });
+
       window.adminLogout = function() {
         sessionStorage.removeItem('isAdminLoggedIn');
         sessionStorage.removeItem('isUserSecUnlocked');
+        sessionStorage.removeItem('isPkgSecUnlocked');
         clearTimeout(inactivityTimer);
         document.getElementById('adminDashboard').style.display = 'none';
         document.getElementById('userSecPassSection').style.display = 'none';
+        document.getElementById('pkgSecPassSection').style.display = 'none';
         document.getElementById('loginSection').style.display = 'block';
         document.getElementById('adminPassInput').value = '';
         document.getElementById('userSecPassInput').value = '';
+        document.getElementById('pkgSecPassInput').value = '';
       }
 
       function showDashboardMenu() {
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('userSecPassSection').style.display = 'none';
+        document.getElementById('pkgSecPassSection').style.display = 'none';
         document.getElementById('adminDashboard').style.display = 'block';
-        
+
         document.getElementById('dashboardMenuSection').style.display = 'flex';
         document.getElementById('rechargeSection').style.display = 'none';
         document.getElementById('withdrawSection').style.display = 'none';
         document.getElementById('noticeSection').style.display = 'none';
+        document.getElementById('packagesSection').style.display = 'none';
         document.getElementById('usersSection').style.display = 'none';
       }
 
@@ -257,15 +314,15 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        // পেজ রিফ্রেশ করলেই বা নতুন করে ঢুকলেই পাসওয়ার্ড চাইতে চাইলে নিচের লাইনটি সেশন চেক করবে
         sessionStorage.removeItem('isAdminLoggedIn');
         sessionStorage.removeItem('isUserSecUnlocked');
+        sessionStorage.removeItem('isPkgSecUnlocked');
       });
 
       window.openSection = function(type) {
         document.getElementById('dashboardMenuSection').style.display = 'none';
         resetInactivityTimer();
-        
+
         if(type === 'recharge') {
           document.getElementById('rechargeSection').style.display = 'block';
           loadRechargeRequests();
@@ -275,6 +332,15 @@
         } else if(type === 'notice') {
           document.getElementById('noticeSection').style.display = 'block';
           loadAdminNotices();
+        } else if(type === 'packages') {
+          if (sessionStorage.getItem('isPkgSecUnlocked') === 'true') {
+            document.getElementById('packagesSection').style.display = 'block';
+            loadAdminPackages();
+          } else {
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('pkgSecPassSection').style.display = 'block';
+            document.getElementById('pkgSecPassInput').value = '';
+          }
         } else if(type === 'users') {
           if (sessionStorage.getItem('isUserSecUnlocked') === 'true') {
             document.getElementById('usersSection').style.display = 'block';
@@ -287,6 +353,87 @@
         }
       }
 
+      // --- প্যাকেজ ম্যানেজমেন্ট ---
+      window.addNewPackage = async function() {
+        const pkgId = document.getElementById('pkgIdInput').value.trim();
+        const name = document.getElementById('pkgNameInput').value.trim();
+        const price = Number(document.getElementById('pkgPriceInput').value);
+        const level = Number(document.getElementById('pkgLevelInput').value);
+        const tasksLimit = Number(document.getElementById('pkgTasksInput').value);
+        const luckySpin = Number(document.getElementById('pkgSpinInput').value);
+        const fixedCashBonus = Number(document.getElementById('pkgBonusInput').value);
+
+        if(!pkgId || !name || !price || !level) {
+          alert("অনুগ্রহ করে প্যাকেজ আইডি, নাম, মূল্য এবং লেভেল পূরণ করুন!");
+          return;
+        }
+
+        try {
+          await setDoc(doc(db, "packages", pkgId), {
+            packageId: pkgId,
+            name: name,
+            price: price,
+            level: level,
+            tasksLimit: tasksLimit || 10,
+            luckySpin: luckySpin || 1,
+            fixedCashBonus: fixedCashBonus || 100
+          });
+
+          alert("নতুন প্যাকেজ সফলভাবে যুক্ত করা হয়েছে!");
+          document.getElementById('pkgIdInput').value = '';
+          document.getElementById('pkgNameInput').value = '';
+          document.getElementById('pkgPriceInput').value = '';
+          document.getElementById('pkgLevelInput').value = '';
+          document.getElementById('pkgTasksInput').value = '';
+          document.getElementById('pkgSpinInput').value = '';
+          document.getElementById('pkgBonusInput').value = '';
+          loadAdminPackages();
+        } catch (error) {
+          alert("প্যাকেজ যোগ করতে সমস্যা হয়েছে: " + error.message);
+        }
+      }
+
+      async function loadAdminPackages() {
+        const listEl = document.getElementById('adminPackageList');
+        listEl.innerHTML = "লোড হচ্ছে...";
+
+        try {
+          const q = query(collection(db, "packages"), orderBy("level", "asc"));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+            listEl.innerHTML = "কোনো প্যাকেজ পাওয়া যায়নি।";
+            return;
+          }
+
+          listEl.innerHTML = "";
+          querySnapshot.forEach((d) => {
+            const pkg = d.data();
+            listEl.innerHTML += `
+              <div class="request-card">
+                <h4 style="margin: 0 0 5px 0; color: #fff;">${pkg.name} (${pkg.packageId})</h4>
+                <p>মূল্য: ৳ ${pkg.price} | লেভেল: ${pkg.level}</p>
+                <p>প্রতিদিন টাস্ক: ${pkg.tasksLimit} | স্পিন: ${pkg.luckySpin} | বোনাস: ৳ ${pkg.fixedCashBonus}</p>
+                <button class="btn-delete-notice" onclick="deletePackage('${d.id}')"><i class="fa-solid fa-trash"></i> প্যাকেজ ডিলিট করুন</button>
+              </div>
+            `;
+          });
+        } catch (error) {
+          listEl.innerHTML = "প্যাকেজ লোড করতে সমস্যা হয়েছে।";
+        }
+      }
+
+      window.deletePackage = async function(docId) {
+        if(confirm("আপনি কি নিশ্চিতভাবে এই প্যাকেজটি ডিলিট করতে চান?")) {
+          try {
+            await deleteDoc(doc(db, "packages", docId));
+            alert("প্যাকেজ সফলভাবে ডিলিট করা হয়েছে!");
+            loadAdminPackages();
+          } catch (error) {
+            alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message);
+          }
+        }
+      }
       // --- নোটিশ ম্যানেজমেন্ট ---
       window.postNewNotice = async function() {
         const title = document.getElementById('noticeTitleInput').value.trim();
@@ -480,6 +627,7 @@
           alert("সমস্যা হয়েছে!");
         }
       }
+
       // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
       let allUsersData = [];
 
@@ -542,7 +690,7 @@
       window.showUserDetailModal = function(user) {
         const container = document.getElementById('userListContainer');
         const userId = user.uid || user.id;
-        
+
         container.innerHTML = `
           <button class="btn-back" onclick="loadAllUsers(); document.getElementById('userSearchInput').style.display='block';"><i class="fa-solid fa-arrow-left"></i> ইউজার লিস্টে ফিরুন</button>
           <div style="background: #2e3440; border: 1px solid #4c566a; padding: 16px; border-radius: 8px;">
@@ -593,7 +741,6 @@
           const newTotalEarnings = Number(document.getElementById('edit_totalEarnings').value);
           const newPackage = document.getElementById('edit_package').value.trim();
 
-          // ১. ফায়ারস্টোরে ইউজার ডেটা আপডেট
           const userRef = doc(db, "users", userId);
           await updateDoc(userRef, {
             name: newName,
@@ -604,10 +751,8 @@
             package: newPackage
           });
 
-          // ২. যদি নতুন পাসওয়ার্ড দেওয়া হয়ে থাকে, তবে ফায়ারবেস অথেনটিকেশনে আপডেট করার চেষ্টা
           if (newPassword !== "") {
             try {
-              // Firebase Auth এ ইউজার আপডেট করার জন্য রুলস চেক
               const userAuthRecord = await auth.getUser(userId);
               await updatePassword(userAuthRecord, newPassword);
               alert("ইউজারের তথ্য এবং পাসওয়ার্ড উভয়ই সফলভাবে আপডেট করা হয়েছে!");
@@ -629,10 +774,10 @@
       // --- ডাবল ওয়ার্নিং সহ ইউজার ডিলিট ফাংশন ---
       window.deleteUserAccount = async function(userId, userName) {
         const firstConfirm = confirm(`⚠️ সাবধান!\n\nআপনি কি নিশ্চিতভাবে "${userName}"-এর সম্পূর্ণ অ্যাকাউন্টটি ফায়ারবেস থেকে মুছে ফেলতে চান?`);
-        
+
         if (firstConfirm) {
           const secondConfirm = prompt(`অ্যাকাউন্টটি চিরতরে মুছে ফেলার জন্য নিচে "DELETE" শব্দটি অথবা ইউজারের নাম (${userName}) লিখুন:`);
-          
+
           if (secondConfirm && (secondConfirm.trim() === "DELETE" || secondConfirm.trim() === userName.trim())) {
             try {
               await deleteDoc(doc(db, "users", userId));
