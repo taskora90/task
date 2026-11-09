@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>টাকা উত্তোলন</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #dcdcdc; margin: 0; padding: 20px; color: #333; }
+        .withdraw-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .header { text-align: center; margin-bottom: 20px; color: #2b2d42; }
+        .notice-box { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; text-align: center; border: 1px solid #ffeeba; }
+        .balance-box { background: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 16px; font-weight: bold; }
+
+        .profile-setup-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px dashed #007bff; margin-bottom: 20px; }
+        .profile-setup-box h3 { margin-top: 0; color: #007bff; font-size: 16px; text-align: center; margin-bottom: 12px; }
+
+        .payment-methods { display: flex; gap: 15px; margin-bottom: 20px; }
+        .method-box { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; text-align: center; background: #eef2f5; color: #333; }
+
+        .amount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .amount-btn { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; background: #fbfbfb; transition: 0.3s; }
+        .amount-btn.active { background-color: #28a745; color: white; border-color: #28a745; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #eef2f5; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #007bff; }
+
+        .submit-btn { width: 100%; background: #28a745; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .submit-btn:hover { background-color: #218838; }
+        .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="withdraw-container">
+        <h2 class="header"><i class="fa-solid fa-money-bill-transfer"></i> টাকা উত্তোলন</h2>
+
+        <!-- নোটিশ বক্স -->
+        <div class="notice-box">
+            🔔 নোটিশ: উইথড্র সময় প্রতিদিন সকাল ১০:০০ টা থেকে বিকেল ৫:০০ টা পর্যন্ত। (শুক্রবার ও রবিবার বন্ধ)। প্রতিদিন মাত্র ১ বার উইথড্র করা যাবে।
+        </div>
+
+        <div class="balance-box">
+            বর্তমান মাই ক্যাশ: <strong id="availableTaskCash" style="color: #007bff;">৳ 0</strong>
+        </div>
+
+        <!-- ১. উইথড্র প্রোফাইল তৈরির সেকশন -->
+        <div id="profileSetupSection" class="profile-setup-box" style="display: none;">
+            <h3>উইথড্র প্রোফাইল তৈরি করুন</h3>
+            <div class="form-group">
+                <label>পেমেন্ট মাধ্যম সিলেক্ট করুন</label>
+                <select id="setupMethod" class="form-control">
+                    <option value="bKash">বিকাশ</option>
+                    <option value="Nagad">নগদ</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>অ্যাকাউন্ট নাম্বার দিন</label>
+                <input type="text" id="setupAccountNo" placeholder="আপনার বিকাশ/নগদ নম্বর দিন">
+            </div>
+            <button class="submit-btn" id="saveProfileBtn" style="background-color: #007bff;">প্রোফাইল সেভ করুন</button>
+        </div>
+
+        <!-- ২. মূল উইথড্র সেকশন -->
+        <div id="mainWithdrawSection" style="display: none;">
+            <h3>পেমেন্ট মাধ্যম:</h3>
+            <div class="payment-methods">
+                <div class="method-box" id="displayMethod">বিকাশ</div>
+            </div>
+
+            <h3>উত্তোলনের পরিমাণ সিলেক্ট করুন:</h3>
+            <div class="amount-grid">
+                <button class="amount-btn" onclick="selectAmount(500)">500</button>
+                <button class="amount-btn" onclick="selectAmount(1000)">1000</button>
+                <button class="amount-btn" onclick="selectAmount(1500)">1500</button>
+                <button class="amount-btn" onclick="selectAmount(2000)">2000</button>
+                <button class="amount-btn" onclick="selectAmount(2500)">2500</button>
+                <button class="amount-btn" onclick="selectAmount(3000)">3000</button>
+            </div>
+
+            <div class="form-group">
+                <label>নির্বাচিত পরিমাণ (৳)</label>
+                <input type="number" id="withdrawAmount" placeholder="উপরের বাটন থেকে সিলেক্ট করুন" readonly>
+            </div>
+            <div class="form-group">
+                <label>রিসিভ করার অ্যাকাউন্ট নম্বর (লক করা)</label>
+                <input type="text" id="displayAccountNo" readonly style="background-color: #e9ecef; color: #6c757d;">
+            </div>
+
+            <button class="btn submit-btn" id="withdrawBtn">উত্তোলন রিকোয়েস্ট পাঠান</button>
+        </div>
+
+        <br><br>
+
+        <!-- ব্যানার স্লট ২ -->
+        <div class="ad-banner-container">
+            <script>
+              atOptions = {
+                'key' : 'ef70bb41c6b9c54cf3d9448db4f94f11',
+                'format' : 'iframe',
+                'height' : 50,
+                'width' : 320,
+                'params' : {}
+              };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/ef70bb41c6b9c54cf3d9448db4f94f11/invoke.js"></script>
+            <script src="https://bauval.org/22/ef70bb41c6b9c54cf3d9448db4f94f11"></script>
+        </div>
+
+        <br><br>
+        <a href="profile.html" style="text-decoration: none; color: #6c757d;"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
+    </div>
+
+    <!-- Firebase ও উইথড্র লজিক -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+        authDomain: "taskora-b2b29.firebaseapp.com",
+        projectId: "taskora-b2b29",
+        storageBucket: "taskora-b2b29.firebasestorage.app",
+        messagingSenderId: "376297360134",
+        appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+        measurementId: "G-9803M7DPM5"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      let currentTaskCash = 0;
+      let currentUser = null;
+      let selectedAmount = 0;
+      let userWithdrawMethod = "";
+      let userWithdrawAccount = "";
+
+      window.selectAmount = function(amount) {
+        selectedAmount = amount;
+        document.querySelectorAll('.amount-grid .amount-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('withdrawAmount').value = amount;
+      };
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUser = user;
+
+          // ১. ইউজারের মূল ব্যালেন্স ফেচ করা
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            currentTaskCash = userDoc.data().taskCash || 0;
+            document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
+          }
+
+          // ২. আলাদা কালেকشن (withdrawProfiles) থেকে ইউজারের প্রোফাইল চেক করা
+          const profileDocRef = doc(db, "withdrawProfiles", user.uid);
+          const profileDoc = await getDoc(profileDocRef);
+
+          if (profileDoc.exists()) {
+            const profileData = profileDoc.data();
+            userWithdrawMethod = profileData.method;
+            userWithdrawAccount = profileData.account;
+
+            // প্রোফাইল থাকলে মূল উইথড্র সেকশন দেখাবে
+            document.getElementById('profileSetupSection').style.display = 'none';
+            document.getElementById('mainWithdrawSection').style.display = 'block';
+
+            document.getElementById('displayMethod').innerText = userWithdrawMethod === 'bKash' ? 'বিকাশ' : 'নগদ';
+            document.getElementById('displayAccountNo').value = userWithdrawAccount;
+          } else {
+            // প্রোফাইল না থাকলে তৈরির ফর্ম দেখাবে
+            document.getElementById('profileSetupSection').style.display = 'block';
+            document.getElementById('mainWithdrawSection').style.display = 'none';
+          }
+
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      // ৩. আলাদা কালেকশনে উইথড্র প্রোফাইল সেভ করার লজিক (এখানে ইউজার আইডি এর বদলে জিমেইল বা ফোন নম্বর দেওয়া হলো)
+      document.getElementById('saveProfileBtn').onclick = async () => {
+        const method = document.getElementById('setupMethod').value;
+        const account = document.getElementById('setupAccountNo').value.trim();
+
+        if (!account) {
+          alert("দয়া করে আপনার বিকাশ বা নগদ একাউন্ট নম্বর দিন!");
+          return;
+        }
+
+        const saveBtn = document.getElementById('saveProfileBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerText = "সেভ হচ্ছে...";
+
+        try {
+          // ইউজারের ইমেইল থাকলে সেটাই ব্যবহার হবে, না থাকলে ফোন নম্বর দিয়ে আপনার ফরম্যাট তৈরি করবে
+          let userIdentifier = currentUser.email;
+          if (!userIdentifier && currentUser.phoneNumber) {
+            userIdentifier = currentUser.phoneNumber + "@taskora90.app";
+          }
+          if (!userIdentifier) {
+            userIdentifier = currentUser.uid + "@taskora90.app"; // বিকল্প হিসেবে
+          }
+
+          // 'withdrawProfiles' নামের আলাদা কালেকশনে ইউজারের UID দিয়ে ডকুমেন্ট তৈরি হবে
+          const profileDocRef = doc(db, "withdrawProfiles", currentUser.uid);
+          await setDoc(profileDocRef, {
+            userId: currentUser.uid,
+            userEmailOrPhone: userIdentifier, // এখানে জিমেইল বা ফোন ফরম্যাট সেভ হবে
+            method: method,
+            account: account,
+            createdAt: serverTimestamp()
+          });
+
+          alert("উইথড্র প্রোফাইল সফলভাবে তৈরি হয়েছে!");
+          window.location.reload();
+        } catch (error) {
+          console.error("Profile Save Error:", error);
+          alert("প্রোফাইল সেভ করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+          saveBtn.disabled = false;
+          saveBtn.innerText = "প্রোফাইল সেভ করুন";
+        }
+      };
+
+      // ৪. টাকা উত্তোলন রিকোয়েস্ট পাঠানোর লজিক
+      document.getElementById('withdrawBtn').onclick = async () => {
+        const amount = selectedAmount;
+
+        // সময় ও দিন চেক (সকাল ১০টা থেকে বিকেল ৫টা, শুক্রবার ও রবিবার বন্ধ)
+        const now = new Date();
+        const day = now.getDay(); // 0 = Sunday, 5 = Friday
+        const hour = now.getHours();
+
+        if (day === 5 || day === 0) {
+          alert("আজ ছুটির দিন (শুক্রবার ও রবিবার)। এই দুই দিন উইথড্র করা যাবে না!");
+          return;
+        }
+
+        if (hour < 10 || hour >= 17) {
+          alert("উইথড্র করার সময় সকাল ১০:০০ টা থেকে বিকেল ৫:০০ টা পর্যন্ত!");
+          return;
+        }
+
+        if (!amount || amount <= 0) {
+          alert("অনুগ্রহ করে ওপরের বাটন থেকে উত্তোলনের একটি নির্দিষ্ট পরিমাণ নির্বাচন করুন!");
+          return;
+        }
+
+        if (amount > currentTaskCash) {
+          alert("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
+          return;
+        }
+
+        const submitBtn = document.getElementById('withdrawBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "প্রসেসিং...";
+
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const todayStr = now.toISOString().split('T')[0];
+
+          // ট্রানজেকশনের মাধ্যমে লিমিট ও ব্যালেন্স চেক এবং আপডেট
+          await runTransaction(db, async (transaction) => {
+            const userDocSnap = await transaction.get(userDocRef);
+            if (!userDocSnap.exists()) {
+              throw new Error("ইউজার ডাটা পাওয়া যায়নি!");
+            }
+
+            const userData = userDocSnap.data();
+            const latestTaskCash = userData.taskCash || 0;
+            const lastWithdrawDate = userData.lastWithdrawDate || "";
+
+            // দিনে ১ বার উইথড্র লিমিট চেক
+            if (lastWithdrawDate === todayStr) {
+              throw new Error("আজকের উইথড্র লিমিট শেষ! দিনে একবারের বেশি উইথড্র করা যাবে না।");
+            }
+
+            if (amount > latestTaskCash) {
+              throw new Error("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
+            }
+
+            transaction.update(userDocRef, {
+              taskCash: latestTaskCash - amount,
+              lastWithdrawDate: todayStr
+            });
+          });
+
+          let userIdentifier = currentUser.email || currentUser.phoneNumber + "@taskora90.app" || "N/A";
+
+          // অ্যাডমিন প্যানেলের রিকোয়েস্ট কালেকশনে ডাটা সেভ করা
+          await addDoc(collection(db, "withdrawals"), {
+            userId: currentUser.uid,
+            userEmail: userIdentifier, // এখানে জিমেইল বা ফোন নম্বর সেভ হবে
+            amount: amount,
+            method: userWithdrawMethod,
+            account: userWithdrawAccount,
+            status: "waiting",
+            timestamp: serverTimestamp()
+          });
+
+          alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
+          window.location.href = "profile.html";
+        } catch (error) {
+          console.error("Error:", error);
+          alert(error.message || "সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+          submitBtn.disabled = false;
+          submitBtn.innerText = "উত্তোলন রিকোয়েস্ট পাঠান";
+        }
+      };
+    </script>
+</body>
+</html>
