@@ -177,7 +177,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -243,7 +243,7 @@
                 isDisabled = "disabled";
               }
 
-                            const cardHTML = `
+              const cardHTML = `
                 <div class="card" id="pkg-card-${pkg.packageId}">
                     <h3>${pkg.name}</h3>
                     <p>প্রতিদিন ${pkg.tasksLimit}টি টাস্ক</p>
@@ -254,8 +254,6 @@
                     <button class="${btnClass}" id="btn-${pkg.packageId}" ${isDisabled} onclick="buyPackage('${pkg.packageId}', ${pkg.price}, ${pkg.level})">${btnText}</button>
                 </div>
               `;
-
-
               packagesContainer.innerHTML += cardHTML;
             });
 
@@ -322,7 +320,7 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // রেফারেল কমিশন লজিক (প্যাকেজ চেক সিকিউরিটি সহ আপডেট করা)
+          // রেফারেল কমিশন লজিক (প্যাকেজ চেক সিকিউরিটি ও ওয়ার্ক ডিটেইলস হিস্ট্রি সেভ সহ)
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -351,11 +349,20 @@
               if (referrerPackage !== 'none') {
                 const commissionAmount = price * 0.10; 
 
+                // ১. রেফারকারীর ব্যালেন্সে কমিশন যোগ করা
                 await updateDoc(referrerRef, {
                   teamCommission: increment(commissionAmount),     
                   taskCash: increment(commissionAmount),           
                   totalEarnings: increment(commissionAmount),        
                   luckySpinCount: increment(bonusSpins) 
+                });
+
+                // ২. রেফারকারীর ওয়ার্ক ডিটেইলস পেজের জন্য হিস্ট্রি সেভ করা
+                await addDoc(collection(db, "users", referrerDocId, "referralHistory"), {
+                  title: "রেফার কমিশন",
+                  desc: "টিম মেম্বার প্যাকেজ ক্রয় করায় কমিশন অর্জিত হয়েছে",
+                  amount: commissionAmount,
+                  timestamp: serverTimestamp()
                 });
               }
             }
@@ -381,64 +388,51 @@
       };
     </script>
 
-
-
-
-
-<!-- হোমপেজ পপ-আপ মোডাল -->
-<div id="homeNoticeModal" class="notice-modal-overlay">
-    <div class="notice-modal-content">
-        <span class="notice-close-btn" onclick="closeHomeNotice()">&times;</span>
-        <div class="notice-image-container">
-            <img src="https://i.ibb.co.com/DffXRhT0/1794201801813.jpg" alt="Notice" style="width: 100%; border-radius: 8px;">
+    <!-- হোমপেজ পপ-আপ মোডাল -->
+    <div id="homeNoticeModal" class="notice-modal-overlay">
+        <div class="notice-modal-content">
+            <span class="notice-close-btn" onclick="closeHomeNotice()">&times;</span>
+            <div class="notice-image-container">
+                <img src="https://i.ibb.co.com/DffXRhT0/1794201801813.jpg" alt="Notice" style="width: 100%; border-radius: 8px;">
+            </div>
         </div>
     </div>
-</div>
 
-<style>
-.notice-modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 9999;
-}
-.notice-modal-content {
-    background-color: #3b4252;
-    padding: 20px; border-radius: 12px;
-    width: 90%; max-width: 350px; position: relative;
-}
-.notice-close-btn {
-    position: absolute; top: 10px; right: 15px;
-    color: #fff; font-size: 24px; font-weight: bold; cursor: pointer;
-    background: #4c566a; width: 30px; height: 30px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; z-index: 10;
-}
-</style>
-
-
-
-<script>
-// পপ-আপ বন্ধ করার ফাংশন
-function closeHomeNotice() {
-    const modal = document.getElementById('homeNoticeModal');
-    if (modal) {
-        modal.style.display = 'none';
+    <style>
+    .notice-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 9999;
     }
-}
-
-// ইনডেক্স পেজে ঢোকার সাথে সাথে পপ-আপ দেখানোর জন্য
-window.addEventListener('DOMContentLoaded', (event) => {
-    const modal = document.getElementById('homeNoticeModal');
-    if (modal) {
-        modal.style.display = 'flex';
+    .notice-modal-content {
+        background-color: #3b4252;
+        padding: 20px; border-radius: 12px;
+        width: 90%; max-width: 350px; position: relative;
     }
-});
-</script>
+    .notice-close-btn {
+        position: absolute; top: 10px; right: 15px;
+        color: #fff; font-size: 24px; font-weight: bold; cursor: pointer;
+        background: #4c566a; width: 30px; height: 30px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; z-index: 10;
+    }
+    </style>
 
+    <script>
+    function closeHomeNotice() {
+        const modal = document.getElementById('homeNoticeModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
 
-
-
-
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const modal = document.getElementById('homeNoticeModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    });
+    </script>
 </body>
 </html>
