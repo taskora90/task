@@ -67,13 +67,38 @@
 </head>
 <body>
 
-    <!-- ১. মূল অ্যাডমিন লগইন ফর্ম -->
-    <div id="loginSection" class="login-box">
-        <h3><i class="fa-solid fa-lock"></i> অ্যাডমিন লগইন</h3>
-        <input type="password" id="adminPassInput" class="login-input" placeholder="পাসওয়ার্ড লিখুন...">
-        <button class="login-btn" onclick="verifyAdminPassword()">প্রবেশ করুন</button>
-        <div id="loginError" class="error-msg">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
-    </div>
+          // অ্যাডমিন পাসওয়ার্ড যাচাই করার ফাংশন
+      window.verifyAdminPassword = function() {
+        const passwordInput = document.getElementById('adminPassInput').value.trim();
+        const errorMsg = document.getElementById('loginError');
+        
+        // এখানে আপনার কাঙ্ক্ষিত অ্যাডমিন পাসওয়ার্ড বসাবেন
+        const correctPassword = "TarekHasan@36"; 
+
+        if (passwordInput === correctPassword) {
+          // পাসওয়ার্ড সঠিক হলে লগইন সেকশন লুকিয়ে ড্যাশবোর্ড বা মেইন প্যানেল ওপেন করবে
+          document.getElementById('loginSection').style.display = 'none';
+          
+          // আপনার ড্যাশবোর্ডের আইডি যদি 'adminDashboard' হয়, তবে এটি শো করবে
+          const dashboard = document.getElementById('adminDashboard');
+          if (dashboard) {
+            dashboard.style.display = 'block';
+          }
+          
+          // যদি ইউজার লিস্ট লোড করার ফাংশন থাকে সেটি কল করতে পারেন
+          if (typeof loadAllUsers === 'function') {
+            loadAllUsers();
+          }
+        } else {
+          // ভুল হলে এরর মেসেজ দেখাবে
+          if (errorMsg) {
+            errorMsg.style.display = 'block';
+          } else {
+            alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
+          }
+        }
+      }
+
     <!-- ২. ইউজার ডিটেলস পাসওয়ার্ড প্রম্পট বক্স (সিক্রেট) -->
     <div id="userSecPassSection" class="login-box" style="display: none;">
         <h3><i class="fa-solid fa-user-shield"></i> ইউজার ডিটেলস সিকিউরিটি</h3>
