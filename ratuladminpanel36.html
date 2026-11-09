@@ -443,7 +443,7 @@
             document.getElementById('userSecPassSection').style.display = 'block';
             document.getElementById('userSecPassInput').value = '';
           }
-        } else if(type === 'withdrawProfiles') {
+                } else if(type === 'withdrawProfiles') {
           if (sessionStorage.getItem('isWithdrawSecUnlocked') === 'true') {
             document.getElementById('withdrawProfilesSection').style.display = 'block';
             loadWithdrawProfiles();
@@ -452,8 +452,17 @@
             document.getElementById('withdrawSecPassSection').style.display = 'block';
             document.getElementById('withdrawSecPassInput').value = '';
           }
+        } 
+        
+        // --- সাপোর্ট চ্যাট সেকশন খোলার লজিক এখানে বসবে ---
+        else if(type === 'supportChat') {
+          document.getElementById('supportChatSection').style.display = 'block';
+          loadAdminSupportChats();
         }
-      }
+
+      } // <-- এই ব্র্যাকেটটি দিয়ে openSection ফাংশন শেষ হবে
+
+
 
       // --- প্যাকেজ ম্যানেজমেন্ট ---
       window.addNewPackage = async function() {
