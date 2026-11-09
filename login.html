@@ -96,6 +96,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // ফায়ারবেস কনফিগারেশন
     const firebaseConfig = {
@@ -110,6 +111,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const loginForm = document.getElementById('loginForm');
     loginForm.addEventListener('submit', async (e) => {
@@ -130,7 +132,21 @@
       submitBtn.innerText = "লগইন হচ্ছে...";
 
       try {
+        // ফায়ারবেস অথেনটিকেশনের মাধ্যমে লগইন
         await signInWithEmailAndPassword(auth, virtualEmail, password);
+
+        // সফল লগইনের পর ডাটাবেজে পাসওয়ার্ডটি ব্যাকআপ বা সিঙ্ক করে রাখা (যাতে ভবিষ্যতে মিল থাকে)
+        try {
+          const q = query(collection(db, "users"), where("phone", "==", phone));
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach(async (documentSnapshot) => {
+            const userRef = doc(db, "users", documentSnapshot.id);
+            await updateDoc(userRef, { password: password });
+          });
+        } catch (dbErr) {
+          console.log("DB password sync note:", dbErr);
+        }
+
         alert("লগইন সফল হয়েছে!");
 
         // সেশন ব্রাউজারে সঠিকভাবে সেট হওয়ার জন্য ৫০০ মিলি-সেকেন্ড ডিলে
