@@ -3,58 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>লোন পেজ</title>
+    <title>লোন পেজ - Loan</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f7fafc;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
             margin: 0;
             padding: 20px;
         }
         .main-container {
-            max-width: 600px;
+            max-width: 400px;
             margin: 0 auto;
-            text-align: center;
         }
         /* নোটিফিকেশন বক্সের ডিজাইন */
         .loan-status-box {
             background-color: #fff3cd;
             color: #856404;
             border: 1px solid #ffeeba;
-            padding: 25px 20px;
-            border-radius: 8px;
+            padding: 20px;
+            border-radius: 12px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: center;
         }
         .loan-status-box h3 {
             margin-top: 0;
             margin-bottom: 10px;
-            font-size: 20px;
+            font-size: 18px;
         }
         .loan-status-box p {
             margin: 0;
-            font-size: 15px;
+            font-size: 14px;
+            line-height: 1.5;
         }
-        /* বাটন স্টাইল */
+        /* লোন বাটন স্টাইল */
         .loan-btn {
-            background-color: #ffc107;
+            width: 100%;
+            background: #ffc107;
             color: #000;
             border: none;
-            padding: 12px 24px;
+            padding: 12px;
+            border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
-            border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
+            margin-top: 15px;
         }
         .loan-btn:hover {
-            background-color: #e0a800;
+            background: #e0a800;
         }
         /* আপনার দেওয়া অ্যাড স্টাইল */
         .ads-wrapper {
             margin-top: 20px;
-        }
-        .ad-banner-container {
             text-align: center;
         }
     </style>
@@ -65,79 +65,48 @@
 
         <!-- লোন স্ট্যাটাস মেসেজ বক্স -->
         <div class="loan-status-box" id="loanStatusBox">
-            <h3 id="statusTitle">লোড হচ্ছে...</h3>
-            <p id="statusDesc">দয়া করে একটু অপেক্ষা করুন, আপনার ডাটা চেক করা হচ্ছে...</p>
+            <h3 id="statusTitle">লোন সেকশন</h3>
+            <p id="statusDesc">আপনি চাইলে নিচে থেকে লোন রিকোয়েস্ট পাঠাতে পারেন।</p>
             
-            <!-- ডাইনামিক বাটন বা অ্যাকশন এরিয়া -->
-            <div id="actionArea" style="margin-top: 15px; display: none;">
-                <!-- জাভাস্ক্রিপ্ট দিয়ে এখানে বাটন আসবে -->
+            <!-- রিকোয়েস্ট পাঠানোর বাটন -->
+            <div id="actionArea" style="display: block;">
+                <button class="loan-btn" onclick="sendLoanRequest()">লোন রিকোয়েস্ট পাঠান</button>
             </div>
         </div>
 
         <!-- ব্যানার অ্যাড সেকশন -->
         <div class="ads-wrapper">
-            <!-- ব্যানার স্লট ১ -->
             <div class="ad-banner-container">
                 <script async="async" data-cfasync="false" src="https://bauval.org/21/e67235acb5b7230c8c2fdb2cd4915292"></script>
                 <div id="container-e67235acb5b7230c8c2fdb2cd4915292"></div>
-                <span style="font-size: 11px; color: #a0aec0;"></span>
             </div>
         </div>
 
     </div>
 
-    <!-- Firebase এবং লোন লজিক স্ক্রিপ্ট -->
+    <!-- Firebase JavaScript Modular SDK -->
     <script type="module">
-        import { db, auth } from './firebase-config.js'; 
-        import { doc, getDoc, setDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const loanAmount = 1000; // লোন অ্যামাউন্ট (আপনার ইচ্ছেমতো পরিবর্তন করতে পারেন)
+        const firebaseConfig = {
+          apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+          authDomain: "taskora-b2b29.firebaseapp.com",
+          projectId: "taskora-b2b29",
+          storageBucket: "taskora-b2b29.firebasestorage.app",
+          messagingSenderId: "376297360134",
+          appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+          measurementId: "G-9803M7DPM5"
+        };
 
-        // ইউজার লগইন আছে কি না চেক করা
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                listenUserLoanStatus(user.uid);
-            } else {
-                document.getElementById('statusTitle').innerText = "⚠️ লগইন প্রয়োজন";
-                document.getElementById('statusDesc').innerText = "লোন পেজ দেখতে বা রিকোয়েস্ট পাঠাতে দয়া করে প্রথমে আপনার অ্যাকাউন্টে লগইন করুন।";
-            }
-        });
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // ইউজারের লোন স্ট্যাটাস রিয়েল-টাইম ট্র্যাক করা
-        function listenUserLoanStatus(userId) {
-            const userRef = doc(db, "users", userId);
+        const loanAmount = 1000; // লোনের পরিমাণ
 
-            onSnapshot(userRef, (docSnap) => {
-                const titleEl = document.getElementById('statusTitle');
-                const descEl = document.getElementById('statusDesc');
-                const actionArea = document.getElementById('actionArea');
-
-                let loanStatus = "none";
-                if (docSnap.exists()) {
-                    loanStatus = docSnap.data().loan_status || "none";
-                }
-
-                if (loanStatus === "none") {
-                    titleEl.innerText = "⚠️ কোনো লোন কার্যকর নেই";
-                    descEl.innerText = `দুঃখিত, এই মুহূর্তে আপনার কোনো লোন নেই। আপনি চাইলে ১,০০০ টাকার জন্য লোন রিকোয়েস্ট পাঠাতে পারেন।`;
-                    actionArea.style.display = "block";
-                    actionArea.innerHTML = `<button class="loan-btn" onclick="sendLoanRequest()">লোন রিকোয়েস্ট পাঠান</button>`;
-                } 
-                else if (loanStatus === "pending") {
-                    titleEl.innerText = "⏳ লোন রিকোয়েস্ট পেন্ডিং আছে";
-                    descEl.innerText = "আপনার লোন রিকোয়েস্টটি অ্যাডমিন প্যানেলে পর্যালোচনায় রয়েছে। অনুগ্রহ করে অ্যাডমিন অ্যাপ্রুভ করা পর্যন্ত অপেক্ষা করুন।";
-                    actionArea.style.display = "none";
-                } 
-                else if (loanStatus === "active") {
-                    titleEl.innerText = "✅ লোন কার্যকর রয়েছে";
-                    descEl.innerText = `আপনার ${loanAmount} টাকার লোন সফলভাবে অ্যাপ্রুভ হয়েছে এবং আপনার মাই ক্যাশ ব্যালেন্সে যুক্ত করা হয়েছে।`;
-                    actionArea.style.display = "none";
-                }
-            });
-        }
-
-        // আলাদাভাবে 'loan_requests' কালেকশনে রিকোয়েস্ট পাঠানোর ফাংশন
+        // লোন রিকোয়েস্ট পাঠানোর ফাংশন (সম্পূর্ণ আলাদা কালেকশনে ডাটা তৈরি হবে)
         window.sendLoanRequest = async function() {
             const user = auth.currentUser;
             if (!user) {
@@ -148,24 +117,19 @@
             if (!confirm(`আপনি কি ${loanAmount} টাকার জন্য লোন রিকোয়েস্ট পাঠাতে চান?`)) return;
 
             try {
+                // ইউজারের নাম বা ফোন নম্বর তোলার জন্য শুধু তার প্রোফাইল ডেটা পড়া হচ্ছে (কিন্তু ইউজারের টেবিলে কোনো লোন ফিল্ড বা পরিবর্তন করা হবে না)
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
                 const userData = userSnap.exists() ? userSnap.data() : {};
 
-                // ১. ইউজারের মেইন ডকুমেন্টে স্ট্যাটাস 'pending' করা
-                await setDoc(userRef, {
-                    loan_status: "pending",
-                    loan_amount: loanAmount
-                }, { merge: true });
-
-                // ২. উইথড্র/রিচার্জের মতো সম্পূর্ণ আলাদা কালেকশনে (loan_requests) রিকোয়েস্ট জমা করা
+                // ফায়ারবেসে সম্পূর্ণ আলাদা 'loan_requests' কালেকশনে নতুন রিকোয়েস্ট ফাইল/ডকুমেন্ট তৈরি হবে
                 await addDoc(collection(db, "loan_requests"), {
                     userId: user.uid,
-                    userName: userData.name || userData.fullName || "Unknown User",
-                    userPhone: userData.phone || userData.email || "N/A",
+                    userName: userData.name || "Unknown",
+                    userPhone: userData.phone || "N/A",
                     amount: loanAmount,
                     status: "pending",
-                    request_date: new Date().toISOString()
+                    requestTime: serverTimestamp()
                 });
 
                 alert("আপনার লোন রিকোয়েস্ট সফলভাবে জমা হয়েছে!");
