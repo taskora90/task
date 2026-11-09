@@ -219,6 +219,31 @@
             <div id="withdrawProfilesContainer">উইথড্র প্রোফাইলগুলো লোড হচ্ছে...</div>
         </div>
     </div>
+
+   
+     <!-- ইউজার সাপোর্ট চ্যাট সেকশন -->
+        <div id="supportChatSection" style="display: none;">
+            <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
+            <h3>ইউজার সাপোর্ট লাইভ চ্যাট</h3>
+            <div style="display: flex; gap: 10px; height: 400px;">
+                <!-- ইউজার লিস্ট বা সাইডবার -->
+                <div id="adminChatUserList" style="width: 35%; background: #2e3440; border: 1px solid #4c566a; border-radius: 6px; overflow-y: auto; padding: 8px;">
+                    <div style="color: #aaa; font-size: 13px; text-align: center; margin-top: 20px;">ইউজার লোড হচ্ছে...</div>
+                </div>
+                <!-- চ্যাট ও মেসেজ আদান-প্রদান বক্স -->
+                <div id="adminChatRoom" style="width: 65%; background: #2e3440; border: 1px solid #4c566a; border-radius: 6px; display: flex; flex-direction: column; padding: 10px; display: none;">
+                    <div id="activeChatUserName" style="font-weight: bold; border-bottom: 1px solid #4c566a; padding-bottom: 6px; margin-bottom: 8px; color: #eceff4;">ইউজার সিলেক্ট করুন</div>
+                    <div id="adminChatMessages" style="flex: 1; overflow-y: auto; background: #3b4252; padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 6px; font-size: 13px;"></div>
+                    <div style="display: flex; gap: 6px; margin-top: 8px;">
+                        <input type="text" id="adminReplyInput" placeholder="উত্তর লিখুন..." style="flex: 1; padding: 8px; background: #2e3440; border: 1px solid #4c566a; color: #fff; border-radius: 4px; outline: none;" onkeypress="handleAdminKeypress(event)">
+                        <button class="btn-approve" style="margin: 0; padding: 8px 14px;" onclick="sendAdminReply()">পাঠান</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -986,6 +1011,101 @@
           }
         }
       }
+
+
+
+
+      let activeChatUserId = null;
+      let unsubscribeAdminChat = null;
+
+      // সাপোর্ট সেকশন ওপেন করার ফাংশন
+      // openSection ফাংশনের ভেতরে 'supportChat' কন্ডিশন হ্যান্ডেল করতে হবে
+      // (openSection ফাংশনের ইফ-এলসে supportChat যোগ করতে হবে)
+
+      // সাপোর্ট চ্যাট ইউজার লিস্ট লোড করা
+      async function loadAdminSupportChats() {
+        const listContainer = document.getElementById('adminChatUserList');
+        listContainer.innerHTML = "লোড হচ্ছে...";
+
+        try {
+          // ফায়ারবেসের 'support_chats' কালেকশন থেকে সব ইউজারের লিস্ট আনা
+          const querySnap = await getDocs(collection(db, "support_chats"));
+          if (querySnap.empty) {
+            listContainer.innerHTML = `<div style="color: #aaa; font-size: 13px; text-align: center; margin-top: 20px;">কোনো চ্যাট রিকোয়েস্ট নেই।</div>`;
+            return;
+          }
+
+          listContainer.innerHTML = "";
+          querySnap.forEach((docSnap) => {
+            const userId = docSnap.id;
+            listContainer.innerHTML += `
+              <div onclick="openAdminChatRoom('${userId}')" style="padding: 10px; background: #3b4252; border-bottom: 1px solid #4c566a; border-radius: 4px; cursor: pointer; margin-bottom: 6px; font-size: 13px; color: #fff;">
+                <i class="fa-solid fa-user-circle"></i> ইউজার ID: <br><span style="font-size: 11px; color: #81a1c1;">${userId}</span>
+              </div>
+            `;
+          });
+        } catch (error) {
+          listContainer.innerHTML = `<div style="color: #bf616a; font-size: 13px; text-align: center;">লোড করতে সমস্যা হয়েছে।</div>`;
+        }
+      }
+
+      // নির্দিষ্ট ইউজারের চ্যাট রুম ওপেন করা
+      window.openAdminChatRoom = function(userId) {
+        activeChatUserId = userId;
+        document.getElementById('adminChatRoom').style.display = 'flex';
+        document.getElementById('activeChatUserName').innerText = `চ্যাট ইউজার ID: ${userId}`;
+
+        const chatMessagesArea = document.getElementById('adminChatMessages');
+        const q = query(collection(db, "support_chats", userId, "messages"), orderBy("timestamp", "asc"));
+
+        if (unsubscribeAdminChat) unsubscribeAdminChat();
+
+        unsubscribeAdminChat = onSnapshot(q, (snapshot) => {
+          chatMessagesArea.innerHTML = "";
+          if (snapshot.empty) {
+            chatMessagesArea.innerHTML = `<div style="color: #aaa; text-align: center; margin: auto;">কোনো মেসেজ নেই।</div>`;
+            return;
+          }
+
+          snapshot.forEach((d) => {
+            const data = d.data();
+            const isAdmin = data.sender === 'admin';
+            chatMessagesArea.innerHTML += `
+              <div style="padding: 6px 10px; border-radius: 6px; max-width: 80%; word-break: break-all; align-self: ${isAdmin ? 'flex-end' : 'flex-start'}; background: ${isAdmin ? '#a3be8c' : '#4c566a'}; color: ${isAdmin ? '#2e3440' : '#fff'};">
+                <div style="font-size: 10px; font-weight: bold; margin-bottom: 2px;">${isAdmin ? 'অ্যাডমিন (আপনি)' : 'ইউজার'}</div>
+                <div>${data.text}</div>
+              </div>
+            `;
+          });
+          chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+        });
+      }
+
+      window.handleAdminKeypress = function(e) {
+        if (e.key === 'Enter') sendAdminReply();
+      }
+
+      // অ্যাডমিন থেকে উত্তর পাঠানো
+      window.sendAdminReply = async function() {
+        const inputEl = document.getElementById('adminReplyInput');
+        const text = inputEl.value.trim();
+        if (!text || !activeChatUserId) return;
+
+        try {
+          await addDoc(collection(db, "support_chats", activeChatUserId, "messages"), {
+            sender: 'admin',
+            text: text,
+            timestamp: serverTimestamp()
+          });
+          inputEl.value = '';
+        } catch (error) {
+          alert("মেসেজ পাঠাতে সমস্যা হয়েছে: " + error.message);
+        }
+      }
+
+
+
+
     </script>
 </body>
 </html>
