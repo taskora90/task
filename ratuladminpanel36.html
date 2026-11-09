@@ -67,33 +67,13 @@
 </head>
 <body>
 
-          // অ্যাডমিন পাসওয়ার্ড যাচাই করার ফাংশন
-// অ্যাডমিন পাসওয়ার্ড যাচাই করার ফাংশন
-window.verifyAdminPassword = function() {
-  const passwordInput = document.getElementById('adminPassInput').value.trim();
-  const errorMsg = document.getElementById('loginError');
-  const correctPassword = "TarekHasan@36"; 
-
-  if (passwordInput === correctPassword) {
-    document.getElementById('loginSection').style.display = 'none';
-    
-    const dashboard = document.getElementById('adminDashboard');
-    if (dashboard) {
-      dashboard.style.display = 'block';
-    }
-    
-    if (typeof loadAllUsers === 'function') {
-      loadAllUsers();
-    }
-  } else {
-    if (errorMsg) {
-      errorMsg.style.display = 'block';
-    } else {
-      alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
-    }
-  }
-}
-
+    <!-- ১. মূল অ্যাডমিন লগইন ফর্ম -->
+    <div id="loginSection" class="login-box">
+        <h3><i class="fa-solid fa-lock"></i> অ্যাডমিন লগইন</h3>
+        <input type="password" id="adminPassInput" class="login-input" placeholder="পাসওয়ার্ড লিখুন...">
+        <button class="login-btn" onclick="verifyAdminPassword()">প্রবেশ করুন</button>
+        <div id="loginError" class="error-msg">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
+    </div>
 
     <!-- ২. ইউজার ডিটেলস পাসওয়ার্ড প্রম্পট বক্স (সিক্রেট) -->
     <div id="userSecPassSection" class="login-box" style="display: none;">
@@ -243,16 +223,17 @@ window.verifyAdminPassword = function() {
       });
 
       window.verifyAdminPassword = function() {
-        const inputPass = document.getElementById('adminPassInput').value;
-        const errorEl = document.getElementById('loginError');
+        const passwordInput = document.getElementById('adminPassInput').value.trim();
+        const errorMsg = document.getElementById('loginError');
+        const correctPassword = "TarekHasan@36"; 
 
-        if (inputPass === ADMIN_PASSWORD) {
+        if (passwordInput === correctPassword) {
           sessionStorage.setItem('isAdminLoggedIn', 'true');
-          errorEl.style.display = 'none';
+          errorMsg.style.display = 'none';
           showDashboardMenu();
           resetInactivityTimer();
         } else {
-          errorEl.style.display = 'block';
+          errorMsg.style.display = 'block';
         }
       }
 
@@ -373,7 +354,6 @@ window.verifyAdminPassword = function() {
           }
         }
       }
-
       // --- প্যাকেজ ম্যানেজমেন্ট ---
       window.addNewPackage = async function() {
         const pkgId = document.getElementById('pkgIdInput').value.trim();
@@ -455,6 +435,7 @@ window.verifyAdminPassword = function() {
           }
         }
       }
+
       // --- নোটিশ ম্যানেজমেন্ট ---
       window.postNewNotice = async function() {
         const title = document.getElementById('noticeTitleInput').value.trim();
@@ -649,7 +630,7 @@ window.verifyAdminPassword = function() {
         }
       }
 
-               // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
+      // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
       let allUsersData = [];
 
       async function loadAllUsers() {
@@ -716,13 +697,13 @@ window.verifyAdminPassword = function() {
           <button class="btn-back" onclick="loadAllUsers(); document.getElementById('userSearchInput').style.display='block';"><i class="fa-solid fa-arrow-left"></i> ইউজার লিস্টে ফিরুন</button>
           <div style="background: #2e3440; border: 1px solid #4c566a; padding: 16px; border-radius: 8px;">
             <h3 style="margin-top: 0; color: #eceff4; border-bottom: 1px solid #4c566a; padding-bottom: 8px;">👤 ${user.name || 'N/A'} - বিস্তারিত তথ্য</h3>
-            
+
             <table class="user-details-table">
               <tr><th>ফিল্ডের নাম</th><th>মান (Value)</th></tr>
               <tr><td>ইউজার আইডি (UID)</td><td>${userId || 'N/A'}</td></tr>
               <tr><td>পূর্ণ নাম</td><td><span id="view_name">${user.name || ''}</span><input type="text" id="edit_name" class="edit-input" value="${user.name || ''}" style="display:none;"></td></tr>
               <tr><td>ফোন নম্বর</td><td><span id="view_phone">${user.phone || ''}</span><input type="text" id="edit_phone" class="edit-input" value="${user.phone || ''}" style="display:none;"></td></tr>
-              <tr><td>নতুন পাসওয়ার্ড (রিসেট)</td><td><span id="view_pass" style="color: #ebcb8b;">পরিবর্তন করতে এডিট মোডে যান</span><input type="text" id="edit_password" class="edit-input" placeholder="নতুন পাসওয়ার্ড লিখুন (খালি রাখলে অপরিবর্তিত থাকবে)" style="display:none;"></td></tr>
+              <tr><td>নতুন পাসওয়ার্ড (রিসেট)</td><td><span id="view_password" style="color: #ebcb8b;">পরিবর্তন করতে এডিট মোডে যান</span><input type="text" id="edit_password" class="edit-input" placeholder="নতুন পাসওয়ার্ড লিখুন (খালি রাখলে অপরিবর্তিত থাকবে)" style="display:none;"></td></tr>
               <tr><td>টাস্ক ক্যাশ (Task Cash)</td><td><span id="view_taskCash">${user.taskCash || 0}</span><input type="number" id="edit_taskCash" class="edit-input" value="${user.taskCash || 0}" style="display:none;"></td></tr>
               <tr><td>মাই ক্যাশ (My Cash)</td><td><span id="view_myCash">${user.myCash || 0}</span><input type="number" id="edit_myCash" class="edit-input" value="${user.myCash || 0}" style="display:none;"></td></tr>
               <tr><td>মোট আয় (Total Earnings)</td><td><span id="view_totalEarnings">${user.totalEarnings || 0}</span><input type="number" id="edit_totalEarnings" class="edit-input" value="${user.totalEarnings || 0}" style="display:none;"></td></tr>
@@ -739,7 +720,7 @@ window.verifyAdminPassword = function() {
       }
 
       window.enableUserEdit = function() {
-        const fields = ['name', 'phone', 'pass', 'taskCash', 'myCash', 'totalEarnings', 'package'];
+        const fields = ['name', 'phone', 'password', 'taskCash', 'myCash', 'totalEarnings', 'package'];
         fields.forEach(field => {
           const viewSpan = document.getElementById(`view_${field}`);
           const editInput = document.getElementById(`edit_${field}`);
@@ -762,7 +743,6 @@ window.verifyAdminPassword = function() {
           const newTotalEarnings = Number(document.getElementById('edit_totalEarnings').value);
           const newPackage = document.getElementById('edit_package').value.trim();
 
-          // ডাটা অবজেক্ট তৈরি
           const updateData = {
             name: newName,
             phone: newPhone,
@@ -772,12 +752,10 @@ window.verifyAdminPassword = function() {
             package: newPackage
           };
 
-          // যদি নতুন পাসওয়ার্ড দেওয়া হয়, তবে সেটি আপডেট অবজেক্টে যুক্ত হবে
           if (newPassword !== "") {
             updateData.password = newPassword;
           }
 
-          // ফায়ারস্টোর ডাটাবেজে আপডেট করা
           const userRef = doc(db, "users", userId);
           await updateDoc(userRef, updateData);
 
@@ -815,7 +793,6 @@ window.verifyAdminPassword = function() {
           }
         }
       }
-
-
+    </script>
 </body>
 </html>
