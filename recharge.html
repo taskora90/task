@@ -7,19 +7,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .top-banner { display: flex; align-items: center; margin-bottom: 20px; background: #2b2d42; color: white; padding: 12px 15px; border-radius: 8px; }
+        .container { max-width: 450px; margin: 20px auto; padding: 10px; }
+
+        /* অ্যাশ কালার ব্যাকগ্রাউন্ড এবং সুন্দর বক্স স্টাইল */
+        .header-card-box {
+            background: #eef2f5; 
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            border: 1px solid #d1d8e0;
+        }
+
+        .top-banner { display: flex; align-items: center; background: #2b2d42; color: white; padding: 12px 15px; border-radius: 8px; }
         .top-banner h2 { margin: 0; font-size: 18px; margin-left: 10px; }
         .back-btn { color: white; text-decoration: none; font-size: 18px; }
-        
+
         .notice-box { background: #fff3cd; color: #856404; padding: 12px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: center; border: 1px solid #ffeeba; line-height: 1.5; font-weight: 500; }
-        
+
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
         .form-group select, .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; background-color: #fcfcfc; }
         .form-group select:focus, .form-group input:focus { outline: none; border-color: #007bff; }
 
-        .number-card { background: #eef2f5; padding: 12px 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #dcdcdc; }
+        .number-card { background: #ffffff; padding: 12px 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #dcdcdc; }
         .number-card span { font-weight: bold; font-size: 16px; color: #333; letter-spacing: 1px; }
         .copy-btn { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .copy-btn:hover { background: #0056b3; }
@@ -27,80 +38,84 @@
         .submit-btn { width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; margin-top: 10px; }
         .submit-btn:hover { background-color: #218838; }
         .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
-        
+
         .section-box { display: none; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="top-banner">
-            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>টাকা রিচার্জ করুন</h2>
-        </div>
-
-        <!-- ১. পেমেন্ট মাধ্যম সিলেক্ট করার ড্রপডাউন পেজ -->
-        <div id="selectMethodSection" class="form-group">
-            <label>পেমেন্ট মাধ্যম সিলেক্ট করুন</label>
-            <select id="paymentDropdown" onchange="onMethodChange()">
-                <option value="" disabled selected>মাধ্যম বেছে নিন</option>
-                <option value="bKash">বিকাশ (bKash)</option>
-                <option value="Nagad">নগদ (Nagad)</option>
-            </select>
-        </div>
-
-        <!-- ২. নির্দিষ্ট মাধ্যম সিলেক্ট করার পর যে ফর্ম ও নাম্বারগুলো দেখাবে -->
-        <div id="rechargeDetailsSection" class="section-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 id="selectedTitle" style="margin: 0; color: #2b2d42; font-size: 16px;">বিকাশ পার্সোনাল নম্বরসমূহ</h3>
-                <button onclick="goBackToDropdown()" style="background: none; border: none; color: #007bff; cursor: pointer; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-rotate-left"></i> মাধ্যম পরিবর্তন</button>
+        <!-- অ্যাশ কালার বক্সের ভেতরে হেডার এবং ফর্ম রাখা হয়েছে -->
+        <div class="header-card-box">
+            <div class="top-banner">
+                <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                <h2>টাকা রিচার্জ করুন</h2>
             </div>
-
-            <!-- নোটিশ বক্স -->
-            <div class="notice-box">
-                ⚠️ অনুগ্রহ করে সেন্ড মানি করুন এবং ট্রানজেকশন আইডি সহ টাকার পরিমাণ জমা দিন।
-            </div>
-
-            <!-- এজেন্ট নাম্বার ১ -->
-            <div class="number-card">
-                <div>
-                    <small style="display: block; color: #666; font-size: 11px;">নম্বর ১ (পার্সোনাল)</small>
-                    <span id="agentNum1Display">017**-******1</span>
-                </div>
-                <button class="copy-btn" onclick="copyNum('agentNum1Real')"><i class="fa-regular fa-copy"></i> কপি</button>
-            </div>
-            <!-- আসল হিডেন নাম্বার ১ -->
-            <span id="agentNum1Real" style="display:none;">01711223344</span>
-
-            <!-- এজেন্ট নাম্বার ২ -->
-            <div class="number-card">
-                <div>
-                    <small style="display: block; color: #666; font-size: 11px;">নম্বর ২ (পার্সোনাল)</small>
-                    <span id="agentNum2Display">018**-******2</span>
-                </div>
-                <button class="copy-btn" onclick="copyNum('agentNum2Real')"><i class="fa-regular fa-copy"></i> কপি</button>
-            </div>
-            <!-- আসল হিডেন নাম্বার ২ -->
-            <span id="agentNum2Real" style="display:none;">01811223344</span>
 
             <br>
 
-            <!-- ফর্ম -->
-            <form id="rechargeForm">
-                <div class="form-group">
-                    <label>টাকার পরিমাণ (BDT)</label>
-                    <input type="number" id="amount" placeholder="সর্বনিম্ন ১০০ টাকা" min="100" required>
+            <!-- ১. পেমেন্ট মাধ্যম সিলেক্ট করার ড্রপডাউন পেজ -->
+            <div id="selectMethodSection" class="form-group" style="margin-bottom: 0;">
+                <label>পেমেন্ট মাধ্যম সিলেক্ট করুন</label>
+                <select id="paymentDropdown" onchange="onMethodChange()">
+                    <option value="" disabled selected>মাধ্যম বেছে নিন</option>
+                    <option value="bKash">বিকাশ (bKash)</option>
+                    <option value="Nagad">নগদ (Nagad)</option>
+                </select>
+            </div>
+
+            <!-- ২. নির্দিষ্ট মাধ্যম সিলেক্ট করার পর যে ফর্ম ও নাম্বারগুলো দেখাবে -->
+            <div id="rechargeDetailsSection" class="section-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 id="selectedTitle" style="margin: 0; color: #2b2d42; font-size: 16px;">বিকাশ পার্সোনাল নম্বরসমূহ</h3>
+                    <button onclick="goBackToDropdown()" style="background: none; border: none; color: #007bff; cursor: pointer; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-rotate-left"></i> মাধ্যম পরিবর্তন</button>
                 </div>
 
-                <div class="form-group">
-                    <label>ট্রানজেকশন আইডি (TrxID)</label>
-                    <input type="text" id="trxId" placeholder="যেমন: 8N7A6D5E" required>
+                <!-- নোটিশ বক্স -->
+                <div class="notice-box">
+                    ⚠️ অনুগ্রহ করে সেন্ড মানি করুন এবং ট্রানজেকশন আইডি সহ টাকার পরিমাণ জমা দিন।
                 </div>
 
-                <button type="submit" class="submit-btn" id="submitBtn">জমা দিন</button>
-            </form>
+                <!-- এজেন্ট নাম্বার ১ -->
+                <div class="number-card">
+                    <div>
+                        <small style="display: block; color: #666; font-size: 11px;">নম্বর ১ (পার্সোনাল)</small>
+                        <span id="agentNum1Display">017**-******1</span>
+                    </div>
+                    <button class="copy-btn" onclick="copyNum('agentNum1Real')"><i class="fa-regular fa-copy"></i> কপি</button>
+                </div>
+                <!-- আসল হিডেন নাম্বার ১ -->
+                <span id="agentNum1Real" style="display:none;">01711223344</span>
+
+                <!-- এজেন্ট নাম্বার ২ -->
+                <div class="number-card">
+                    <div>
+                        <small style="display: block; color: #666; font-size: 11px;">নম্বর ২ (পার্সোনাল)</small>
+                        <span id="agentNum2Display">018**-******2</span>
+                    </div>
+                    <button class="copy-btn" onclick="copyNum('agentNum2Real')"><i class="fa-regular fa-copy"></i> কপি</button>
+                </div>
+                <!-- আসল হিডেন নাম্বার ২ -->
+                <span id="agentNum2Real" style="display:none;">01811223344</span>
+
+                <br>
+
+                <!-- ফর্ম -->
+                <form id="rechargeForm">
+                    <div class="form-group">
+                        <label>টাকার পরিমাণ (BDT)</label>
+                        <input type="number" id="amount" placeholder="সর্বনিম্ন ১০০ টাকা" min="100" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ট্রানজেকশন আইডি (TrxID)</label>
+                        <input type="text" id="trxId" placeholder="যেমন: 8N7A6D5E" required>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">জমা দিন</button>
+                </form>
+            </div>
         </div>
-    </div>
 
     <!-- UI Scripts -->
     <script>
@@ -119,14 +134,14 @@
                 document.getElementById('selectedTitle').innerText = "বিকাশ পার্সোনাল নম্বরসমূহ";
                 document.getElementById('agentNum1Display').innerText = "01711-***344";
                 document.getElementById('agentNum1Real').innerText = "01711223344";
-                
+
                 document.getElementById('agentNum2Display').innerText = "01799-***888";
                 document.getElementById('agentNum2Real').innerText = "01799887788";
             } else if (currentMethod === 'Nagad') {
                 document.getElementById('selectedTitle').innerText = "নগদ পার্সোনাল নম্বরসমূহ";
                 document.getElementById('agentNum1Display').innerText = "01811-***555";
                 document.getElementById('agentNum1Real').innerText = "01811556677";
-                
+
                 document.getElementById('agentNum2Display').innerText = "01833-***999";
                 document.getElementById('agentNum2Real').innerText = "01833445566";
             }
@@ -234,9 +249,6 @@
       });
     </script>
 
-
-
-
        <div class="ads-wrapper">
             <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
@@ -244,7 +256,7 @@
   atOptions = {
     'key' : 'edb0510109f6c4d56e1c54025858881c',
     'format' : 'iframe',
-    'height' :250,
+    'height' : 50,
     'width' : 320,
     'params' : {}
   };
@@ -253,10 +265,8 @@
 <script src="https://bauval.org/22/edb0510109f6c4d56e1c54025858881c"></script>
         <span style="font-size: 11px; color: #a0aec0;"></span>
       </div>
+       </div>
 
-
-
-
-
+</div>
 </body>
 </html>
