@@ -83,12 +83,78 @@
     .btn:hover {
       opacity: 0.9;
     }
-    .telegram-btn {
-      background-color: #0088cc;
+    .telegram-btn { background-color: #0088cc; }
+    .whatsapp-btn { background-color: #25d366; }
+    .chat-btn { background-color: #6c5ce7; }
+
+    /* সাব-মেনু ও চ্যাট বক্স স্টাইল */
+    .submenu-box, .chat-box-container {
+      background: #f8f9fa;
+      border: 1px solid #e5e9f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      text-align: left;
+      display: none;
     }
-    .whatsapp-btn {
-      background-color: #25d366;
+    .sub-link {
+      display: block;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      color: #333;
+      text-decoration: none;
+      font-weight: bold;
+      margin-bottom: 8px;
+      text-align: center;
     }
+    .sub-link:hover { background: #f1f3f5; }
+
+    /* লাইভ চ্যাট রুম স্টাইল */
+    .chat-messages-area {
+      height: 180px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .message-item {
+      padding: 6px 10px;
+      border-radius: 6px;
+      max-width: 80%;
+      word-break: break-all;
+    }
+    .user-msg { background: #e3f2fd; align-self: flex-end; color: #0d47a1; text-align: right; }
+    .admin-msg { background: #f1f3f5; align-self: flex-start; color: #333; text-align: left; }
+
+    .chat-input-row { display: flex; gap: 6px; }
+    .chat-input-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; outline: none; }
+    .chat-input-row button { background: #6c5ce7; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+    /* ফ্লোটিং নোটিফিকেশন পপআপ */
+    #supportNotificationPopup {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: #2b2d42;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 9999;
+      display: none;
+      font-size: 13px;
+      cursor: pointer;
+      animation: fadeIn 0.3s ease;
+    }
+
     .ads-wrapper {
       display: flex;
       flex-direction: column;
@@ -110,17 +176,20 @@
     .back-btn {
       display: inline-block;
       margin-top: 10px;
-      color: #6c757d;
+      color: #6c5ce7;
       text-decoration: none;
       font-size: 13px;
       font-weight: bold;
     }
-    .back-btn:hover {
-      text-decoration: underline;
-    }
+    .back-btn:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
+
+  <!-- ফ্লোটিং পপআপ নোটিফিকেশন -->
+  <div id="supportNotificationPopup" onclick="openDirectChatFromNotification()">
+    💬 অ্যাডমিন আপনাকে একটি নতুন উত্তর পাঠিয়েছেন! দেখতে এখানে ক্লিক করুন।
+  </div>
 
   <div class="support-card">
     <div class="icon-box">
@@ -134,80 +203,177 @@
       <div>⚡ <strong>উত্তর পাওয়ার সময়:</strong> ৫ থেকে ১৫ মিনিট</div>
     </div>
 
-    <!-- টেলিগ্রাম সাপোর্ট বাটন -->
-    <button class="btn telegram-btn" onclick="openTelegramSupport()">
-      <i class="fa-brands fa-telegram fa-lg"></i> টেলিগ্রামে মেসেজ দিন
+    <!-- ১. টেলিগ্রাম বাটন ও সাব-মেনু -->
+    <button class="btn telegram-btn" onclick="toggleSubmenu('telegramSub')">
+      <i class="fa-brands fa-telegram fa-lg"></i> টেলিগ্রাম
     </button>
+    <div id="telegramSub" class="submenu-box">
+      <a href="https://t.me/admin_username" target="_blank" class="sub-link">👨‍💼 ম্যানেজার (ইনবক্স)</a>
+      <a href="https://t.me/your_telegram_group" target="_blank" class="sub-link">👥 টেলিগ্রাম গ্রুপ</a>
+    </div>
 
-    <!-- হোয়াটসঅ্যাপ সাপোর্ট বাটন -->
-    <button class="btn whatsapp-btn" onclick="openWhatsAppSupport()">
-      <i class="fa-brands fa-whatsapp fa-lg"></i> হোয়াটসঅ্যাপে কথা বলুন
+    <!-- ২. হোয়াটসঅ্যাপ বাটন ও সাব-মেনু -->
+    <button class="btn whatsapp-btn" onclick="toggleSubmenu('whatsappSub')">
+      <i class="fa-brands fa-whatsapp fa-lg"></i> হোয়াটসঅ্যাপ
     </button>
+    <div id="whatsappSub" class="submenu-box">
+      <a href="https://wa.me/8801700000000" target="_blank" class="sub-link">👨‍💼 ম্যানেজার (নম্বর)</a>
+      <a href="https://chat.whatsapp.com/your_group_link" target="_blank" class="sub-link">👥 হোয়াটসঅ্যাপ গ্রুপ</a>
+    </div>
+
+    <!-- ৩. সরাসরি কথোপকথন বাটন ও চ্যাট বক্স -->
+    <button class="btn chat-btn" onclick="toggleDirectChatBox()">
+      <i class="fa-solid fa-comments fa-lg"></i> সরাসরি কথোপকথন
+    </button>
+    
+    <div id="directChatContainer" class="chat-box-container">
+      <div id="chatMessagesArea" class="chat-messages-area">
+        <div style="text-align: center; color: #888; font-size: 12px; margin-top: auto;">কথোপকথন শুরু করুন...</div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chatMessageInput" placeholder="আপনার মেসেজ লিখুন..." onkeypress="handleChatKeypress(event)">
+        <button onclick="sendChatMessage()">পাঠান</button>
+      </div>
+    </div>
 
     <!-- দুটি ব্যানার স্লট -->
     <div class="ads-wrapper">
-            <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
         <script>
-  atOptions = {
-    'key' : 'edb0510109f6c4d56e1c54025858881c',
-    'format' : 'iframe',
-    'height' :250,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/edb0510109f6c4d56e1c54025858881c/invoke.js"></script>
-<script src="https://bauval.org/22/edb0510109f6c4d56e1c54025858881c"></script>
-        <span style="font-size: 11px; color: #a0aec0;"></span>
+          atOptions = { 'key' : 'edb0510109f6c4d56e1c54025858881c', 'format' : 'iframe', 'height' : 250, 'width' : 320, 'params' : {} };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/edb0510109f6c4d56e1c54025858881c/invoke.js"></script>
       </div>
-
-      <!-- ব্যানার স্লট ২ -->
       <div class="ad-banner-container">
         <script>
-  atOptions = {
-    'key' : 'ef70bb41c6b9c54cf3d9448db4f94f11',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/ef70bb41c6b9c54cf3d9448db4f94f11/invoke.js"></script>
-<script src="https://bauval.org/22/ef70bb41c6b9c54cf3d9448db4f94f11"></script>
-        <span style="font-size: 11px; color: #a0aec0;"></span>
+          atOptions = { 'key' : 'ef70bb41c6b9c54cf3d9448db4f94f11', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/ef70bb41c6b9c54cf3d9448db4f94f11/invoke.js"></script>
       </div>
     </div>
 
     <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> হোম পেজে ফিরে যান</a>
   </div>
 
-  <script>
-    // টেলিগ্রাম সাপোর্ট লিংক খোলার নিরাপদ ফাংশন
-    function openTelegramSupport() {
-      const telegramUrl = "https://t.me/your_telegram_username"; // আপনার টেলিগ্রাম লিংক এখানে দিন
-      if (navigator.share) {
-        navigator.share({
-          title: 'ম্যানেজার সাপোর্ট',
-          text: 'টেলিগ্রামে যোগাযোগ করুন:',
-          url: telegramUrl,
-        }).catch(() => {});
+  <!-- ফায়ারবেস ও চ্যাট লজিক স্ক্রিপ্ট -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+      authDomain: "taskora-b2b29.firebaseapp.com",
+      projectId: "taskora-b2b29",
+      storageBucket: "taskora-b2b29.firebasestorage.app",
+      messagingSenderId: "376297360134",
+      appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+      measurementId: "G-9803M7DPM5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // লোকাল স্টোরেজ বা সেশন থেকে ইউজারের নিজস্ব আইডি বা ফোন বের করা (অথবা ডেমো আইডি)
+    let currentUserId = localStorage.getItem('taskora_user_id') || "user_" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('taskora_user_id', currentUserId);
+
+    let unsubChat = null;
+    let lastAdminMsgCount = 0;
+
+    // টেলিগ্রাম/হোয়াটসঅ্যাপ সাব-মেনু টগল
+    window.toggleSubmenu = function(id) {
+      const box = document.getElementById(id);
+      const otherId = id === 'telegramSub' ? 'whatsappSub' : 'telegramSub';
+      document.getElementById(otherId).style.display = 'none';
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // সরাসরি কথোপকথন চ্যাট বক্স টগল
+    window.toggleDirectChatBox = function() {
+      const container = document.getElementById('directChatContainer');
+      document.getElementById('telegramSub').style.display = 'none';
+      document.getElementById('whatsappSub').style.display = 'none';
+
+      if (container.style.display === 'block') {
+        container.style.display = 'none';
+        if (unsubChat) unsubChat(); // বন্ধ করলে লিসেনার রিমুভ হবে
       } else {
-        window.open(telegramUrl, '_blank');
+        container.style.display = 'block';
+        loadUserChatRealtime();
+        document.getElementById('supportNotificationPopup').style.display = 'none';
       }
     }
 
-    // হোয়াটসঅ্যাপ সাপোর্ট লিংক খোলার নিরাপদ ফাংশন
-    function openWhatsAppSupport() {
-      const whatsappUrl = "https://wa.me/8801700000000"; // আপনার হোয়াটসঅ্যাপ নাম্বার এখানে দিন
-      if (navigator.share) {
-        navigator.share({
-          title: 'ম্যানেজার সাপোর্ট',
-          text: 'হোয়াটসঅ্যাপে যোগাযোগ করুন:',
-          url: whatsappUrl,
-        }).catch(() => {});
-      } else {
-        window.open(whatsappUrl, '_blank');
+    window.openDirectChatFromNotification = function() {
+      document.getElementById('supportNotificationPopup').style.display = 'none';
+      document.getElementById('directChatContainer').style.display = 'block';
+      loadUserChatRealtime();
+    }
+
+    // ফায়ারবেস থেকে রিয়েল-টাইমে চ্যাট লোড করা (`support_chats` কালেকশন)
+    function loadUserChatRealtime() {
+      const messagesArea = document.getElementById('chatMessagesArea');
+      
+      const q = query(collection(db, "support_chats", currentUserId, "messages"), orderBy("timestamp", "asc"));
+      
+      if (unsubChat) unsubChat(); // আগের লিসেনার ক্লিয়ার করা
+
+      unsubChat = onSnapshot(q, (snapshot) => {
+        messagesArea.innerHTML = "";
+        let adminMsgTotal = 0;
+
+        if (snapshot.empty) {
+          messagesArea.innerHTML = `<div style="text-align: center; color: #888; font-size: 12px; margin: auto;">কোনো বার্তা নেই। আপনার মেসেজ পাঠান!</div>`;
+          return;
+        }
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const isUser = data.sender === 'user';
+          
+          if (!isUser) {
+            adminMsgTotal++;
+          }
+
+          messagesArea.innerHTML += `
+            <div class="message-item ${isUser ? 'user-msg' : 'admin-msg'}">
+              <div style="font-size: 11px; font-weight: bold; margin-bottom: 2px; color: ${isUser ? '#1976d2' : '#388e3c'};">
+                ${isUser ? 'আপনি' : 'ম্যানেজার / অ্যাডমিন'}
+              </div>
+              <div>${data.text}</div>
+            </div>
+          `;
+        });
+
+        // যদি অ্যাপের অন্য পেজে থাকে এবং নতুন অ্যাডমিন মেসেজ আসে, তবে পপআপ নোটিফিকেশন দেখাবে
+        if (lastAdminMsgCount > 0 && adminMsgTotal > lastAdminMsgCount && document.getElementById('directChatContainer').style.display !== 'block') {
+          document.getElementById('supportNotificationPopup').style.display = 'block';
+        }
+        lastAdminMsgCount = adminMsgTotal;
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      });
+    }
+
+    // এন্টার প্রেস করে মেসেজ পাঠানোর সুবিধা
+    window.handleChatKeypress = function(e) {
+      if (e.key === 'Enter') sendChatMessage();
+    }
+
+    // মেসেজ পাঠানো
+    window.sendChatMessage = async function() {
+      const inputEl = document.getElementById('chatMessageInput');
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      try {
+        await addDoc(collection(db, "support_chats", currentUserId, "messages"), {
+          sender: 'user',
+          text: text,
+          timestamp: serverTimestamp()
+        });
+        inputEl.value = '';
+      } catch (error) {
+        alert("মেসেজ পাঠাতে সমস্যা হয়েছে: " + error.message);
       }
     }
   </script>
