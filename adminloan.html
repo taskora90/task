@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>লোন ও উইথড্র অ্যাডমিন প্যানেল - TaskOra</title>
+    <title>লোন অ্যাডমিন প্যানেল - TaskOra</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
         .container { max-width: 850px; margin: 0 auto; }
         #loginBox { max-width: 350px; margin: 100px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
         #loginBox input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        
-        #adminDashboard, #withdrawManagerPage { display: none; }
-        
+
+        #adminDashboard { display: none; }
+
         .header { background: #2b2d42; color: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .header h2 { margin: 0; font-size: 20px; }
         .settings-card { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -28,23 +28,8 @@
         .btn-reject { background-color: #dc3545; color: white; }
         .logout-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
         .no-data { text-align: center; color: #777; background: #fff; padding: 20px; border-radius: 8px; }
-
-        /* মেনু বাটন স্টাইল */
-        .menu-card-btn { background: #2b2d42; color: white; border: none; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; text-align: left; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s; }
-        .menu-card-btn:hover { background: #3f4261; }
-
-        /* আলাদা উইথড্র পেজের স্টাইল */
-        .profile-search-input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; font-size: 15px; }
-        .profile-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .profile-table th, .profile-table td { border: 1px solid #dee2e6; padding: 12px; text-align: left; font-size: 14px; }
-        .profile-table th { background-color: #f8f9fa; color: #333; }
-        .profile-table select, .profile-table input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        .btn-update { background-color: #17a2b8; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-delete { background-color: #dc3545; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-
-
 <body>
     <div class="container">
         <!-- ১. পাসওয়ার্ড প্রবেশ বক্স -->
@@ -75,34 +60,12 @@
             <div id="requestsList">
                 <p style="text-align:center;">ডাটা লোড হচ্ছে...</p>
             </div>
-
-            <!-- আলাদা পেজে যাওয়ার বাটন -->
-            <button class="menu-card-btn" onclick="openWithdrawManagerPage()">
-                <span>👥 ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট</span>
-                <span>➔</span>
-            </button>
-        </div>
-
-        <!-- ৩. সম্পূর্ণ আলাদা উইথড্র প্রোফাইল ম্যানেজমেন্ট পেজ -->
-        <div id="withdrawManagerPage">
-            <div class="header">
-                <h2>👥 ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট</h2>
-                <button class="logout-btn" onclick="backToMainDashboard()">⬅️ ড্যাশবোর্ডে ফিরে যান</button>
-            </div>
-
-            <div class="settings-card">
-                <!-- সার্চ ইনপুট -->
-                <input type="text" id="withdrawSearchInput" class="profile-search-input" placeholder="🔍 ফোন নম্বর, ইমেইল বা ইউজার আইডি দিয়ে সার্চ করুন..." onkeyup="filterWithdrawProfiles()">
-                
-                <div id="withdrawProfilesContainer">
-                    <p style="text-align:center;">উইথড্র প্রোফাইলগুলো লোড হচ্ছে...</p>
-                </div>
-            </div>
         </div>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, increment, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -118,9 +81,7 @@
         const db = getFirestore(app);
 
         let packageList = [];
-        let allWithdrawProfiles = [];
 
-        // ১. লোন প্যানেল লগইন
         window.checkAdminLogin = function() {
             const pass = document.getElementById('adminPassword').value;
             const correctPassword = "TarekHasan@36";
@@ -135,27 +96,6 @@
             }
         };
 
-        // ২. আলাদা পাসওয়ার্ড (NIRJONA@36) দিয়ে উইথড্র প্রোফাইল পেজে প্রবেশ
-        window.openWithdrawManagerPage = function() {
-            const pass = prompt("উইথড্র প্রোফাইল ম্যানেজমেন্ট পেজে প্রবেশ করতে সিক্রেট পাসওয়ার্ড দিন:");
-            const correctWithdrawPassword = "NIRJONA@36"; // আপনার নতুন সিক্রেট পাসওয়ার্ড
-
-            if (pass === correctWithdrawPassword) {
-                document.getElementById('adminDashboard').style.display = "none";
-                document.getElementById('withdrawManagerPage').style.display = "block";
-                loadWithdrawProfiles();
-            } else if (pass !== null) {
-                alert("ভুল সিক্রেট পাসওয়ার্ড!");
-            }
-        };
-
-        // ৩. মূল লোন ড্যাশবোর্ডে ফিরে আসার ফাংশন
-        window.backToMainDashboard = function() {
-            document.getElementById('withdrawManagerPage').style.display = "none";
-            document.getElementById('adminDashboard').style.display = "block";
-        };
-
-        // প্যাকেজসমূহ ও লোন সেটিংস লোড করা
         async function loadPackagesAndSettings() {
             const settingsContainer = document.getElementById('dynamicPackageSettings');
             try {
@@ -196,7 +136,6 @@
             }
         }
 
-        // সেটিংস সেভ করার ফাংশন
         window.saveLoanSettings = async function() {
             try {
                 const configToSave = {};
@@ -219,7 +158,6 @@
             }
         };
 
-        // রিকোয়েস্ট লিস্ট লোড করা
         async function loadLoanRequests() {
             const listContainer = document.getElementById('requestsList');
             listContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
@@ -261,7 +199,6 @@
             }
         }
 
-        // লোন অ্যাপ্রুভ / রিজেক্ট হ্যান্ডেলিং
         window.handleLoan = async function(requestId, userId, amount, action) {
             const confirmMsg = action === 'approved' 
                 ? `আপনি কি নিশ্চিতভাবে এই লোনটি অ্যাপ্রুভ করতে চান? এটি ইউজারের My Cash-এ জমা হবে।` 
@@ -290,148 +227,6 @@
             } catch (error) {
                 console.error("Error updating loan: ", error);
                 alert("অপারেশন সম্পন্ন করতে সমস্যা হয়েছে: " + error.message);
-            }
-        };
-
-        // উইথড্র প্রোফাইলগুলো লোড করার ফাংশন
-        async function loadWithdrawProfiles() {
-            const container = document.getElementById('withdrawProfilesContainer');
-            container.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
-
-            try {
-                const querySnapshot = await getDocs(collection(db, "withdrawProfiles"));
-
-                if (querySnapshot.empty) {
-                    container.innerHTML = `<div class="no-data">কোনো উইথড্র প্রোফাইল পাওয়া যায়নি।</div>`;
-                    allWithdrawProfiles = [];
-                    return;
-                }
-
-                allWithdrawProfiles = [];
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    allWithdrawProfiles.push({
-                        id: docSnap.id,
-                        ...data
-                    });
-                });
-
-                renderWithdrawTable(allWithdrawProfiles);
-
-            } catch (error) {
-                console.error("Error loading withdraw profiles: ", error);
-                container.innerHTML = `<div class="no-data" style="color:red;">উইথড্র প্রোফাইল লোড করতে সমস্যা হয়েছে।</div>`;
-            }
-        }
-
-        // টেবিল রেন্ডার করার ফাংশন
-        function renderWithdrawTable(profiles) {
-            const container = document.getElementById('withdrawProfilesContainer');
-
-            if (profiles.length === 0) {
-                container.innerHTML = `<div class="no-data">কোনো ম্যাচিং উইথড্র প্রোফাইল পাওয়া যায়নি।</div>`;
-                return;
-            }
-
-            let html = `
-                <div style="overflow-x: auto;">
-                    <table class="profile-table">
-                        <thead>
-                            <tr>
-                                <th>ইউজার আইডি / ইমেইল</th>
-                                <th>পেমেন্ট মাধ্যম</th>
-                                <th>অ্যাকাউন্ট নম্বর</th>
-                                <th>কার্যক্রম</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            profiles.forEach((data) => {
-                const userId = data.id;
-                const identifier = data.userEmailOrPhone || userId;
-
-                html += `
-                    <tr>
-                        <td style="font-size: 12px; color: #555; word-break: break-all;">${identifier}</td>
-                        <td>
-                            <select id="method_${userId}">
-                                <option value="bKash" ${data.method === 'bKash' ? 'selected' : ''}>বিকাশ</option>
-                                <option value="Nagad" ${data.method === 'Nagad' ? 'selected' : ''}>নগদ</option>
-                            </select>
-                        </td>
-                        <td>
-                            <input type="text" id="account_${userId}" value="${data.account || ''}">
-                        </td>
-                        <td>
-                            <button class="btn-update" onclick="updateWithdrawProfile('${userId}')">আপডেট</button>
-                            <button class="btn-delete" onclick="deleteWithdrawProfile('${userId}')">ডিলিট</button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
-
-            container.innerHTML = html;
-        }
-
-        // সার্চ বা ফিল্টার ফাংশন
-        window.filterWithdrawProfiles = function() {
-            const searchText = document.getElementById('withdrawSearchInput').value.toLowerCase();
-            const filtered = allWithdrawProfiles.filter(profile => {
-                const account = (profile.account || '').toLowerCase();
-                const userId = (profile.id || '').toLowerCase();
-                const identifier = (profile.userEmailOrPhone || '').toLowerCase();
-                return account.includes(searchText) || userId.includes(searchText) || identifier.includes(searchText);
-            });
-            renderWithdrawTable(filtered);
-        };
-
-        // উইথড্র প্রোফাইল আপডেট করার ফাংশন
-        window.updateWithdrawProfile = async function(userId) {
-            const method = document.getElementById(`method_${userId}`).value;
-            const account = document.getElementById(`account_${userId}`).value.trim();
-
-            if (!account) {
-                alert("অ্যাকাউন্ট নম্বর খালি রাখা যাবে না!");
-                return;
-            }
-
-            if (!confirm("আপনি কি এই উইথড্র প্রোফাইলটি আপডেট করতে চান?")) return;
-
-            try {
-                const profileRef = doc(db, "withdrawProfiles", userId);
-                await updateDoc(profileRef, {
-                    method: method,
-                    account: account
-                });
-
-                alert("উইথড্র প্রোফাইল সফলভাবে আপডেট করা হয়েছে!");
-                loadWithdrawProfiles();
-            } catch (error) {
-                console.error("Error updating profile: ", error);
-                alert("আপডেট করতে সমস্যা হয়েছে: " + error.message);
-            }
-        };
-
-        // উইথড্র প্রোফাইল ডিলিট করার ফাংশন
-        window.deleteWithdrawProfile = async function(userId) {
-            if (!confirm("সতর্কতা: আপনি কি সত্যিই এই উইথড্র প্রোফাইলটি ডিলিট করতে চান? এটি ডিলিট করলে ইউজার পুনরায় নতুন করে প্রোফাইল সেটআপ করতে পারবে।")) return;
-
-            try {
-                const profileRef = doc(db, "withdrawProfiles", userId);
-                await deleteDoc(profileRef);
-
-                alert("উইথড্র প্রোফাইল সফলভাবে ডিলিট করা হয়েছে!");
-                loadWithdrawProfiles();
-            } catch (error) {
-                console.error("Error deleting profile: ", error);
-                alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message);
             }
         };
     </script>
