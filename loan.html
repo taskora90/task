@@ -61,7 +61,7 @@
         </div>
 
         <div class="info-note">
-            💡 <strong>নোট:</strong> লোন অনুমোদিত হলে টাকা সরাসরি আপনার <b>TaskCash (My Cash)</b> ব্যালেন্সে জমা হবে এবং অটো/ম্যানুয়ালি সেখান থেকেই পরিশোধ হবে।
+            💡 <strong>নোট:</strong> লোন অনুমোদিত হলে টাকা সরাসরি আপনার <b>রিচার্জ ক্যাশ</b> ব্যালেন্সে জমা হবে এবং অটো/ম্যানুয়ালি <b>মাই ক্যাশ</b> থেকে পর্যাপ্ত ব্যালেন্স সাপেক্ষে পরিশোধ হবে।
         </div>
 
         <!-- লোনের ইতিহাস ও পরিশোধের তালিকা -->
@@ -82,7 +82,7 @@
         <div class="modal-content">
             <h3>লোন পরিশোধ করুন</h3>
             <p id="modalLoanDetails">বকেয়া পরিমাণ: ৳ 0</p>
-            <input type="number" id="payInputAmount" placeholder="পরিমাণ লিখুন (৳)">
+            <input type="number" id="payInputAmount" placeholder="যত টাকা পরিশোধ করতে চান (৳)">
             <div class="modal-btn-group">
                 <button class="btn-pay" onclick="processPayment()">পরিশোধ করুন</button>
                 <button class="btn-close" onclick="closePayModal()">বন্ধ করুন</button>
@@ -142,7 +142,6 @@
                         document.getElementById('loanAmountText').innerText = `৳ ${userLoanAmount.toLocaleString()}`;
                         document.getElementById('loanDescText').innerText = `আপনার বর্তমান প্যাকেজ: (${userPackageName})`;
 
-                        // লোন ইতিহাস লোড এবং অটো-ডিডাকশন চেক
                         await loadLoanHistoryAndCheckAutoPay(user.uid, userData);
                     }
                 } catch (error) {
@@ -156,7 +155,11 @@
             }
         });
 
-        // লোন হিস্ট্রি লোড এবং ১৫ দিনের অটো কেটে নেওয়ার লজিক
+        // মাই ক্যাশ ব্যালেন্স বের করার ফাংশন
+        function getTaskCashBalance(userData) {
+            return Number(userData.taskCash !== undefined ? userData.taskCash : (userData.taskcash !== undefined ? userData.taskcash : 0));
+        }
+
         async function loadLoanHistoryAndCheckAutoPay(userId, userData) {
             const q = query(collection(db, "loan_requests"), where("userId", "==", userId));
             const querySnapshot = await getDocs(q);
@@ -170,21 +173,19 @@
                 for (const docSnap of querySnapshot.docs) {
                     const loan = docSnap.data();
                     const loanId = docSnap.id;
-                    const dueAmount = loan.dueAmount !== undefined ? loan.dueAmount : loan.amount;
+                    const dueAmount = loan.dueAmount !== undefined ? Number(loan.dueAmount) : Number(loan.amount);
 
-                    // লোন কি পেন্ডিং বা অ্যাক্টিভ?
                     if (loan.status === "pending" || loan.status === "approved" || loan.status === "active") {
                         if (dueAmount > 0) {
                             hasUnpaidLoan = true;
                         }
                     }
 
-                    // ১৫ দিনের অটো কেটে নেয়ার লজিক (অ্যাক্টিভ লোনের জন্য)
+                    const taskCashBalance = getTaskCashBalance(userData);
                     if ((loan.status === "approved" || loan.status === "active") && dueAmount > 0) {
-                        await checkAndApplyAutoDeduction(loanId, loan, userId, userData.taskcash || 0);
+                        await checkAndApplyAutoDeduction(loanId, loan, userId, taskCashBalance, userData);
                     }
 
-                    // তালিকা প্রদর্শন UI
                     let statusBadge = "";
                     let clickAction = "";
 
@@ -211,7 +212,6 @@
 
             document.getElementById('loanList').innerHTML = loanListHTML;
 
-            // নতুন রিকোয়েস্ট বোতামের আপডেট
             if (hasUnpaidLoan) {
                 document.getElementById('actionArea').innerHTML = `
                     <button class="loan-btn" disabled>আপনার একটি লোন সচল/পেন্ডিং রয়েছে</button>
@@ -227,8 +227,8 @@
             }
         }
 
-        // ১৫ দিনে প্রতিদিন ১ ভাগ কেটে নেয়ার লজিক
-        async function checkAndApplyAutoDeduction(loanId, loanData, userId, userBalance) {
+        // ১৫ দিনের অটো-ডিডাকশন লজিক (ব্যালেন্স চেক করে পর্যাপ্ত থাকলে কাটবে, কম থাকলে কাটবে না)
+        async function checkAndApplyAutoDeduction(loanId, loanData, userId, taskCashBalance, userData) {
             const now = new Date();
             const lastDeduction = loanData.lastAutoDeductionTime ? loanData.lastAutoDeductionTime.toDate() : loanData.requestTime.toDate();
             
@@ -239,12 +239,15 @@
                 const dailyCut = Math.ceil(loanData.amount / 15);
                 const totalAutoDeduct = dailyCut * daysPassed;
 
-                const currentDue = loanData.dueAmount !== undefined ? loanData.dueAmount : loanData.amount;
+                const currentDue = loanData.dueAmount !== undefined ? Number(loanData.dueAmount) : Number(loanData.amount);
                 const actualDeduct = Math.min(totalAutoDeduct, currentDue);
 
-                if (actualDeduct > 0 && userBalance >= actualDeduct) {
+                // ব্যালেন্স চেক: সমপরিমাণ বা বেশি থাকলেই কাটবে, কম থাকলে কাটবে না
+                if (actualDeduct > 0 && taskCashBalance >= actualDeduct) {
+                    const taskCashField = userData.taskCash !== undefined ? "taskCash" : "taskcash";
                     const userRef = doc(db, "users", userId);
-                    await updateDoc(userRef, { taskcash: increment(-actualDeduct) });
+                    
+                    await updateDoc(userRef, { [taskCashField]: increment(-actualDeduct) });
 
                     const newDue = currentDue - actualDeduct;
                     const loanRef = doc(db, "loan_requests", loanId);
@@ -262,7 +265,6 @@
             }
         }
 
-        // লোন রিকোয়েস্ট পাঠানোর ফাংশন
         window.sendLoanRequest = async function(userId, userName, userPhone, userPackage) {
             if (!confirm(`আপনি কি ৳ ${userLoanAmount} টাকার জন্য লোন রিকোয়েস্ট পাঠাতে চান?`)) return;
 
@@ -286,48 +288,53 @@
             }
         };
 
-        // পেমেন্ট মোডাল ওপেন
         window.openPayModal = function(loanId, dueAmount) {
-            selectedLoanForPay = { id: loanId, due: dueAmount };
+            selectedLoanForPay = { id: loanId, due: Number(dueAmount) };
             document.getElementById('modalLoanDetails').innerText = `বর্তমান বকেয়া পরিমাণ: ৳ ${dueAmount}`;
-            document.getElementById('payInputAmount').value = dueAmount;
+            document.getElementById('payInputAmount').value = "";
             document.getElementById('payModal').style.display = 'flex';
         };
 
-        // পেমেন্ট মোডাল ক্লোজ
         window.closePayModal = function() {
             document.getElementById('payModal').style.display = 'none';
             selectedLoanForPay = null;
         };
 
-        // ম্যানুয়ালি টাকা শোধ করার ফাংশন
+        // ম্যানুয়াল পেমেন্ট (ব্যালেন্স চেক লজিক সহ)
         window.processPayment = async function() {
             const payAmount = parseFloat(document.getElementById('payInputAmount').value);
 
             if (!payAmount || payAmount <= 0) {
-                alert("সঠিক টাকার পরিমাণ দিন!");
+                alert("সঠিক টাকার পরিমাণ লিখুন!");
                 return;
             }
 
             if (payAmount > selectedLoanForPay.due) {
-                alert(`আপনার বকেয়া ৳ ${selectedLoanForPay.due} টাকার চেয়ে বেশি পেমেন্ট করতে পারবেন না।`);
+                alert(`আপনার বকেয়া ৳ ${selectedLoanForPay.due} টাকার চেয়ে বেশি পরিশোধ করতে পারবেন না।`);
                 return;
             }
 
             try {
                 const userRef = doc(db, "users", currentUser.uid);
                 const userSnap = await getDoc(userRef);
-                const currentTaskCash = userSnap.data().taskcash || 0;
+                const userData = userSnap.data();
 
-                if (currentTaskCash < payAmount) {
-                    alert("আপনার TaskCash (My Cash) এ পর্যাপ্ত ব্যালেন্স নেই!");
+                const taskCashBalance = getTaskCashBalance(userData);
+
+                // ব্যালেন্স চেক: মাই ক্যাশে পরিশোধ করতে চাওয়া টাকার চেয়ে কম থাকলে পেমেন্ট হবে না
+                if (taskCashBalance < payAmount) {
+                    alert(`আপনার মাই ক্যাশ (Task Cash) এ পর্যাপ্ত ব্যালেন্স নেই! আপনার বর্তমান ব্যালেন্স: ৳ ${taskCashBalance}`);
                     return;
                 }
 
+                const taskCashField = userData.taskCash !== undefined ? "taskCash" : "taskcash";
+
+                // ১. মাই ক্যাশ থেকে টাকা কাটা
                 await updateDoc(userRef, {
-                    taskcash: increment(-payAmount)
+                    [taskCashField]: increment(-payAmount)
                 });
 
+                // ২. লোনের বকেয়া কমানো
                 const newDue = selectedLoanForPay.due - payAmount;
                 const loanRef = doc(db, "loan_requests", selectedLoanForPay.id);
 
