@@ -52,7 +52,6 @@
         .btn-reject:hover { background: #d08770; }
         .btn-delete-notice { background: #bf616a; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 6px; }
 
-        /* ইউজার ডিটেলস, নোটিশ ও উইথড্র প্রোফাইল স্টাইল */
         .search-box { width: 100%; padding: 10px 14px; background: #2e3440; border: 1px solid #4c566a; border-radius: 6px; color: #fff; font-size: 15px; margin-bottom: 15px; box-sizing: border-box; outline: none; }
         .notice-input { width: 100%; padding: 10px 12px; margin-bottom: 12px; background: #2e3440; border: 1px solid #4c566a; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; }
         .notice-textarea { width: 100%; padding: 10px 12px; margin-bottom: 12px; background: #2e3440; border: 1px solid #4c566a; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; resize: vertical; height: 100px; }
@@ -63,8 +62,7 @@
         .user-details-table th, .user-details-table td { padding: 10px 12px; border: 1px solid #4c566a; text-align: left; font-size: 14px; }
         .user-details-table th { background: #4c566a; color: #eceff4; }
         .edit-input { width: 100%; padding: 6px 10px; background: #3b4252; border: 1px solid #81a1c1; color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
-        
-        /* উইথড্র প্রোফাইল টেবিল ও স্টাইল */
+
         .profile-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #2e3440; border-radius: 6px; overflow: hidden; }
         .profile-table th, .profile-table td { padding: 10px 12px; border: 1px solid #4c566a; text-align: left; font-size: 14px; }
         .profile-table th { background: #4c566a; color: #eceff4; }
@@ -105,7 +103,7 @@
         <div id="pkgSecError" class="error-msg">ভুল পাসওয়ার্ড!</div>
     </div>
 
-    <!-- ২.২. ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট পাসওয়ার্ড প্রম্পট বক্স (NIRJONA@36) -->
+    <!-- ২.২. ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট পাসওয়ার্ড প্রম্পট বক্স -->
     <div id="withdrawSecPassSection" class="login-box" style="display: none;">
         <h3><i class="fa-solid fa-shield-halved"></i> উইথড্র প্রোফাইল সিকিউরিটি</h3>
         <p style="font-size: 13px; color: #99aab5; margin-bottom: 15px;">উইথড্র প্রোফাইল দেখতে পাসওয়ার্ড দিন</p>
@@ -143,19 +141,15 @@
                 <h3><i class="fa-solid fa-users-gear"></i> ইউজার ডিটেলস (সিক্রেট)</h3>
                 <i class="fa-solid fa-chevron-right"></i>
             </div>
-            <!-- নতুন যুক্ত হওয়া ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট বাটন -->
             <div class="banner-card" onclick="openSection('withdrawProfiles')">
                 <h3><i class="fa-solid fa-id-card"></i> ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট (সিক্রেট)</h3>
                 <i class="fa-solid fa-chevron-right"></i>
             </div>
-
-<div class="banner-card" onclick="openSection('supportChat')">
-    <h3><i class="fa-solid fa-comments"></i> ইউজার সাপোর্ট চ্যাট (Live)</h3>
-    <i class="fa-solid fa-chevron-right"></i>
-</div>
-
-      </div>
-
+            <div class="banner-card" onclick="openSection('supportChat')">
+                <h3><i class="fa-solid fa-comments"></i> ইউজার সাপোর্ট চ্যাট (Live)</h3>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+        </div>
         <!-- রিচার্জ সেকশন -->
         <div id="rechargeSection" style="display: none;">
             <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
@@ -179,7 +173,6 @@
                 <textarea id="noticeDetailsInput" class="notice-textarea" placeholder="নোটিশের বিস্তারিত বিবরণ এখানে লিখুন..."></textarea>
                 <button class="btn-notice-submit" onclick="postNewNotice()"><i class="fa-solid fa-paper-plane"></i> নোটিশ পাবলিশ করুন</button>
             </div>
-
             <h3>সকল নোটিশ তালিকা</h3>
             <div id="adminNoticeList">নোটিশ লোড হচ্ছে...</div>
         </div>
@@ -198,7 +191,6 @@
                 <input type="number" id="pkgBonusInput" class="notice-input" placeholder="নির্দিষ্ট ক্যাশ বোনাস (যেমন: 600)">
                 <button class="btn-notice-submit" onclick="addNewPackage()"><i class="fa-solid fa-plus"></i> প্যাকেজ সেভ করুন</button>
             </div>
-
             <h3>সকল প্যাকেজ তালিকা</h3>
             <div id="adminPackageList">প্যাকেজ লোড হচ্ছে...</div>
         </div>
@@ -211,17 +203,15 @@
             <div id="userListContainer">ইউজার ডেটা লোড হচ্ছে...</div>
         </div>
 
-        <!-- নতুন যুক্ত হওয়া ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট সেকশন -->
+        <!-- ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট সেকশন -->
         <div id="withdrawProfilesSection" style="display: none;">
             <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
             <h3>ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট</h3>
             <input type="text" id="withdrawSearchInput" class="search-box" placeholder="🔍 ফোন নম্বর, ইমেইল বা ইউজার আইডি দিয়ে সার্চ করুন..." onkeyup="filterWithdrawProfiles()">
             <div id="withdrawProfilesContainer">উইথড্র প্রোফাইলগুলো লোড হচ্ছে...</div>
         </div>
-    </div>
 
-   
-     <!-- ইউজার সাপোর্ট চ্যাট সেকশন -->
+        <!-- ইউজার সাপোর্ট চ্যাট সেকশন (আপডেটসহ যেখানে মোবাইল/ইমেইল শো করবে) -->
         <div id="supportChatSection" style="display: none;">
             <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
             <h3>ইউজার সাপোর্ট লাইভ চ্যাট</h3>
@@ -241,12 +231,10 @@
                 </div>
             </div>
         </div>
-
-
-
+    </div>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
       import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
       const firebaseConfig = {
@@ -266,11 +254,11 @@
       const ADMIN_PASSWORD = "TarekHasan@36";        
       const USER_SECRET_PASSWORD = "NIRJONA@36"; 
       const PKG_SECRET_PASSWORD = "Kawtha@36";
-      const WITHDRAW_SECRET_PASSWORD = "NIRJONA@36"; // উইথড্র প্রোফাইল ম্যানেজমেন্ট সিক্রেট পাসওয়ার্ড
+      const WITHDRAW_SECRET_PASSWORD = "NIRJONA@36";
 
       // --- ২ মিনিট নিষ্ক্রিয় থাকলে অটো লগআউট সিস্টেম ---
       let inactivityTimer;
-      const INACTIVITY_LIMIT = 2 * 60 * 1000; // ২ মিনিট
+      const INACTIVITY_LIMIT = 2 * 60 * 1000;
 
       function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
@@ -346,7 +334,6 @@
         if (e.key === 'Enter') verifyPkgSecPassword();
       });
 
-      // উইথড্র প্রোফাইল পাসওয়ার্ড ভেরিফিকেশন
       window.verifyWithdrawSecPassword = function() {
         const inputPass = document.getElementById('withdrawSecPassInput').value;
         const errorEl = document.getElementById('withdrawSecError');
@@ -399,6 +386,7 @@
         document.getElementById('packagesSection').style.display = 'none';
         document.getElementById('usersSection').style.display = 'none';
         document.getElementById('withdrawProfilesSection').style.display = 'none';
+        document.getElementById('supportChatSection').style.display = 'none';
       }
 
       window.backToDashboardMenu = function() {
@@ -443,7 +431,7 @@
             document.getElementById('userSecPassSection').style.display = 'block';
             document.getElementById('userSecPassInput').value = '';
           }
-                } else if(type === 'withdrawProfiles') {
+        } else if(type === 'withdrawProfiles') {
           if (sessionStorage.getItem('isWithdrawSecUnlocked') === 'true') {
             document.getElementById('withdrawProfilesSection').style.display = 'block';
             loadWithdrawProfiles();
@@ -452,18 +440,11 @@
             document.getElementById('withdrawSecPassSection').style.display = 'block';
             document.getElementById('withdrawSecPassInput').value = '';
           }
-        } 
-        
-        // --- সাপোর্ট চ্যাট সেকশন খোলার লজিক এখানে বসবে ---
-        else if(type === 'supportChat') {
+        } else if(type === 'supportChat') {
           document.getElementById('supportChatSection').style.display = 'block';
           loadAdminSupportChats();
         }
-
-      } // <-- এই ব্র্যাকেটটি দিয়ে openSection ফাংশন শেষ হবে
-
-
-
+      }
       // --- প্যাকেজ ম্যানেজমেন্ট ---
       window.addNewPackage = async function() {
         const pkgId = document.getElementById('pkgIdInput').value.trim();
@@ -481,15 +462,9 @@
 
         try {
           await setDoc(doc(db, "packages", pkgId), {
-            packageId: pkgId,
-            name: name,
-            price: price,
-            level: level,
-            tasksLimit: tasksLimit || 10,
-            luckySpin: luckySpin || 1,
-            fixedCashBonus: fixedCashBonus || 100
+            packageId: pkgId, name: name, price: price, level: level,
+            tasksLimit: tasksLimit || 10, luckySpin: luckySpin || 1, fixedCashBonus: fixedCashBonus || 100
           });
-
           alert("নতুন প্যাকেজ সফলভাবে যুক্ত করা হয়েছে!");
           document.getElementById('pkgIdInput').value = '';
           document.getElementById('pkgNameInput').value = '';
@@ -510,12 +485,7 @@
         try {
           const q = query(collection(db, "packages"), orderBy("level", "asc"));
           const querySnapshot = await getDocs(q);
-
-          if (querySnapshot.empty) {
-            listEl.innerHTML = "কোনো প্যাকেজ পাওয়া যায়নি।";
-            return;
-          }
-
+          if (querySnapshot.empty) { listEl.innerHTML = "কোনো প্যাকেজ পাওয়া যায়নি।"; return; }
           listEl.innerHTML = "";
           querySnapshot.forEach((d) => {
             const pkg = d.data();
@@ -528,9 +498,7 @@
               </div>
             `;
           });
-        } catch (error) {
-          listEl.innerHTML = "প্যাকেজ লোড করতে সমস্যা হয়েছে।";
-        }
+        } catch (error) { listEl.innerHTML = "প্যাকেজ লোড করতে সমস্যা হয়েছে।"; }
       }
 
       window.deletePackage = async function(docId) {
@@ -539,9 +507,7 @@
             await deleteDoc(doc(db, "packages", docId));
             alert("প্যাকেজ সফলভাবে ডিলিট করা হয়েছে!");
             loadAdminPackages();
-          } catch (error) {
-            alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message);
-          }
+          } catch (error) { alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message); }
         }
       }
 
@@ -549,43 +515,25 @@
       window.postNewNotice = async function() {
         const title = document.getElementById('noticeTitleInput').value.trim();
         const details = document.getElementById('noticeDetailsInput').value.trim();
-
-        if(!title || !details) {
-          alert("অনুগ্রহ করে শিরোনাম এবং বিস্তারিত উভয়ই লিখুন!");
-          return;
-        }
+        if(!title || !details) { alert("অনুগ্রহ করে শিরোনাম এবং বিস্তারিত উভয়ই লিখুন!"); return; }
 
         try {
           const currentDate = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
-          await addDoc(collection(db, "notices"), {
-            title: title,
-            details: details,
-            date: currentDate,
-            timestamp: serverTimestamp()
-          });
-
+          await addDoc(collection(db, "notices"), { title: title, details: details, date: currentDate, timestamp: serverTimestamp() });
           alert("নোটিশ সফলভাবে পাবলিশ করা হয়েছে!");
           document.getElementById('noticeTitleInput').value = '';
           document.getElementById('noticeDetailsInput').value = '';
           loadAdminNotices();
-        } catch (error) {
-          alert("নোটিশ পোস্ট করতে সমস্যা হয়েছে: " + error.message);
-        }
+        } catch (error) { alert("নোটিশ পোস্ট করতে সমস্যা হয়েছে: " + error.message); }
       }
 
       async function loadAdminNotices() {
         const listEl = document.getElementById('adminNoticeList');
         listEl.innerHTML = "লোড হচ্ছে...";
-
         try {
           const q = query(collection(db, "notices"), orderBy("timestamp", "desc"));
           const querySnapshot = await getDocs(q);
-
-          if (querySnapshot.empty) {
-            listEl.innerHTML = "কোনো নোটিশ পাওয়া যায়নি।";
-            return;
-          }
-
+          if (querySnapshot.empty) { listEl.innerHTML = "কোনো নোটিশ পাওয়া যায়নি।"; return; }
           listEl.innerHTML = "";
           querySnapshot.forEach((d) => {
             const notice = d.data();
@@ -598,9 +546,7 @@
               </div>
             `;
           });
-        } catch (error) {
-          listEl.innerHTML = "নোটিশ লোড করতে সমস্যা হয়েছে।";
-        }
+        } catch (error) { listEl.innerHTML = "নোটিশ লোড করতে সমস্যা হয়েছে।"; }
       }
 
       window.deleteNotice = async function(noticeId) {
@@ -609,9 +555,7 @@
             await deleteDoc(doc(db, "notices", noticeId));
             alert("নোটিশ সফলভাবে ডিলিট করা হয়েছে!");
             loadAdminNotices();
-          } catch (error) {
-            alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message);
-          }
+          } catch (error) { alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message); }
         }
       }
 
@@ -620,17 +564,11 @@
         const listEl = document.getElementById('rechargeList');
         if (!listEl) return;
         listEl.innerHTML = "লোড হচ্ছে...";
-
         try {
           const querySnap = await getDocs(collection(db, "recharge_requests"));
-          if (querySnap.empty) {
-            listEl.innerHTML = "কোনো রিচার্জ রিকোয়েস্ট নেই।";
-            return;
-          }
-
+          if (querySnap.empty) { listEl.innerHTML = "কোনো রিচার্জ রিকোয়েস্ট নেই।"; return; }
           listEl.innerHTML = "";
           let count = 0;
-
           querySnap.forEach((d) => {
             const data = d.data();
             if (!data.status || data.status === 'pending') {
@@ -649,38 +587,25 @@
               `;
             }
           });
-
-          if(count === 0) {
-            listEl.innerHTML = "কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।";
-          }
-        } catch (error) {
-          listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।";
-        }
+          if(count === 0) { listEl.innerHTML = "কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।"; }
+        } catch (error) { listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।"; }
       }
 
       window.handleRecharge = async function(rechargeId, userId, amount) {
         try {
-          const userRef = doc(db, "users", userId);
-          const rechargeRef = doc(db, "recharge_requests", rechargeId);
-
-          await updateDoc(userRef, { myCash: increment(amount) });
-          await updateDoc(rechargeRef, { status: 'approved' });
+          await updateDoc(doc(db, "users", userId), { myCash: increment(amount) });
+          await updateDoc(doc(db, "recharge_requests", rechargeId), { status: 'approved' });
           alert("রিচার্জ সফলভাবে অনুমোদিত হয়েছে!");
           loadRechargeRequests();
-        } catch (error) {
-          alert("সমস্যা হয়েছে!");
-        }
+        } catch (error) { alert("সমস্যা হয়েছে!"); }
       }
 
       window.handleRejection = async function(rechargeId) {
         try {
-          const rechargeRef = doc(db, "recharge_requests", rechargeId);
-          await updateDoc(rechargeRef, { status: 'rejected' });
+          await updateDoc(doc(db, "recharge_requests", rechargeId), { status: 'rejected' });
           alert("রিচার্জ রিকোয়েস্ট বাতিল করা হয়েছে।");
           loadRechargeRequests();
-        } catch (error) {
-          alert("সমস্যা হয়েছে!");
-        }
+        } catch (error) { alert("সমস্যা হয়েছে!"); }
       }
 
       // --- উত্তোলন রিকোয়েস্ট ---
@@ -688,14 +613,9 @@
         const listEl = document.getElementById('withdrawList');
         if (!listEl) return;
         listEl.innerHTML = "লোড হচ্ছে...";
-
         try {
           const querySnap = await getDocs(collection(db, "withdrawals"));
-          if (querySnap.empty) {
-            listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।";
-            return;
-          }
-
+          if (querySnap.empty) { listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।"; return; }
           listEl.innerHTML = "";
           let count = 0;
           querySnap.forEach((d) => {
@@ -714,13 +634,8 @@
               `;
             }
           });
-
-          if(count === 0) {
-            listEl.innerHTML = "কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।";
-          }
-        } catch (error) {
-          listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।";
-        }
+          if(count === 0) { listEl.innerHTML = "কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।"; }
+        } catch (error) { listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।"; }
       }
 
       window.handleWithdraw = async function(withdrawId, userId, amount, action) {
@@ -734,18 +649,14 @@
             alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে।");
           }
           loadWithdrawRequests();
-        } catch (error) {
-          alert("সমস্যা হয়েছে!");
-        }
+        } catch (error) { alert("সমস্যা হয়েছে!"); }
       }
 
-      // --- ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট লজিক ---
+      // --- ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট ---
       let allWithdrawProfiles = [];
-
       async function loadWithdrawProfiles() {
         const container = document.getElementById('withdrawProfilesContainer');
         container.innerHTML = "উইথড্র প্রোফাইলগুলো লোড হচ্ছে...";
-
         try {
           const querySnapshot = await getDocs(collection(db, "withdrawProfiles"));
           if (querySnapshot.empty) {
@@ -753,55 +664,24 @@
             allWithdrawProfiles = [];
             return;
           }
-
           allWithdrawProfiles = [];
-          querySnapshot.forEach((docSnap) => {
-            allWithdrawProfiles.push({ id: docSnap.id, ...docSnap.data() });
-          });
-
+          querySnapshot.forEach((docSnap) => { allWithdrawProfiles.push({ id: docSnap.id, ...docSnap.data() }); });
           renderWithdrawTable(allWithdrawProfiles);
-        } catch (error) {
-          container.innerHTML = `<div class="request-card" style="color: #bf616a; text-align: center;">উইথড্র প্রোফাইল লোড করতে সমস্যা হয়েছে।</div>`;
-        }
+        } catch (error) { container.innerHTML = `<div class="request-card" style="color: #bf616a; text-align: center;">উইথড্র প্রোফাইল লোড করতে সমস্যা হয়েছে।</div>`; }
       }
 
       function renderWithdrawTable(profiles) {
         const container = document.getElementById('withdrawProfilesContainer');
-        if (profiles.length === 0) {
-          container.innerHTML = `<div class="request-card" style="text-align: center;">কোনো ম্যাচিং উইথড্র প্রোফাইল পাওয়া যায়নি।</div>`;
-          return;
-        }
-
-        let html = `
-          <div style="overflow-x: auto;">
-            <table class="profile-table">
-              <thead>
-                <tr>
-                  <th>ইউজার আইডি / ইমেইল</th>
-                  <th>পেমেন্ট মাধ্যম</th>
-                  <th>অ্যাকাউন্ট নম্বর</th>
-                  <th>কার্যক্রম</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
-
+        if (profiles.length === 0) { container.innerHTML = `<div class="request-card" style="text-align: center;">কোনো ম্যাচিং উইথড্র প্রোফাইল পাওয়া যায়নি।</div>`; return; }
+        let html = `<div style="overflow-x: auto;"><table class="profile-table"><thead><tr><th>ইউজার আইডি / ইমেইল</th><th>পেমেন্ট মাধ্যম</th><th>অ্যাকাউন্ট নম্বর</th><th>কার্যক্রম</th></tr></thead><tbody>`;
         profiles.forEach((data) => {
           const userId = data.id;
           const identifier = data.userEmailOrPhone || userId;
-
           html += `
             <tr>
               <td style="font-size: 13px; word-break: break-all;">${identifier}</td>
-              <td>
-                <select id="method_${userId}">
-                  <option value="bKash" ${data.method === 'bKash' ? 'selected' : ''}>বিকাশ</option>
-                  <option value="Nagad" ${data.method === 'Nagad' ? 'selected' : ''}>নগদ</option>
-                </select>
-              </td>
-              <td>
-                <input type="text" id="account_${userId}" value="${data.account || ''}">
-              </td>
+              <td><select id="method_${userId}"><option value="bKash" ${data.method === 'bKash' ? 'selected' : ''}>বিকাশ</option><option value="Nagad" ${data.method === 'Nagad' ? 'selected' : ''}>নগদ</option></select></td>
+              <td><input type="text" id="account_${userId}" value="${data.account || ''}"></td>
               <td>
                 <button class="btn-update" onclick="updateWithdrawProfile('${userId}')">আপডেট</button>
                 <button class="btn-delete-profile" onclick="deleteWithdrawProfile('${userId}')">ডিলিট</button>
@@ -809,7 +689,6 @@
             </tr>
           `;
         });
-
         html += `</tbody></table></div>`;
         container.innerHTML = html;
       }
@@ -828,78 +707,47 @@
       window.updateWithdrawProfile = async function(userId) {
         const method = document.getElementById(`method_${userId}`).value;
         const account = document.getElementById(`account_${userId}`).value.trim();
-
-        if (!account) {
-          alert("অ্যাকাউন্ট নম্বর খালি রাখা যাবে না!");
-          return;
-        }
-
+        if (!account) { alert("অ্যাকাউন্ট নম্বর খালি রাখা যাবে না!"); return; }
         if (!confirm("আপনি কি এই উইথড্র প্রোফাইলটি আপডেট করতে চান?")) return;
-
         try {
           await updateDoc(doc(db, "withdrawProfiles", userId), { method, account });
           alert("উইথড্র প্রোফাইল সফলভাবে আপডেট করা হয়েছে!");
           loadWithdrawProfiles();
-        } catch (error) {
-          alert("আপডেট করতে সমস্যা হয়েছে: " + error.message);
-        }
+        } catch (error) { alert("আপডেট করতে সমস্যা হয়েছে: " + error.message); }
       }
 
       window.deleteWithdrawProfile = async function(userId) {
-        if (!confirm("সতর্কতা: আপনি কি সত্যিই এই উইথড্র প্রোফাইলটি ডিলিট করতে চান? এটি ডিলিট করলে ইউজার পুনরায় নতুন করে প্রোফাইল সেটআপ করতে পারবে।")) return;
-
+        if (!confirm("সতর্কতা: আপনি কি সত্যিই এই উইথড্র প্রোফাইলটি ডিলিট করতে চান?")) return;
         try {
           await deleteDoc(doc(db, "withdrawProfiles", userId));
           alert("উইথড্র প্রোফাইল সফলভাবে ডিলিট করা হয়েছে!");
           loadWithdrawProfiles();
-        } catch (error) {
-          alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message);
-        }
+        } catch (error) { alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message); }
       }
-
-      // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
+      // --- ইউজার ডিটেলস ম্যানেজমেন্ট ---
       let allUsersData = [];
-
       async function loadAllUsers() {
         const container = document.getElementById('userListContainer');
         container.innerHTML = "ইউজার ডেটা লোড হচ্ছে...";
-
         try {
           const querySnap = await getDocs(collection(db, "users"));
-          if (querySnap.empty) {
-            container.innerHTML = "কোনো ইউজার পাওয়া যায়নি।";
-            return;
-          }
-
+          if (querySnap.empty) { container.innerHTML = "কোনো ইউজার পাওয়া যায়নি।"; return; }
           allUsersData = [];
-          querySnap.forEach((docSnap) => {
-            allUsersData.push({ id: docSnap.id, ...docSnap.data() });
-          });
-
+          querySnap.forEach((docSnap) => { allUsersData.push({ id: docSnap.id, ...docSnap.data() }); });
           renderUserList(allUsersData);
-        } catch (error) {
-          container.innerHTML = "ইউজার ডেটা লোড করতে সমস্যা হয়েছে।";
-        }
+        } catch (error) { container.innerHTML = "ইউজার ডেটা লোড করতে সমস্যা হয়েছে।"; }
       }
 
       function renderUserList(users) {
         const container = document.getElementById('userListContainer');
-        if (users.length === 0) {
-          container.innerHTML = "কোনো ইউজার পাওয়া যায়নি।";
-          return;
-        }
-
+        if (users.length === 0) { container.innerHTML = "কোনো ইউজার পাওয়া যায়নি।"; return; }
         container.innerHTML = "";
         users.forEach((user) => {
           const name = user.name || 'নাম নেই';
           const phone = user.phone || 'নম্বর নেই';
-
           container.innerHTML += `
             <div class="user-list-item" onclick='showUserDetailModal(${JSON.stringify(user)})'>
-              <div>
-                <strong>${name}</strong><br>
-                <span style="font-size: 13px; color: #99aab5;"><i class="fa-solid fa-phone"></i> ${phone}</span>
-              </div>
+              <div><strong>${name}</strong><br><span style="font-size: 13px; color: #99aab5;"><i class="fa-solid fa-phone"></i> ${phone}</span></div>
               <i class="fa-solid fa-chevron-right" style="color: #81a1c1;"></i>
             </div>
           `;
@@ -919,25 +767,22 @@
       window.showUserDetailModal = function(user) {
         const container = document.getElementById('userListContainer');
         const userId = user.uid || user.id;
-
         container.innerHTML = `
           <button class="btn-back" onclick="loadAllUsers(); document.getElementById('userSearchInput').style.display='block';"><i class="fa-solid fa-arrow-left"></i> ইউজার লিস্টে ফিরুন</button>
           <div style="background: #2e3440; border: 1px solid #4c566a; padding: 16px; border-radius: 8px;">
             <h3 style="margin-top: 0; color: #eceff4; border-bottom: 1px solid #4c566a; padding-bottom: 8px;">👤 ${user.name || 'N/A'} - বিস্তারিত তথ্য</h3>
-
             <table class="user-details-table">
               <tr><th>ফিল্ডের নাম</th><th>মান (Value)</th></tr>
               <tr><td>ইউজার আইডি (UID)</td><td>${userId || 'N/A'}</td></tr>
               <tr><td>পূর্ণ নাম</td><td><span id="view_name">${user.name || ''}</span><input type="text" id="edit_name" class="edit-input" value="${user.name || ''}" style="display:none;"></td></tr>
               <tr><td>ফোন নম্বর</td><td><span id="view_phone">${user.phone || ''}</span><input type="text" id="edit_phone" class="edit-input" value="${user.phone || ''}" style="display:none;"></td></tr>
-              <tr><td>নতুন পাসওয়ার্ড (রিসেট)</td><td><span id="view_password" style="color: #ebcb8b;">পরিবর্তন করতে এডিট মোডে যান</span><input type="text" id="edit_password" class="edit-input" placeholder="নতুন পাসওয়ার্ড লিখুন (খালি রাখলে অপরিবর্তিত থাকবে)" style="display:none;"></td></tr>
-              <tr><td>টাস্ক ক্যাশ (Task Cash)</td><td><span id="view_taskCash">${user.taskCash || 0}</span><input type="number" id="edit_taskCash" class="edit-input" value="${user.taskCash || 0}" style="display:none;"></td></tr>
-              <tr><td>মাই ক্যাশ (My Cash)</td><td><span id="view_myCash">${user.myCash || 0}</span><input type="number" id="edit_myCash" class="edit-input" value="${user.myCash || 0}" style="display:none;"></td></tr>
-              <tr><td>মোট আয় (Total Earnings)</td><td><span id="view_totalEarnings">${user.totalEarnings || 0}</span><input type="number" id="edit_totalEarnings" class="edit-input" value="${user.totalEarnings || 0}" style="display:none;"></td></tr>
+              <tr><td>নতুন পাসওয়ার্ড (রিসেট)</td><td><span id="view_password" style="color: #ebcb8b;">পরিবর্তন করতে এডিট মোডে যান</span><input type="text" id="edit_password" class="edit-input" placeholder="নতুন পাসওয়ার্ড লিখুন..." style="display:none;"></td></tr>
+              <tr><td>টাস্ক ক্যাশ</td><td><span id="view_taskCash">${user.taskCash || 0}</span><input type="number" id="edit_taskCash" class="edit-input" value="${user.taskCash || 0}" style="display:none;"></td></tr>
+              <tr><td>মাই ক্যাশ</td><td><span id="view_myCash">${user.myCash || 0}</span><input type="number" id="edit_myCash" class="edit-input" value="${user.myCash || 0}" style="display:none;"></td></tr>
+              <tr><td>মোট আয়</td><td><span id="view_totalEarnings">${user.totalEarnings || 0}</span><input type="number" id="edit_totalEarnings" class="edit-input" value="${user.totalEarnings || 0}" style="display:none;"></td></tr>
               <tr><td>সক্রিয় প্যাকেজ</td><td><span id="view_package">${user.package || 'none'}</span><input type="text" id="edit_package" class="edit-input" value="${user.package || 'none'}" style="display:none;"></td></tr>
               <tr><td>রেফারকারী</td><td>${user.referredBy || 'none'}</td></tr>
             </table>
-
             <button id="editBtn" class="btn-edit-mode" onclick="enableUserEdit()"><i class="fa-solid fa-pen-to-square"></i> তথ্য ও পাসওয়ার্ড এডিট করুন</button>
             <button id="saveBtn" class="btn-save" style="display:none;" onclick="saveUserData('${userId}')"><i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সংরক্ষণ করুন</button>
             <button class="btn-delete-user" onclick="deleteUserAccount('${userId}', '${user.name || 'ইউজার'}')"><i class="fa-solid fa-trash-can"></i> অ্যাকাউন্ট ডিলিট করুন</button>
@@ -947,14 +792,10 @@
       }
 
       window.enableUserEdit = function() {
-        const fields = ['name', 'phone', 'password', 'taskCash', 'myCash', 'totalEarnings', 'package'];
-        fields.forEach(field => {
+        ['name', 'phone', 'password', 'taskCash', 'myCash', 'totalEarnings', 'package'].forEach(field => {
           const viewSpan = document.getElementById(`view_${field}`);
           const editInput = document.getElementById(`edit_${field}`);
-          if(viewSpan && editInput) {
-            viewSpan.style.display = 'none';
-            editInput.style.display = 'block';
-          }
+          if(viewSpan && editInput) { viewSpan.style.display = 'none'; editInput.style.display = 'block'; }
         });
         document.getElementById('editBtn').style.display = 'none';
         document.getElementById('saveBtn').style.display = 'inline-flex';
@@ -962,107 +803,71 @@
 
       window.saveUserData = async function(userId) {
         try {
-          const newName = document.getElementById('edit_name').value.trim();
-          const newPhone = document.getElementById('edit_phone').value.trim();
-          const newPassword = document.getElementById('edit_password').value.trim();
-          const newTaskCash = Number(document.getElementById('edit_taskCash').value);
-          const newMyCash = Number(document.getElementById('edit_myCash').value);
-          const newTotalEarnings = Number(document.getElementById('edit_totalEarnings').value);
-          const newPackage = document.getElementById('edit_package').value.trim();
-
           const updateData = {
-            name: newName,
-            phone: newPhone,
-            taskCash: newTaskCash,
-            myCash: newMyCash,
-            totalEarnings: newTotalEarnings,
-            package: newPackage
+            name: document.getElementById('edit_name').value.trim(),
+            phone: document.getElementById('edit_phone').value.trim(),
+            taskCash: Number(document.getElementById('edit_taskCash').value),
+            myCash: Number(document.getElementById('edit_myCash').value),
+            totalEarnings: Number(document.getElementById('edit_totalEarnings').value),
+            package: document.getElementById('edit_package').value.trim()
           };
+          const newPassword = document.getElementById('edit_password').value.trim();
+          if (newPassword !== "") { updateData.password = newPassword; }
 
-          if (newPassword !== "") {
-            updateData.password = newPassword;
-          }
-
-          const userRef = doc(db, "users", userId);
-          await updateDoc(userRef, updateData);
-
-          if (newPassword !== "") {
-            alert("ইউজারের তথ্য এবং নতুন পাসওয়ার্ড সফলভাবে আপডেট করা হয়েছে!");
-          } else {
-            alert("ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!");
-          }
-
+          await updateDoc(doc(db, "users", userId), updateData);
+          alert("ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!");
           loadAllUsers();
           document.getElementById('userSearchInput').style.display = 'block';
-        } catch (error) {
-          alert("তথ্য আপডেট করতে সমস্যা হয়েছে: " + error.message);
-        }
+        } catch (error) { alert("তথ্য আপডেট করতে সমস্যা হয়েছে: " + error.message); }
       }
 
-      // --- ডাবল ওয়ার্নিং সহ ইউজার ডিলিট ফাংশন ---
       window.deleteUserAccount = async function(userId, userName) {
-        const firstConfirm = confirm(`⚠️ সাবধান!\n\nআপনি কি নিশ্চিতভাবে "${userName}"-এর সম্পূর্ণ অ্যাকাউন্টটি ফায়ারবেস থেকে মুছে ফেলতে চান?`);
-
-        if (firstConfirm) {
-          const secondConfirm = prompt(`অ্যাকাউন্টটি চিরতরে মুছে ফেলার জন্য নিচে "DELETE" শব্দটি অথবা ইউজারের নাম (${userName}) লিখুন:`);
-
+        if (confirm(`⚠️ সাবধান!\n\nআপনি কি নিশ্চিতভাবে "${userName}"-এর অ্যাকাউন্টটি মুছে ফেলতে চান?`)) {
+          const secondConfirm = prompt(`নিশ্চিত করতে "DELETE" অথবা ইউজারের নাম (${userName}) লিখুন:`);
           if (secondConfirm && (secondConfirm.trim() === "DELETE" || secondConfirm.trim() === userName.trim())) {
             try {
               await deleteDoc(doc(db, "users", userId));
-              alert(`"${userName}"-এর অ্যাকাউন্টটি সফলভাবে ফায়ারবেস থেকে স্থায়ীভাবে ডিলিট করা হয়েছে!`);
+              alert(`অ্যাকাউন্টটি সফলভাবে ডিলিট করা হয়েছে!`);
               loadAllUsers();
               document.getElementById('userSearchInput').style.display = 'block';
-            } catch (error) {
-              alert("ইউজার ডিলিট করতে সমস্যা হয়েছে: " + error.message);
-            }
-          } else {
-            alert("সঠিকভাবে টাইপ না করার কারণে ডিলিট প্রক্রিয়া বাতিল করা হয়েছে। ইউজার নিরাপদ আছে!");
-          }
+            } catch (error) { alert("ইউজার ডিলিট করতে সমস্যা হয়েছে: " + error.message); }
+          } else { alert("সঠিকভাবে টাইপ না করায় ডিলিট বাতিল করা হয়েছে।"); }
         }
       }
 
-
-
-
+      // --- লাইভ চ্যাট ম্যানেজমেন্ট (মোবাইল নম্বর/ইমেইল শো করার ফিচারসহ আপডেট) ---
       let activeChatUserId = null;
       let unsubscribeAdminChat = null;
 
-      // সাপোর্ট সেকশন ওপেন করার ফাংশন
-      // openSection ফাংশনের ভেতরে 'supportChat' কন্ডিশন হ্যান্ডেল করতে হবে
-      // (openSection ফাংশনের ইফ-এলসে supportChat যোগ করতে হবে)
-
-      // সাপোর্ট চ্যাট ইউজার লিস্ট লোড করা
       async function loadAdminSupportChats() {
         const listContainer = document.getElementById('adminChatUserList');
         listContainer.innerHTML = "লোড হচ্ছে...";
-
         try {
-          // ফায়ারবেসের 'support_chats' কালেকশন থেকে সব ইউজারের লিস্ট আনা
           const querySnap = await getDocs(collection(db, "support_chats"));
           if (querySnap.empty) {
             listContainer.innerHTML = `<div style="color: #aaa; font-size: 13px; text-align: center; margin-top: 20px;">কোনো চ্যাট রিকোয়েস্ট নেই।</div>`;
             return;
           }
-
           listContainer.innerHTML = "";
           querySnap.forEach((docSnap) => {
             const userId = docSnap.id;
+            const chatData = docSnap.data();
+            const displayName = chatData.userPhone || chatData.userEmail || chatData.userName || `ইউজার ID: ${userId.substring(0, 8)}...`;
+
             listContainer.innerHTML += `
-              <div onclick="openAdminChatRoom('${userId}')" style="padding: 10px; background: #3b4252; border-bottom: 1px solid #4c566a; border-radius: 4px; cursor: pointer; margin-bottom: 6px; font-size: 13px; color: #fff;">
-                <i class="fa-solid fa-user-circle"></i> ইউজার ID: <br><span style="font-size: 11px; color: #81a1c1;">${userId}</span>
+              <div onclick="openAdminChatRoom('${userId}', '${displayName}')" style="padding: 10px; background: #3b4252; border-bottom: 1px solid #4c566a; border-radius: 4px; cursor: pointer; margin-bottom: 6px; font-size: 13px; color: #fff; transition: 0.2s;">
+                <div style="font-weight: bold; color: #eceff4;"><i class="fa-solid fa-user-shield"></i> ${displayName}</div>
+                <div style="font-size: 11px; color: #81a1c1; margin-top: 2px;">ID: ${userId}</div>
               </div>
             `;
           });
-        } catch (error) {
-          listContainer.innerHTML = `<div style="color: #bf616a; font-size: 13px; text-align: center;">লোড করতে সমস্যা হয়েছে।</div>`;
-        }
+        } catch (error) { listContainer.innerHTML = `<div style="color: #bf616a; font-size: 13px; text-align: center;">লোড করতে সমস্যা হয়েছে।</div>`; }
       }
 
-      // নির্দিষ্ট ইউজারের চ্যাট রুম ওপেন করা
-      window.openAdminChatRoom = function(userId) {
+      window.openAdminChatRoom = function(userId, displayName) {
         activeChatUserId = userId;
         document.getElementById('adminChatRoom').style.display = 'flex';
-        document.getElementById('activeChatUserName').innerText = `চ্যাট ইউজার ID: ${userId}`;
+        document.getElementById('activeChatUserName').innerText = `চ্যাট: ${displayName}`;
 
         const chatMessagesArea = document.getElementById('adminChatMessages');
         const q = query(collection(db, "support_chats", userId, "messages"), orderBy("timestamp", "asc"));
@@ -1075,7 +880,6 @@
             chatMessagesArea.innerHTML = `<div style="color: #aaa; text-align: center; margin: auto;">কোনো মেসেজ নেই।</div>`;
             return;
           }
-
           snapshot.forEach((d) => {
             const data = d.data();
             const isAdmin = data.sender === 'admin';
@@ -1094,27 +898,17 @@
         if (e.key === 'Enter') sendAdminReply();
       }
 
-      // অ্যাডমিন থেকে উত্তর পাঠানো
       window.sendAdminReply = async function() {
         const inputEl = document.getElementById('adminReplyInput');
         const text = inputEl.value.trim();
         if (!text || !activeChatUserId) return;
-
         try {
           await addDoc(collection(db, "support_chats", activeChatUserId, "messages"), {
-            sender: 'admin',
-            text: text,
-            timestamp: serverTimestamp()
+            sender: 'admin', text: text, timestamp: serverTimestamp()
           });
           inputEl.value = '';
-        } catch (error) {
-          alert("মেসেজ পাঠাতে সমস্যা হয়েছে: " + error.message);
-        }
+        } catch (error) { alert("মেসেজ পাঠাতে সমস্যা হয়েছে: " + error.message); }
       }
-
-
-
-
     </script>
 </body>
 </html>
