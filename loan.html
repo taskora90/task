@@ -93,7 +93,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, getDocs, query, where, orderBy, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, getDocs, query, where, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -147,6 +147,7 @@
                     }
                 } catch (error) {
                     console.error("Error loading loan data:", error);
+                    document.getElementById('loanList').innerHTML = "<p style='color:red;'>ডেটা লোড করতে সমস্যা হয়েছে।</p>";
                 }
             } else {
                 document.getElementById('loanAmountText').innerText = "লগইন প্রয়োজন";
@@ -157,7 +158,7 @@
 
         // লোন হিস্ট্রি লোড এবং ১৫ দিনের অটো কেটে নেওয়ার লজিক
         async function loadLoanHistoryAndCheckAutoPay(userId, userData) {
-            const q = query(collection(db, "loan_requests"), where("userId", "==", userId), orderBy("requestTime", "desc"));
+            const q = query(collection(db, "loan_requests"), where("userId", "==", userId));
             const querySnapshot = await getDocs(q);
 
             let hasUnpaidLoan = false;
@@ -210,7 +211,7 @@
 
             document.getElementById('loanList').innerHTML = loanListHTML;
 
-            // নতুন রিকোয়েস্ট বোতামের আপডেট (লোন বাকি থাকলে বা পেন্ডিং থাকলে ডিসেবল থাকবে)
+            // নতুন রিকোয়েস্ট বোতামের আপডেট
             if (hasUnpaidLoan) {
                 document.getElementById('actionArea').innerHTML = `
                     <button class="loan-btn" disabled>আপনার একটি লোন সচল/পেন্ডিং রয়েছে</button>
@@ -231,23 +232,20 @@
             const now = new Date();
             const lastDeduction = loanData.lastAutoDeductionTime ? loanData.lastAutoDeductionTime.toDate() : loanData.requestTime.toDate();
             
-            // ২৪ ঘণ্টার হিসাব (Milliseconds)
             const diffHours = Math.floor((now - lastDeduction) / (1000 * 60 * 60));
 
             if (diffHours >= 24) {
                 const daysPassed = Math.floor(diffHours / 24);
-                const dailyCut = Math.ceil(loanData.amount / 15); // ১৫ ভাগের ১ ভাগ
+                const dailyCut = Math.ceil(loanData.amount / 15);
                 const totalAutoDeduct = dailyCut * daysPassed;
 
                 const currentDue = loanData.dueAmount !== undefined ? loanData.dueAmount : loanData.amount;
                 const actualDeduct = Math.min(totalAutoDeduct, currentDue);
 
                 if (actualDeduct > 0 && userBalance >= actualDeduct) {
-                    // TaskCash থেকে কাটা
                     const userRef = doc(db, "users", userId);
                     await updateDoc(userRef, { taskcash: increment(-actualDeduct) });
 
-                    // লোনের বকেয়া আপডেট
                     const newDue = currentDue - actualDeduct;
                     const loanRef = doc(db, "loan_requests", loanId);
                     
@@ -326,12 +324,10 @@
                     return;
                 }
 
-                // ১. ইউজার ব্যালেন্স থেকে কাটা
                 await updateDoc(userRef, {
                     taskcash: increment(-payAmount)
                 });
 
-                // ২. লোন ডকুমেন্টে বকেয়া আপডেট
                 const newDue = selectedLoanForPay.due - payAmount;
                 const loanRef = doc(db, "loan_requests", selectedLoanForPay.id);
 
