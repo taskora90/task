@@ -628,7 +628,7 @@
         }
       }
 
-            // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
+               // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
       let allUsersData = [];
 
       async function loadAllUsers() {
@@ -718,7 +718,7 @@
       }
 
       window.enableUserEdit = function() {
-        const fields = ['name', 'phone', 'password', 'taskCash', 'myCash', 'totalEarnings', 'package'];
+        const fields = ['name', 'phone', 'pass', 'taskCash', 'myCash', 'totalEarnings', 'package'];
         fields.forEach(field => {
           const viewSpan = document.getElementById(`view_${field}`);
           const editInput = document.getElementById(`edit_${field}`);
@@ -794,7 +794,7 @@
           }
         }
       }
-    </script>
+
 
 </body>
 </html>
