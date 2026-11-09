@@ -1,11 +1,98 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>লোন পেজ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        .main-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        /* নোটিফিকেশন বক্সের ডিজাইন */
+        .loan-status-box {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 25px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .loan-status-box h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .loan-status-box p {
+            margin: 0;
+            font-size: 15px;
+        }
+        /* বাটন স্টাইল */
+        .loan-btn {
+            background-color: #ffc107;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .loan-btn:hover {
+            background-color: #e0a800;
+        }
+        /* আপনার দেওয়া অ্যাড স্টাইল */
+        .ads-wrapper {
+            margin-top: 20px;
+        }
+        .ad-banner-container {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <!-- লোন স্ট্যাটাস মেসেজ বক্স -->
+        <div class="loan-status-box" id="loanStatusBox">
+            <h3 id="statusTitle">লোড হচ্ছে...</h3>
+            <p id="statusDesc">দয়া করে একটু অপেক্ষা করুন, আপনার ডাটা চেক করা হচ্ছে...</p>
+            
+            <!-- ডাইনামিক বাটন বা অ্যাকশন এরিয়া -->
+            <div id="actionArea" style="margin-top: 15px; display: none;">
+                <!-- জাভাস্ক্রিপ্ট দিয়ে এখানে বাটন আসবে -->
+            </div>
+        </div>
+
+        <!-- ব্যানার অ্যাড সেকশন -->
+        <div class="ads-wrapper">
+            <!-- ব্যানার স্লট ১ -->
+            <div class="ad-banner-container">
+                <script async="async" data-cfasync="false" src="https://bauval.org/21/e67235acb5b7230c8c2fdb2cd4915292"></script>
+                <div id="container-e67235acb5b7230c8c2fdb2cd4915292"></div>
+                <span style="font-size: 11px; color: #a0aec0;"></span>
+            </div>
+        </div>
+
+    </div>
+
     <!-- Firebase এবং লোন লজিক স্ক্রিপ্ট -->
     <script type="module">
-        // সরাসরি আপনার কনফিগ ফাইল থেকে db এবং auth ইমপোর্ট করা হলো
         import { db, auth } from './firebase-config.js'; 
         import { doc, getDoc, setDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const loanAmount = 1000; // লোন অ্যামাউন্ট
+        const loanAmount = 1000; // লোন অ্যামাউন্ট (আপনার ইচ্ছেমতো পরিবর্তন করতে পারেন)
 
         // ইউজার লগইন আছে কি না চেক করা
         onAuthStateChanged(auth, (user) => {
@@ -17,7 +104,7 @@
             }
         });
 
-        // ইউজারের লোন স্ট্যাটাস ট্র্যাক করার ফাংশন
+        // ইউজারের লোন স্ট্যাটাস রিয়েল-টাইম ট্র্যাক করা
         function listenUserLoanStatus(userId) {
             const userRef = doc(db, "users", userId);
 
@@ -44,13 +131,13 @@
                 } 
                 else if (loanStatus === "active") {
                     titleEl.innerText = "✅ লোন কার্যকর রয়েছে";
-                    descEl.innerText = `আপনার ${loanAmount} টাকার লোন সফলভাবে অ্যাপ্রুভ হয়েছে এবং আপনার My Cash ব্যালেন্সে যুক্ত করা হয়েছে।`;
+                    descEl.innerText = `আপনার ${loanAmount} টাকার লোন সফলভাবে অ্যাপ্রুভ হয়েছে এবং আপনার মাই ক্যাশ ব্যালেন্সে যুক্ত করা হয়েছে।`;
                     actionArea.style.display = "none";
                 }
             });
         }
 
-        // লোন রিকোয়েস্ট সার্ভারে পাঠানোর ফাংশন
+        // আলাদাভাবে 'loan_requests' কালেকশনে রিকোয়েস্ট পাঠানোর ফাংশন
         window.sendLoanRequest = async function() {
             const user = auth.currentUser;
             if (!user) {
@@ -65,27 +152,30 @@
                 const userSnap = await getDoc(userRef);
                 const userData = userSnap.exists() ? userSnap.data() : {};
 
-                // ১. users কালেকশনে লোন স্ট্যাটাস 'pending' করা
+                // ১. ইউজারের মেইন ডকুমেন্টে স্ট্যাটাস 'pending' করা
                 await setDoc(userRef, {
                     loan_status: "pending",
                     loan_amount: loanAmount
                 }, { merge: true });
 
-                // ২. loan_requests কালেকশনে অ্যাডমিনের দেখার জন্য রিকোয়েস্ট সেভ করা
+                // ২. উইথড্র/রিচার্জের মতো সম্পূর্ণ আলাদা কালেকশনে (loan_requests) রিকোয়েস্ট জমা করা
                 await addDoc(collection(db, "loan_requests"), {
                     userId: user.uid,
                     userName: userData.name || userData.fullName || "Unknown User",
-                    userPhone: userData.phone || user.email || "N/A",
+                    userPhone: userData.phone || userData.email || "N/A",
                     amount: loanAmount,
                     status: "pending",
                     request_date: new Date().toISOString()
                 });
 
-                alert("আপনার লোন রিকোয়েস্ট সফলভাবে অ্যাডমিনের কাছে পাঠানো হয়েছে!");
+                alert("আপনার লোন রিকোয়েস্ট সফলভাবে জমা হয়েছে!");
 
-            } (error) {
+            } catch (error) {
                 console.error("Error sending loan request: ", error);
                 alert("রিকোয়েস্ট পাঠাতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।");
             }
         };
     </script>
+
+</body>
+</html>
