@@ -3,77 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>রিচার্জ</title>
+    <title>টাকা রিচার্জ করুন</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .top-banner { display: flex; align-items: center; margin-bottom: 20px; background: #2b2d42; color: white; padding: 12px 15px; border-radius: 8px; }
+        .top-banner h2 { margin: 0; font-size: 18px; margin-left: 10px; }
+        .back-btn { color: white; text-decoration: none; font-size: 18px; }
+        
+        .notice-box { background: #fff3cd; color: #856404; padding: 12px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: center; border: 1px solid #ffeeba; line-height: 1.5; font-weight: 500; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .form-group select, .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; background-color: #fcfcfc; }
+        .form-group select:focus, .form-group input:focus { outline: none; border-color: #007bff; }
+
+        .number-card { background: #eef2f5; padding: 12px 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #dcdcdc; }
+        .number-card span { font-weight: bold; font-size: 16px; color: #333; letter-spacing: 1px; }
+        .copy-btn { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .copy-btn:hover { background: #0056b3; }
+
+        .submit-btn { width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; margin-top: 10px; }
+        .submit-btn:hover { background-color: #218838; }
+        .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .section-box { display: none; }
+    </style>
 </head>
 <body>
 
-    <!-- টপ হেডার -->
-    <header class="top-banner">
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>টাকা রিচার্জ করুন</h2>
-    </header>
-
-    <div class="recharge-container">
-        <!-- পেমেন্ট মেথড নির্বাচন -->
-        <h3>পেমেন্ট মাধ্যম সিলেক্ট করুন</h3>
-        <div class="payment-methods">
-            <button class="method-btn active" onclick="selectMethod('bKash')">
-                <i class="fa-solid fa-mobile-screen-button"></i> বিকাশ (bKash)
-            </button>
-            <button class="method-btn" onclick="selectMethod('Nagad')">
-                <i class="fa-solid fa-mobile-screen-button"></i> নগদ (Nagad)
-            </button>
+    <div class="container">
+        <div class="top-banner">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2>টাকা রিচার্জ করুন</h2>
         </div>
 
-        <!-- ফিক্সড নম্বর কার্ড -->
-        <div class="number-box">
-            <p><span id="method-name">বিকাশ</span> পার্সোনাল নম্বর:</p>
-            <div class="copy-box">
-                <strong id="agent-number">01700000000</strong>
-                <button onclick="copyNumber()"><i class="fa-regular fa-copy"></i> কপি</button>
-            </div>
+        <!-- ১. পেমেন্ট মাধ্যম সিলেক্ট করার ড্রপডাউন পেজ -->
+        <div id="selectMethodSection" class="form-group">
+            <label>পেমেন্ট মাধ্যম সিলেক্ট করুন</label>
+            <select id="paymentDropdown" onchange="onMethodChange()">
+                <option value="" disabled selected>মাধ্যম বেছে নিন</option>
+                <option value="bKash">বিকাশ (bKash)</option>
+                <option value="Nagad">নগদ (Nagad)</option>
+            </select>
         </div>
 
-        <!-- ফর্ম -->
-        <form class="recharge-form" id="rechargeForm">
-            <div class="form-group">
-                <label>টাকার পরিমাণ (BDT)</label>
-                <input type="number" id="amount" placeholder="সর্বনিম্ন ৫০০ টাকা" min="500" required>
+        <!-- ২. নির্দিষ্ট মাধ্যম সিলেক্ট করার পর যে ফর্ম ও নাম্বারগুলো দেখাবে -->
+        <div id="rechargeDetailsSection" class="section-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 id="selectedTitle" style="margin: 0; color: #2b2d42; font-size: 16px;">বিকাশ পার্সোনাল নম্বরসমূহ</h3>
+                <button onclick="goBackToDropdown()" style="background: none; border: none; color: #007bff; cursor: pointer; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-rotate-left"></i> মাধ্যম পরিবর্তন</button>
             </div>
 
-            <div class="form-group">
-                <label>ট্রানজেকশন আইডি (TrxID)</label>
-                <input type="text" id="trxId" placeholder="যেমন: 8N7A6D5E" required>
+            <!-- নোটিশ বক্স -->
+            <div class="notice-box">
+                ⚠️ অনুগ্রহ করে সেন্ড মানি করুন এবং ট্রানজেকশন আইডি সহ টাকার পরিমাণ জমা দিন।
             </div>
 
-            <button type="submit" class="submit-btn" id="submitBtn">জমা দিন</button>
-        </form>
+            <!-- এজেন্ট নাম্বার ১ -->
+            <div class="number-card">
+                <div>
+                    <small style="display: block; color: #666; font-size: 11px;">নম্বর ১ (পার্সোনাল)</small>
+                    <span id="agentNum1Display">017**-******1</span>
+                </div>
+                <button class="copy-btn" onclick="copyNum('agentNum1Real')"><i class="fa-regular fa-copy"></i> কপি</button>
+            </div>
+            <!-- আসল হিডেন নাম্বার ১ -->
+            <span id="agentNum1Real" style="display:none;">01711223344</span>
+
+            <!-- এজেন্ট নাম্বার ২ -->
+            <div class="number-card">
+                <div>
+                    <small style="display: block; color: #666; font-size: 11px;">নম্বর ২ (পার্সোনাল)</small>
+                    <span id="agentNum2Display">018**-******2</span>
+                </div>
+                <button class="copy-btn" onclick="copyNum('agentNum2Real')"><i class="fa-regular fa-copy"></i> কপি</button>
+            </div>
+            <!-- আসল হিডেন নাম্বার ২ -->
+            <span id="agentNum2Real" style="display:none;">01811223344</span>
+
+            <br>
+
+            <!-- ফর্ম -->
+            <form id="rechargeForm">
+                <div class="form-group">
+                    <label>টাকার পরিমাণ (BDT)</label>
+                    <input type="number" id="amount" placeholder="সর্বনিম্ন ১০০ টাকা" min="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label>ট্রানজেকশন আইডি (TrxID)</label>
+                    <input type="text" id="trxId" placeholder="যেমন: 8N7A6D5E" required>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">জমা দিন</button>
+            </form>
+        </div>
     </div>
 
     <!-- UI Scripts -->
     <script>
-        let selectedPaymentMethod = 'bKash';
+        let currentMethod = '';
 
-        function selectMethod(method) {
-            selectedPaymentMethod = method;
-            document.getElementById('method-name').innerText = method;
-            let btns = document.querySelectorAll('.method-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+        function onMethodChange() {
+            const dropdown = document.getElementById('paymentDropdown');
+            currentMethod = dropdown.value;
 
-            if(method === 'bKash') {
-                document.getElementById('agent-number').innerText = '01700000000'; // আপনার বিকাশ নম্বর
-            } else {
-                document.getElementById('agent-number').innerText = '01800000000'; // আপনার নগদ নম্বর
+            if (!currentMethod) return;
+
+            document.getElementById('selectMethodSection').style.display = 'none';
+            document.getElementById('rechargeDetailsSection').style.display = 'block';
+
+            if (currentMethod === 'bKash') {
+                document.getElementById('selectedTitle').innerText = "বিকাশ পার্সোনাল নম্বরসমূহ";
+                document.getElementById('agentNum1Display').innerText = "01711-***344";
+                document.getElementById('agentNum1Real').innerText = "01711223344";
+                
+                document.getElementById('agentNum2Display').innerText = "01799-***888";
+                document.getElementById('agentNum2Real').innerText = "01799887788";
+            } else if (currentMethod === 'Nagad') {
+                document.getElementById('selectedTitle').innerText = "নগদ পার্সোনাল নম্বরসমূহ";
+                document.getElementById('agentNum1Display').innerText = "01811-***555";
+                document.getElementById('agentNum1Real').innerText = "01811556677";
+                
+                document.getElementById('agentNum2Display').innerText = "01833-***999";
+                document.getElementById('agentNum2Real').innerText = "01833445566";
             }
         }
 
-        function copyNumber() {
-            let num = document.getElementById('agent-number').innerText;
+        function goBackToDropdown() {
+            document.getElementById('paymentDropdown').value = "";
+            document.getElementById('selectMethodSection').style.display = 'block';
+            document.getElementById('rechargeDetailsSection').style.display = 'none';
+        }
+
+        function copyNum(elementId) {
+            let num = document.getElementById(elementId).innerText;
             navigator.clipboard.writeText(num);
-            alert('নম্বর কপি হয়েছে: ' + num);
+            alert('সম্পূর্ণ নম্বর কপি হয়েছে: ' + num);
         }
     </script>
 
@@ -100,7 +168,6 @@
       let currentUser = null;
       let userData = null;
 
-      // ইউজার অথেন্টিকেশন ও ডাটা চেক
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
@@ -118,7 +185,6 @@
         }
       });
 
-      // রিচার্জ ফর্ম সাবমিশন লজিক
       const rechargeForm = document.getElementById('rechargeForm');
       const submitBtn = document.getElementById('submitBtn');
 
@@ -133,8 +199,8 @@
         const amount = Number(document.getElementById('amount').value);
         const trxId = document.getElementById('trxId').value.trim();
 
-        if (amount < 500) {
-          alert("সর্বনিম্ন রিচার্জ পরিমাণ ৫০০ টাকা।");
+        if (amount < 100) {
+          alert("সর্বনিম্ন রিচার্জ পরিমাণ ১০০ টাকা।");
           return;
         }
 
@@ -142,7 +208,6 @@
         submitBtn.innerText = "প্রসেসিং হচ্ছে...";
 
         try {
-          // অ্যাডমিন প্যানেলে দেখানোর জন্য পূর্ণাঙ্গ ডাটা অবজেক্ট
           await addDoc(collection(db, "recharge_requests"), {
             userId: currentUser.uid,
             userName: userData ? (userData.name || "N/A") : "N/A",
@@ -150,7 +215,7 @@
             userEmail: currentUser.email || "",
             amount: amount,
             trxId: trxId,
-            method: selectedPaymentMethod,
+            method: currentMethod,
             status: "pending",
             timestamp: serverTimestamp(),
             createdAt: serverTimestamp()
@@ -158,6 +223,7 @@
 
           alert("আপনার রিচার্জের আবেদনটি সফলভাবে জমা হয়েছে। অ্যাডমিন ভেরিফাই করে অ্যাপ্রুভ করার সাথে সাথেই টাকা আপনার রিচার্জ ক্যাশে যোগ হয়ে যাবে।");
           rechargeForm.reset();
+          goBackToDropdown();
         } catch (error) {
           console.error("রিচার্জ আবেদন জমা দিতে ত্রুটি:", error);
           alert("আবেদন জমা দিতে সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।");
@@ -167,28 +233,5 @@
         }
       });
     </script>
-
-
-
-
-       <div class="ads-wrapper">
-            <!-- ব্যানার স্লট ১ -->
-      <div class="ad-banner-container">
-        <script>
-  atOptions = {
-    'key' : 'edb0510109f6c4d56e1c54025858881c',
-    'format' : 'iframe',
-    'height' :250,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/edb0510109f6c4d56e1c54025858881c/invoke.js"></script>
-<script src="https://bauval.org/22/edb0510109f6c4d56e1c54025858881c"></script>
-        <span style="font-size: 11px; color: #a0aec0;"></span>
-      </div>
-
-
-
 </body>
 </html>
