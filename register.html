@@ -147,17 +147,18 @@
         const userCredential = await createUserWithEmailAndPassword(auth, virtualEmail, password);
         const user = userCredential.user;
 
-        // ২. ফায়ারস্টোরে নতুন ইউজারের নিজস্ব ডাটা তৈরি (totalEarnings সহ)
+        // ২. ফায়ারস্টোরে নতুন ইউজারের নিজস্ব ডাটা তৈরি (পাসওয়ার্ড ফিল্ড সহ)
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           name: name,
           phone: phone,
+          password: password, // <--- এডমিন প্যানেল থেকে পাসওয়ার্ড কন্ট্রোল করার জন্য এটি যুক্ত করা হলো
           taskCash: 0,
           myCash: 0,
-          totalEarnings: 0, // <--- নতুন ইউজারের জন্য মোট আয়ের স্থায়ী ফিল্ড যুক্ত করা হলো
+          totalEarnings: 0, 
           package: "none",
           referredBy: refCode || "none",
-          createdAt: serverTimestamp() // সার্ভার টাইমস্ট্যাম্প ব্যবহার করা হলো
+          createdAt: serverTimestamp()
         });
 
         // ৩. রেফারার ডাটা আপডেট
