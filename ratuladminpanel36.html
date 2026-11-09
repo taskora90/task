@@ -628,7 +628,7 @@
         }
       }
 
-      // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
+            // --- ইউজার ডিটেলস, এডিট, পাসওয়ার্ড রিসেট এবং সিকিউর ডিলিট ---
       let allUsersData = [];
 
       async function loadAllUsers() {
@@ -741,25 +741,27 @@
           const newTotalEarnings = Number(document.getElementById('edit_totalEarnings').value);
           const newPackage = document.getElementById('edit_package').value.trim();
 
-          const userRef = doc(db, "users", userId);
-          await updateDoc(userRef, {
+          // ডাটা অবজেক্ট তৈরি
+          const updateData = {
             name: newName,
             phone: newPhone,
             taskCash: newTaskCash,
             myCash: newMyCash,
             totalEarnings: newTotalEarnings,
             package: newPackage
-          });
+          };
+
+          // যদি নতুন পাসওয়ার্ড দেওয়া হয়, তবে সেটি আপডেট অবজেক্টে যুক্ত হবে
+          if (newPassword !== "") {
+            updateData.password = newPassword;
+          }
+
+          // ফায়ারস্টোর ডাটাবেজে আপডেট করা
+          const userRef = doc(db, "users", userId);
+          await updateDoc(userRef, updateData);
 
           if (newPassword !== "") {
-            try {
-              const userAuthRecord = await auth.getUser(userId);
-              await updatePassword(userAuthRecord, newPassword);
-              alert("ইউজারের তথ্য এবং পাসওয়ার্ড উভয়ই সফলভাবে আপডেট করা হয়েছে!");
-            } catch (authError) {
-              console.log("Auth password update note:", authError);
-              alert("ইউজারের ডেটা আপডেট হয়েছে, তবে পাসওয়ার্ড অথেনটিকেশনে আপডেট করতে ফায়ারবেস অ্যাডমিন পারমিশন বা রুলস প্রয়োজন হতে পারে।");
-            }
+            alert("ইউজারের তথ্য এবং নতুন পাসওয়ার্ড সফলভাবে আপডেট করা হয়েছে!");
           } else {
             alert("ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!");
           }
@@ -793,5 +795,6 @@
         }
       }
     </script>
+
 </body>
 </html>
