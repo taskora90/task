@@ -68,15 +68,13 @@
 <body>
 
           // অ্যাডমিন পাসওয়ার্ড যাচাই করার ফাংশন
+// অ্যাডমিন পাসওয়ার্ড যাচাই করার ফাংশন
 window.verifyAdminPassword = function() {
   const passwordInput = document.getElementById('adminPassInput').value.trim();
   const errorMsg = document.getElementById('loginError');
-  
-  // আপনার কাঙ্ক্ষিত অ্যাডমিন পাসওয়ার্ড
   const correctPassword = "TarekHasan@36"; 
 
   if (passwordInput === correctPassword) {
-    // পাসওয়ার্ড সঠিক হলে লগইন সেকশন লুকিয়ে ড্যাশবোর্ড দেখাবে
     document.getElementById('loginSection').style.display = 'none';
     
     const dashboard = document.getElementById('adminDashboard');
@@ -84,12 +82,10 @@ window.verifyAdminPassword = function() {
       dashboard.style.display = 'block';
     }
     
-    // ইউজার লিস্ট লোড করার ফাংশন কল
     if (typeof loadAllUsers === 'function') {
       loadAllUsers();
     }
   } else {
-    // পাসওয়ার্ড ভুল হলে এরর মেসেজ দেখাবে
     if (errorMsg) {
       errorMsg.style.display = 'block';
     } else {
