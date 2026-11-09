@@ -9,6 +9,7 @@
         body { font-family: Arial, sans-serif; background-color: #dcdcdc; margin: 0; padding: 20px; color: #333; }
         .withdraw-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .header { text-align: center; margin-bottom: 20px; color: #2b2d42; }
+        .notice-box { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; text-align: center; border: 1px solid #ffeeba; }
         .balance-box { background: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 16px; font-weight: bold; }
         .payment-methods { display: flex; gap: 15px; margin-bottom: 20px; }
         .method-btn { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; background: #fff; transition: 0.3s; }
@@ -18,10 +19,11 @@
         .amount-btn.active { background-color: #28a745; color: white; border-color: #28a745; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #eef2f5; }
-        .form-group input:focus { outline: none; border-color: #007bff; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #eef2f5; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #007bff; }
         .submit-btn { width: 100%; background: #28a745; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
         .submit-btn:hover { background-color: #218838; }
+        .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -29,12 +31,17 @@
     <div class="withdraw-container">
         <h2 class="header"><i class="fa-solid fa-money-bill-transfer"></i> টাকা উত্তোলন</h2>
 
+        <!-- নোটিশ বক্স -->
+        <div class="notice-box">
+            🔔 নোটিশ: উইথড্র সময় প্রতিদিন সকাল ১০:০০ টা থেকে বিকেল ৫:০০ টা পর্যন্ত। (শুক্রবার ও রবিবার বন্ধ)। প্রতিদিন মাত্র ১ বার উইথড্র করা যাবে।
+        </div>
+
         <div class="balance-box">
             বর্তমান মাই ক্যাশ: <strong id="availableTaskCash" style="color: #007bff;">৳ 0</strong>
         </div>
 
-        <h3>পেমেন্ট মাধ্যম সিলেক্ট করুন:</h3>
-        <div class="payment-methods">
+        <h3>পেমেন্ট মাধ্যম:</h3>
+        <div class="payment-methods" id="methodContainer">
             <button class="method-btn active" id="bKashBtn" onclick="selectMethod('bKash')">বিকাশ</button>
             <button class="method-btn" id="NagadBtn" onclick="selectMethod('Nagad')">নগদ</button>
         </div>
@@ -59,31 +66,24 @@
         </div>
 
         <button class="btn submit-btn" id="withdrawBtn">উত্তোলন রিকোয়েস্ট পাঠান</button>
-<br><br>
+        <br><br>
 
-
-
-
-      <!-- ব্যানার স্লট ২ -->
-      <div class="ad-banner-container">
-        <script>
-  atOptions = {
-    'key' : 'ef70bb41c6b9c54cf3d9448db4f94f11',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/ef70bb41c6b9c54cf3d9448db4f94f11/invoke.js"></script>
-<script src="https://bauval.org/22/ef70bb41c6b9c54cf3d9448db4f94f11"></script>
-        <span style="font-size: 11px; color: #a0aec0;"></span>
-      </div>
-    </div>
-
-
-
-
+        <!-- ব্যানার স্লট ২ -->
+        <div class="ad-banner-container">
+            <script>
+              atOptions = {
+                'key' : 'ef70bb41c6b9c54cf3d9448db4f94f11',
+                'format' : 'iframe',
+                'height' : 50,
+                'width' : 320,
+                'params' : {}
+              };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/ef70bb41c6b9c54cf3d9448db4f94f11/invoke.js"></script>
+            <script src="https://bauval.org/22/ef70bb41c6b9c54cf3d9448db4f94f11"></script>
+            <span style="font-size: 11px; color: #a0aec0;"></span>
+        </div>
+        
         <br><br>
         <a href="profile.html" style="text-decoration: none; color: #6c757d;"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
     </div>
@@ -92,7 +92,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -112,8 +112,10 @@
       let currentUser = null;
       let selectedMethod = 'bKash';
       let selectedAmount = 0;
+      let isProfileLocked = false;
 
       window.selectMethod = function(method) {
+        if (isProfileLocked) return; // লক থাকলে পরিবর্তন করা যাবে না
         selectedMethod = method;
         document.getElementById('bKashBtn').classList.remove('active');
         document.getElementById('NagadBtn').classList.remove('active');
@@ -130,10 +132,29 @@
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
-          const userDoc = await getDoc(doc(db, "users", user.uid));
+          
+          // ইউজারের মূল ডাটা ও উইথড্র প্রোফাইল চেক করা
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
+
           if (userDoc.exists()) {
-            currentTaskCash = userDoc.data().taskCash || 0;
+            const data = userDoc.data();
+            currentTaskCash = data.taskCash || 0;
             document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
+
+            // যদি আগে থেকেই উইথড্র প্রোফাইল (মেথড ও নম্বর) সেট করা থাকে
+            if (data.withdrawMethod && data.withdrawAccount) {
+              selectedMethod = data.withdrawMethod;
+              document.getElementById('accountNo').value = data.withdrawAccount;
+              document.getElementById('accountNo').readOnly = true; // লক করা হলো
+
+              // মেথড বাটন সেট করে ডিএ্যাক্টিভ বা লক করা
+              document.getElementById('bKashBtn').classList.remove('active');
+              document.getElementById('NagadBtn').classList.remove('active');
+              document.getElementById(selectedMethod + 'Btn').classList.add('active');
+              
+              isProfileLocked = true;
+            }
           }
         } else {
           window.location.href = "login.html";
@@ -143,6 +164,21 @@
       document.getElementById('withdrawBtn').onclick = async () => {
         const amount = selectedAmount;
         const account = document.getElementById('accountNo').value.trim();
+
+        // ১. সময় ও দিন চেক (সকাল ১০টা থেকে বিকেল ৫টা, শুক্রবার ও রবিবার বন্ধ)
+        const now = new Date();
+        const day = now.getDay(); // 0 = Sunday, 5 = Friday, 6 = Saturday
+        const hour = now.getHours();
+
+        if (day === 5 || day === 0) {
+          alert("আজ ছুটির দিন (শুক্রবার ও রবিবার)। এই দুই দিন উইথড্র করা যাবে না!");
+          return;
+        }
+
+        if (hour < 10 || hour >= 17) {
+          alert("উইথড্র করার সময় সকাল ১০:০মান থেকে বিকেল ৫:০০ টা পর্যন্ত!");
+          return;
+        }
 
         if (!amount || amount <= 0) {
           alert("অনুগ্রহ করে ওপরের বাটন থেকে উত্তোলনের একটি নির্দিষ্ট পরিমাণ নির্বাচন করুন!");
@@ -164,23 +200,43 @@
 
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
+          
+          // আজকের তারিখ (YYYY-MM-DD ফরম্যাট) দিনে ১ বার লিমি트 চেক করার জন্য
+          const todayStr = now.toISOString().split('T')[0];
 
-          // ট্রানজেকশনের মাধ্যমে শুধুমাত্র টাস্ক ক্যাশ থেকে টাকা কমানো হচ্ছে (মোট আয় অপরিবর্তিত থাকবে)
+          // ট্রানজেকশনের মাধ্যমে লিমি트 ও ব্যালেন্স চেক এবং আপডেট
           await runTransaction(db, async (transaction) => {
             const userDocSnap = await transaction.get(userDocRef);
             if (!userDocSnap.exists()) {
               throw new Error("ইউজার ডাটা পাওয়া যায়নি!");
             }
 
-            const latestTaskCash = userDocSnap.data().taskCash || 0;
+            const userData = userDocSnap.data();
+            const latestTaskCash = userData.taskCash || 0;
+            const lastWithdrawDate = userData.lastWithdrawDate || "";
+
+            // দিনে ১ বার উইথড্র লিমিট চেক
+            if (lastWithdrawDate === todayStr) {
+              throw new Error("আজকের উইথড্র লিমিট শেষ! দিনে একবারের বেশি উইথড্র করা যাবে না।");
+            }
+
             if (amount > latestTaskCash) {
               throw new Error("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
             }
 
-            // এখানে শুধু taskCash কমানো হলো, totalEarnings বা মোট আয়ে কোনো হাত দেওয়া হয়নি
-            transaction.update(userDocRef, {
-              taskCash: latestTaskCash - amount
-            });
+            // আপডেট অবজেক্ট
+            let updateData = {
+              taskCash: latestTaskCash - amount,
+              lastWithdrawDate: todayStr
+            };
+
+            // যদি প্রথমবার হয়, তবে ফায়ারবেসে মেথড ও একাউন্ট পার্মানেন্ট সেভ হবে
+            if (!userData.withdrawMethod) {
+              updateData.withdrawMethod = selectedMethod;
+              updateData.withdrawAccount = account;
+            }
+
+            transaction.update(userDocRef, updateData);
           });
 
           // উইথড্র রিকোয়েস্ট সফলভাবে ডাটাবেজের withdrawals কালেকশনে সেভ করা
@@ -194,7 +250,7 @@
             timestamp: serverTimestamp()
           });
 
-          alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে এবং মাই ক্যাশ থেকে ব্যালেন্স কেটে নেওয়া হয়েছে!");
+          alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
           window.location.href = "profile.html";
         } catch (error) {
           console.error("Error:", error);
