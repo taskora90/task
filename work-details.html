@@ -112,7 +112,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -136,54 +136,69 @@
             let allEarnings = [];
 
             // ১. মূল টাস্ক হিস্ট্রি সাব-কালেকশন ফেচ করা
-            const taskRef = collection(db, "users", user.uid, "taskHistory");
-            const taskSnap = await getDocs(taskRef);
-
-            taskSnap.forEach((docItem) => {
-              const data = docItem.data();
-              allEarnings.push({
-                title: `টাস্ক #${data.taskNumber || 'কম্প্লিট'}`,
-                desc: "ডেইলি ভিডিও টাস্ক সম্পন্ন হয়েছে",
-                amount: Number(data.amount || 0),
-                timestamp: data.timestamp,
-                icon: 'fa-tasks'
-              });
-            });
-
-            // ২. স্পিন বা অন্যান্য হিস্ট্রি সাব-কালেকশন (যদি থাকে) ফেচ করা
             try {
-              const spinRef = collection(db, "users", user.uid, "spinHistory");
-              const spinSnap = await getDocs(spinRef);
-              spinSnap.forEach((docItem) => {
+              const taskRef = collection(db, "users", user.uid, "taskHistory");
+              const taskSnap = await getDocs(taskRef);
+              taskSnap.forEach((docItem) => {
                 const data = docItem.data();
                 allEarnings.push({
-                  title: `লাকি স্পিন`,
-                  desc: "স্পিন বোনাস অর্জিত হয়েছে",
+                  title: `টাস্ক #${data.taskNumber || 'কম্প্লিট'}`,
+                  desc: "ডেইলি ভিডিও টাস্ক সম্পন্ন হয়েছে",
                   amount: Number(data.amount || 0),
                   timestamp: data.timestamp,
-                  icon: 'fa-rotate'
+                  icon: 'fa-tasks'
                 });
               });
             } catch (e) {
-              // স্পিন সাব-কালেকশন না থাকলে স্কিপ করবে
+              console.log("Task history not found");
             }
 
-            // ৩. রেফার বা প্যাকেজ বোনাস হিস্ট্রি সাব-কালেকশন (যদি থাকে) ফেচ করা
-            try {
-              const referRef = collection(db, "users", user.uid, "referralHistory");
-              const referSnap = await getDocs(referRef);
-              referSnap.forEach((docItem) => {
-                const data = docItem.data();
-                allEarnings.push({
-                  title: `রেফার কমিশন`,
-                  desc: data.description || "টিম রেফারেল বোনাস",
-                  amount: Number(data.amount || 0),
-                  timestamp: data.timestamp,
-                  icon: 'fa-users'
-                });
-              });
-            } catch (e) {
-              // রেফার সাব-কালেকশন না থাকলে স্কিপ করবে
+            // ২. স্পিন বা অন্যান্য হিস্ট্রি সাব-কালেকশন ফেচ করা (একাধিক সম্ভাব্য নাম চেক করা হয়েছে)
+            const spinCollectionNames = ["spinHistory", "spinLogs", "luckySpin"];
+            for (let colName of spinCollectionNames) {
+              try {
+                const spinRef = collection(db, "users", user.uid, colName);
+                const spinSnap = await getDocs(spinRef);
+                if (!spinSnap.empty) {
+                  spinSnap.forEach((docItem) => {
+                    const data = docItem.data();
+                    allEarnings.push({
+                      title: `লাকি স্পিন`,
+                      desc: data.description || "স্পিন বোনাস অর্জিত হয়েছে",
+                      amount: Number(data.amount || data.winAmount || 0),
+                      timestamp: data.timestamp,
+                      icon: 'fa-rotate'
+                    });
+                  });
+                  break;
+                }
+              } catch (e) {
+                // স্কিপ করবে
+              }
+            }
+
+            // ৩. রেফার বা টিম কমিশন হিস্ট্রি সাব-কালেকশন ফেচ করা
+            const referralCollectionNames = ["referralHistory", "commissionHistory", "referrals", "teamCommissionHistory"];
+            for (let colName of referralCollectionNames) {
+              try {
+                const referRef = collection(db, "users", user.uid, colName);
+                const referSnap = await getDocs(referRef);
+                if (!referSnap.empty) {
+                  referSnap.forEach((docItem) => {
+                    const data = docItem.data();
+                    allEarnings.push({
+                      title: `রেফার কমিশন`,
+                      desc: data.description || "টিম রেফারেল বোনাস",
+                      amount: Number(data.amount || data.commission || 0),
+                      timestamp: data.timestamp,
+                      icon: 'fa-users'
+                    });
+                  });
+                  break;
+                }
+              } catch (e) {
+                // স্কিপ করবে
+              }
             }
 
             // যদি কোনো হিস্ট্রি না পাওয়া যায়
