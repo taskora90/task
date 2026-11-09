@@ -68,36 +68,36 @@
 <body>
 
           // অ্যাডমিন পাসওয়ার্ড যাচাই করার ফাংশন
-      window.verifyAdminPassword = function() {
-        const passwordInput = document.getElementById('adminPassInput').value.trim();
-        const errorMsg = document.getElementById('loginError');
-        
-        // এখানে আপনার কাঙ্ক্ষিত অ্যাডমিন পাসওয়ার্ড বসাবেন
-        const correctPassword = "TarekHasan@36"; 
+window.verifyAdminPassword = function() {
+  const passwordInput = document.getElementById('adminPassInput').value.trim();
+  const errorMsg = document.getElementById('loginError');
+  
+  // আপনার কাঙ্ক্ষিত অ্যাডমিন পাসওয়ার্ড
+  const correctPassword = "TarekHasan@36"; 
 
-        if (passwordInput === correctPassword) {
-          // পাসওয়ার্ড সঠিক হলে লগইন সেকশন লুকিয়ে ড্যাশবোর্ড বা মেইন প্যানেল ওপেন করবে
-          document.getElementById('loginSection').style.display = 'none';
-          
-          // আপনার ড্যাশবোর্ডের আইডি যদি 'adminDashboard' হয়, তবে এটি শো করবে
-          const dashboard = document.getElementById('adminDashboard');
-          if (dashboard) {
-            dashboard.style.display = 'block';
-          }
-          
-          // যদি ইউজার লিস্ট লোড করার ফাংশন থাকে সেটি কল করতে পারেন
-          if (typeof loadAllUsers === 'function') {
-            loadAllUsers();
-          }
-        } else {
-          // ভুল হলে এরর মেসেজ দেখাবে
-          if (errorMsg) {
-            errorMsg.style.display = 'block';
-          } else {
-            alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
-          }
-        }
-      }
+  if (passwordInput === correctPassword) {
+    // পাসওয়ার্ড সঠিক হলে লগইন সেকশন লুকিয়ে ড্যাশবোর্ড দেখাবে
+    document.getElementById('loginSection').style.display = 'none';
+    
+    const dashboard = document.getElementById('adminDashboard');
+    if (dashboard) {
+      dashboard.style.display = 'block';
+    }
+    
+    // ইউজার লিস্ট লোড করার ফাংশন কল
+    if (typeof loadAllUsers === 'function') {
+      loadAllUsers();
+    }
+  } else {
+    // পাসওয়ার্ড ভুল হলে এরর মেসেজ দেখাবে
+    if (errorMsg) {
+      errorMsg.style.display = 'block';
+    } else {
+      alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
+    }
+  }
+}
+
 
     <!-- ২. ইউজার ডিটেলস পাসওয়ার্ড প্রম্পট বক্স (সিক্রেট) -->
     <div id="userSecPassSection" class="login-box" style="display: none;">
