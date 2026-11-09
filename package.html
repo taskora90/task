@@ -83,8 +83,9 @@
             border-radius: 6px;
         }
 
+        /* প্যাকেজ কিনুন বাটন - সবুজ কালার */
         .btn-buy { 
-            background-color: #3b4252; 
+            background-color: #10b981; 
             color: white; 
             border: none; 
             padding: 12px; 
@@ -98,10 +99,19 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .btn-buy:hover { 
-            background-color: #434c5e; 
+            background-color: #059669; 
         }
+
+        /* সক্রিয় আছে বাটন - নীল কালার */
         .btn-active { 
-            background-color: #6b7280 !important; 
+            background-color: #3b82f6 !important; 
+            cursor: not-allowed; 
+            color: #fff; 
+        }
+
+        /* পূর্বের প্যাকেজ বাটন - লাল কালার */
+        .btn-old { 
+            background-color: #ef4444 !important; 
             cursor: not-allowed; 
             color: #fff; 
         }
@@ -151,41 +161,8 @@
             মাই রিচার্জ ব্যালেন্স: ৳ <span id="myCashBalance">0.00</span>
         </div>
 
-        <!-- প্যাকেজ ১ -->
-        <div class="card" id="pkg-card-1">
-            <h3>টাস্ক প্যাকেজ ১</h3>
-            <p>প্রতিদিন ১০টি টাস্ক</p>
-            <p>আপগ্রেড করলে ১টি লাকি স্পিন</p>
-            <div class="price">মূল্য: ৳ ৩০০০</div>
-            <button class="btn-buy" id="btn-task.1" onclick="buyPackage('task.1', 3000, 1)">প্যাকেজ কিনুন</button>
-        </div>
-
-        <!-- প্যাকেজ ২ -->
-        <div class="card" id="pkg-card-2">
-            <h3>টাস্ক প্যাকেজ ২</h3>
-            <p>প্রতিদিন ১৫টি টাস্ক</p>
-            <p>আপগ্রেড করলে ২টি লাকি স্পিন</p>
-            <div class="price">মূল্য: ৳ ৪৫০০</div>
-            <button class="btn-buy" id="btn-task.2" onclick="buyPackage('task.2', 4500, 2)">প্যাকেজ কিনুন</button>
-        </div>
-
-        <!-- প্যাকেজ ৩ -->
-        <div class="card" id="pkg-card-3">
-            <h3>টাস্ক প্যাকেজ ৩</h3>
-            <p>প্রতিদিন ২০টি টাস্ক</p>
-            <p>আপগ্রেড করলে ৩টি লাকি স্পিন</p>
-            <div class="price">মূল্য: ৳ ৬০০০</div>
-            <button class="btn-buy" id="btn-task.3" onclick="buyPackage('task.3', 6000, 3)">প্যাকেজ কিনুন</button>
-        </div>
-
-        <!-- প্যাকেজ ৪ -->
-        <div class="card" id="pkg-card-4">
-            <h3>টাস্ক প্যাকেজ ৪</h3>
-            <p>প্রতিদিন ২৫টি টাস্ক</p>
-            <p>আপগ্রেড করলে ৩টি লাকি স্পিন</p>
-            <div class="price">মূল্য: ৳ ৭৫০০</div>
-            <button class="btn-buy" id="btn-task.4" onclick="buyPackage('task.4', 7500, 4)">প্যাকেজ কিনুন</button>
-        </div>
+        <!-- ফায়ারবেস থেকে ডাইনামিক প্যাকেজগুলো এখানে লোড হবে -->
+        <div id="packages-list"></div>
     </div>
 
     <!-- নিচের নেভবার -->
@@ -200,7 +177,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -218,14 +195,7 @@
 
       let currentUser = null;
       let userData = null;
-      const packageLevels = { "task.1": 1, "task.2": 2, "task.3": 3, "task.4": 4 };
-
-      const packagePrices = {
-        "task.1": 3000,
-        "task.2": 4500,
-        "task.3": 6000,
-        "task.4": 7500
-      };
+      let allPackages = {}; // ডাটাবেজের সব প্যাকেজ এখানে জমা থাকবে
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -236,25 +206,55 @@
             if (userDoc.exists()) {
               userData = userDoc.data();
               document.getElementById('myCashBalance').innerText = (userData.myCash || 0).toFixed(2);
+            }
 
-              const currentPkg = userData.package;
-              const currentLevel = packageLevels[currentPkg] || 0;
+            // ফায়ারবেস থেকে প্যাকেজগুলো লেভেল অনুযায়ী লোড করা
+            const q = query(collection(db, "packages"), orderBy("level", "asc"));
+            const querySnapshot = await getDocs(q);
+            
+            const packagesContainer = document.getElementById('packages-list');
+            packagesContainer.innerHTML = "";
 
-              ['task.1', 'task.2', 'task.3', 'task.4'].forEach((pkgId, index) => {
-                const btn = document.getElementById(`btn-${pkgId}`);
-                const pkgLvl = index + 1;
+            const currentPkg = userData ? userData.package : "";
+            let currentLevel = 0;
 
-                if (currentPkg === pkgId) {
-                  btn.innerText = "সক্রিয় আছে";
-                  btn.className = "btn-buy btn-active";
-                  btn.disabled = true;
-                } else if (currentLevel > pkgLvl) {
-                  btn.innerText = "পূর্বের প্যাকেজ";
-                  btn.disabled = true;
-                  btn.style.backgroundColor = "#9ca3af";
-                }
-              });
-            }   
+            querySnapshot.forEach((docSnap) => {
+              const pkgData = docSnap.data();
+              allPackages[pkgData.packageId] = pkgData;
+              if (pkgData.packageId === currentPkg) {
+                currentLevel = pkgData.level;
+              }
+            });
+
+            querySnapshot.forEach((docSnap) => {
+              const pkg = docSnap.data();
+              
+              let btnText = "প্যাকেজ কিনুন";
+              let btnClass = "btn-buy";
+              let isDisabled = "";
+
+              if (currentPkg === pkg.packageId) {
+                btnText = "সক্রিয় আছে";
+                btnClass = "btn-buy btn-active";
+                isDisabled = "disabled";
+              } else if (currentLevel > pkg.level) {
+                btnText = "পূর্বের প্যাকেজ";
+                btnClass = "btn-buy btn-old";
+                isDisabled = "disabled";
+              }
+
+              const cardHTML = `
+                <div class="card" id="pkg-card-${pkg.packageId}">
+                    <h3>${pkg.name}</h3>
+                    <p>প্রতিদিন ${pkg.tasksLimit}টি টাস্ক</p>
+                    <p>আপগ্রেড করলে ${pkg.luckySpin}টি লাকি স্পিন</p>
+                    <div class="price">মূল্য: ৳ ${pkg.price}</div>
+                    <button class="${btnClass}" id="btn-${pkg.packageId}" ${isDisabled} onclick="buyPackage('${pkg.packageId}', ${pkg.price}, ${pkg.level})">${btnText}</button>
+                </div>
+              `;
+              packagesContainer.innerHTML += cardHTML;
+            });
+
           } catch (error) {
             console.error("ডাটা লোড করতে সমস্যা হয়েছে:", error);
           }
@@ -269,8 +269,17 @@
           return;
         }
 
+        const pkgDetails = allPackages[packageId];
+        if (!pkgDetails) {
+          alert("প্যাকেজ তথ্য পাওয়া যায়নি!");
+          return;
+        }
+
         const currentPkg = userData.package;
-        const currentLevel = packageLevels[currentPkg] || 0;
+        let currentLevel = 0;
+        if (currentPkg && allPackages[currentPkg]) {
+          currentLevel = allPackages[currentPkg].level;
+        }
 
         if (currentLevel >= targetLevel) {
           alert("আপনি এর চেয়ে উঁচু বা সমান প্যাকেজে আছেন। নিম্ন প্যাকেজ কিনতে পারবেন না।");
@@ -290,26 +299,13 @@
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
 
-          let bonusSpins = 0;
-          let fixedCashBonus = 0;
+          const bonusSpins = pkgDetails.luckySpin || 0;
+          const fixedCashBonus = pkgDetails.fixedCashBonus || 0;
           let previousPackageRefund = 0;
 
-          if (targetLevel === 1) {
-            bonusSpins = 1; 
-            fixedCashBonus = 135; 
-          } else if (targetLevel === 2) {
-            bonusSpins = 2; 
-            fixedCashBonus = 235;
-          } else if (targetLevel === 3) {
-            bonusSpins = 3; 
-            fixedCashBonus = 350;
-          } else if (targetLevel === 4) {
-            bonusSpins = 3; 
-            fixedCashBonus = 475;
-          }
-
-          if (currentPkg && packagePrices[currentPkg]) {
-            previousPackageRefund = packagePrices[currentPkg] * 0.80;
+          // আগের প্যাকেজের ৮০% রিফান্ড হিসাব করা
+          if (currentPkg && allPackages[currentPkg]) {
+            previousPackageRefund = allPackages[currentPkg].price * 0.80;
           }
 
           const totalTaskCashBonus = fixedCashBonus + previousPackageRefund;
@@ -322,6 +318,7 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
+          // রেফারেল কমিশন লজিক
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
