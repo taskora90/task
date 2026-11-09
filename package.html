@@ -211,7 +211,7 @@
             // ফায়ারবেস থেকে প্যাকেজগুলো লেভেল অনুযায়ী লোড করা
             const q = query(collection(db, "packages"), orderBy("level", "asc"));
             const querySnapshot = await getDocs(q);
-            
+
             const packagesContainer = document.getElementById('packages-list');
             packagesContainer.innerHTML = "";
 
@@ -228,7 +228,7 @@
 
             querySnapshot.forEach((docSnap) => {
               const pkg = docSnap.data();
-              
+
               let btnText = "প্যাকেজ কিনুন";
               let btnClass = "btn-buy";
               let isDisabled = "";
@@ -255,7 +255,7 @@
                 </div>
               `;
 
-                   
+
               packagesContainer.innerHTML += cardHTML;
             });
 
@@ -322,32 +322,42 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // রেফারেল কমিশন লজিক
+          // রেফারেল কমিশন লজিক (প্যাকেজ চেক সিকিউরিটি সহ আপডেট করা)
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
             let referrerRef = null;
             let referrerSnap = await getDoc(doc(db, "users", referrerCode));
+            let referrerDocId = "";
 
             if (referrerSnap.exists()) {
               referrerRef = doc(db, "users", referrerCode);
+              referrerDocId = referrerCode;
             } else {
               const q = query(collection(db, "users"), where("referralCode", "==", referrerCode));
               const querySnapshot = await getDocs(q);
               if (!querySnapshot.empty) {
-                referrerRef = doc(db, "users", querySnapshot.docs[0].id);
+                referrerDocId = querySnapshot.docs[0].id;
+                referrerRef = doc(db, "users", referrerDocId);
+                referrerSnap = querySnapshot.docs[0];
               }
             }
 
-            if (referrerRef) {
-              const commissionAmount = price * 0.10; 
+            if (referrerRef && referrerSnap.exists()) {
+              const referrerData = referrerSnap.data();
+              const referrerPackage = referrerData.package || 'none';
 
-              await updateDoc(referrerRef, {
-                teamCommission: increment(commissionAmount),     
-                taskCash: increment(commissionAmount),           
-                totalEarnings: increment(commissionAmount),        
-                luckySpinCount: increment(bonusSpins) 
-              });
+              // শর্ত: রেফারকারীর নিজের প্যাকেজ 'none' বা খালি না থাকলে তবেই কমিশন/বোনাস পাবে
+              if (referrerPackage !== 'none') {
+                const commissionAmount = price * 0.10; 
+
+                await updateDoc(referrerRef, {
+                  teamCommission: increment(commissionAmount),     
+                  taskCash: increment(commissionAmount),           
+                  totalEarnings: increment(commissionAmount),        
+                  luckySpinCount: increment(bonusSpins) 
+                });
+              }
             }
           }
 
