@@ -16,8 +16,31 @@
         .loan-desc { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 20px; }
         .loan-btn { width: 100%; background: #ffc107; color: #000; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
         .loan-btn:hover { background: #e0a800; }
+        .loan-btn:disabled { background: #cccccc; cursor: not-allowed; }
         .info-note { background: #e2f0d9; color: #385723; padding: 12px; border-radius: 8px; font-size: 13px; text-align: center; margin-bottom: 20px; }
         .ads-wrapper { text-align: center; margin-top: 20px; }
+        
+        /* লোন লিস্ট স্টাইল */
+        .loan-history-section { margin-top: 25px; text-align: left; }
+        .loan-history-section h4 { font-size: 16px; color: #333; margin-bottom: 12px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        .loan-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .loan-item.active { cursor: pointer; border-left: 4px solid #007bff; }
+        .loan-item.active:hover { background: #f8f9fa; }
+        .loan-item.paid { border-left: 4px solid #28a745; opacity: 0.8; background: #fdfdfd; cursor: not-allowed; }
+        .loan-item.pending { border-left: 4px solid #ffc107; cursor: not-allowed; }
+        .loan-info p { margin: 2px 0; font-size: 13px; }
+        .status-badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-align: center; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-active { background: #cce5ff; color: #004085; }
+        .badge-paid { background: #d4edda; color: #155724; }
+
+        /* পেমেন্ট মোডাল */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #fff; padding: 20px; border-radius: 10px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal-content input { width: 90%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-align: center; }
+        .modal-btn-group { display: flex; gap: 10px; justify-content: center; }
+        .btn-pay { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-close { background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -33,12 +56,18 @@
             <h3>আপনার প্যাকেজের বরাদ্দকৃত লোন</h3>
             <span class="loan-amount-badge" id="loanAmountText">লোড হচ্ছে...</span>
             <p class="loan-desc" id="loanDescText">দয়া করে অপেক্ষা করুন, তথ্য চেক করা হচ্ছে...</p>
-            
+
             <div id="actionArea"></div>
         </div>
 
         <div class="info-note">
-            💡 <strong>নোট:</strong> লোন অনুমোদিত হলে টাকা সরাসরি আপনার <b>রিচার্জ ক্যাশ (My Cash)</b> ব্যালেন্সে জমা হবে।
+            💡 <strong>নোট:</strong> লোন অনুমোদিত হলে টাকা সরাসরি আপনার <b>TaskCash (My Cash)</b> ব্যালেন্সে জমা হবে এবং অটো/ম্যানুয়ালি সেখান থেকেই পরিশোধ হবে।
+        </div>
+
+        <!-- লোনের ইতিহাস ও পরিশোধের তালিকা -->
+        <div class="loan-history-section">
+            <h4>আপনার লোনের তালিকা</h4>
+            <div id="loanList">অপেক্ষা করুন...</div>
         </div>
 
         <div class="ads-wrapper">
@@ -48,10 +77,23 @@
 
     </div>
 
+    <!-- লোন শোধ করার পপআপ মোডাল -->
+    <div id="payModal" class="modal">
+        <div class="modal-content">
+            <h3>লোন পরিশোধ করুন</h3>
+            <p id="modalLoanDetails">বকেয়া পরিমাণ: ৳ 0</p>
+            <input type="number" id="payInputAmount" placeholder="পরিমাণ লিখুন (৳)">
+            <div class="modal-btn-group">
+                <button class="btn-pay" onclick="processPayment()">পরিশোধ করুন</button>
+                <button class="btn-close" onclick="closePayModal()">বন্ধ করুন</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, getDocs, query, where, orderBy, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -69,11 +111,13 @@
 
         let userLoanAmount = 0;
         let userPackageName = "কোনো প্যাকেজ নেই";
+        let currentUser = null;
+        let selectedLoanForPay = null;
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                currentUser = user;
                 try {
-                    // ১. യൂজার তথ্য ফেচ করা
                     const userRef = doc(db, "users", user.uid);
                     const userSnap = await getDoc(userRef);
 
@@ -81,21 +125,14 @@
                         const userData = userSnap.data();
                         const userPkgId = userData.package || "none";
 
-                        // ২. অ্যাডমিন প্যানেলের সেটিংস ফেচ করা
                         const settingsRef = doc(db, "admin_settings", "loan_config");
                         const settingsSnap = await getDoc(settingsRef);
                         const loanConfig = settingsSnap.exists() ? settingsSnap.data() : {};
 
-                        // ৩. প্যাকেজের নাম ও লোন অ্যামাউন্ট নির্ধারণ
                         if (userPkgId !== "none" && userPkgId !== "") {
-                            // প্যাকেজের নাম ফায়ারবেস থেকে বের করা
                             const pkgRef = doc(db, "packages", userPkgId);
                             const pkgSnap = await getDoc(pkgRef);
-                            if (pkgSnap.exists()) {
-                                userPackageName = pkgSnap.data().name || userPkgId;
-                            } else {
-                                userPackageName = userPkgId;
-                            }
+                            userPackageName = pkgSnap.exists() ? (pkgSnap.data().name || userPkgId) : userPkgId;
                             userLoanAmount = loanConfig[userPkgId] !== undefined ? loanConfig[userPkgId] : 0;
                         } else {
                             userPackageName = "কোনো প্যাকেজ নেই (Free)";
@@ -105,15 +142,8 @@
                         document.getElementById('loanAmountText').innerText = `৳ ${userLoanAmount.toLocaleString()}`;
                         document.getElementById('loanDescText').innerText = `আপনার বর্তমান প্যাকেজ: (${userPackageName})`;
 
-                        if (userLoanAmount > 0) {
-                            document.getElementById('actionArea').innerHTML = `
-                                <button class="loan-btn" onclick="sendLoanRequest('${user.uid}', '${userData.name || "Unknown"}', '${userData.phone || "N/A"}', '${userPackageName}')">
-                                    লোন রিকোয়েস্ট পাঠান
-                                </button>
-                            `;
-                        } else {
-                            document.getElementById('actionArea').innerHTML = `<p style="color:red; font-weight:bold;">এই প্যাকেজের জন্য লোন বরাদ্দ নেই।</p>`;
-                        }
+                        // লোন ইতিহাস লোড এবং অটো-ডিডাকশন চেক
+                        await loadLoanHistoryAndCheckAutoPay(user.uid, userData);
                     }
                 } catch (error) {
                     console.error("Error loading loan data:", error);
@@ -121,8 +151,118 @@
             } else {
                 document.getElementById('loanAmountText').innerText = "লগইন প্রয়োজন";
                 document.getElementById('loanDescText').innerText = "লোন রিকোয়েস্ট পাঠাতে প্রথমে লগইন করুন।";
+                document.getElementById('loanList').innerHTML = "<p>লগইন করুন।</p>";
             }
         });
+
+        // লোন হিস্ট্রি লোড এবং ১৫ দিনের অটো কেটে নেওয়ার লজিক
+        async function loadLoanHistoryAndCheckAutoPay(userId, userData) {
+            const q = query(collection(db, "loan_requests"), where("userId", "==", userId), orderBy("requestTime", "desc"));
+            const querySnapshot = await getDocs(q);
+
+            let hasUnpaidLoan = false;
+            let loanListHTML = "";
+
+            if (querySnapshot.empty) {
+                loanListHTML = "<p style='color:#777;'>আপনার কোনো পূর্ববর্তী লোন নেই।</p>";
+            } else {
+                for (const docSnap of querySnapshot.docs) {
+                    const loan = docSnap.data();
+                    const loanId = docSnap.id;
+                    const dueAmount = loan.dueAmount !== undefined ? loan.dueAmount : loan.amount;
+
+                    // লোন কি পেন্ডিং বা অ্যাক্টিভ?
+                    if (loan.status === "pending" || loan.status === "approved" || loan.status === "active") {
+                        if (dueAmount > 0) {
+                            hasUnpaidLoan = true;
+                        }
+                    }
+
+                    // ১৫ দিনের অটো কেটে নেয়ার লজিক (অ্যাক্টিভ লোনের জন্য)
+                    if ((loan.status === "approved" || loan.status === "active") && dueAmount > 0) {
+                        await checkAndApplyAutoDeduction(loanId, loan, userId, userData.taskcash || 0);
+                    }
+
+                    // তালিকা প্রদর্শন UI
+                    let statusBadge = "";
+                    let clickAction = "";
+
+                    if (loan.status === "pending") {
+                        statusBadge = `<span class="status-badge badge-pending">পেন্ডিং</span>`;
+                    } else if (dueAmount <= 0 || loan.status === "paid") {
+                        statusBadge = `<span class="status-badge badge-paid">পরিশোধিত</span>`;
+                    } else {
+                        statusBadge = `<span class="status-badge badge-active">চলমান (পরিশোধ করুন)</span>`;
+                        clickAction = `onclick="openPayModal('${loanId}', ${dueAmount})"`;
+                    }
+
+                    loanListHTML += `
+                        <div class="loan-item ${loan.status === 'paid' || dueAmount <= 0 ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}" ${clickAction}>
+                            <div class="loan-info">
+                                <p><strong>মূল লোন:</strong> ৳${loan.amount}</p>
+                                <p><strong>বকেয়া:</strong> <span style="color:red; font-weight:bold;">৳${dueAmount}</span></p>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById('loanList').innerHTML = loanListHTML;
+
+            // নতুন রিকোয়েস্ট বোতামের আপডেট (লোন বাকি থাকলে বা পেন্ডিং থাকলে ডিসেবল থাকবে)
+            if (hasUnpaidLoan) {
+                document.getElementById('actionArea').innerHTML = `
+                    <button class="loan-btn" disabled>আপনার একটি লোন সচল/পেন্ডিং রয়েছে</button>
+                `;
+            } else if (userLoanAmount > 0) {
+                document.getElementById('actionArea').innerHTML = `
+                    <button class="loan-btn" onclick="sendLoanRequest('${userId}', '${userData.name || "Unknown"}', '${userData.phone || "N/A"}', '${userPackageName}')">
+                        লোন রিকোয়েস্ট পাঠান
+                    </button>
+                `;
+            } else {
+                document.getElementById('actionArea').innerHTML = `<p style="color:red; font-weight:bold;">এই প্যাকেজের জন্য লোন বরাদ্দ নেই।</p>`;
+            }
+        }
+
+        // ১৫ দিনে প্রতিদিন ১ ভাগ কেটে নেয়ার লজিক
+        async function checkAndApplyAutoDeduction(loanId, loanData, userId, userBalance) {
+            const now = new Date();
+            const lastDeduction = loanData.lastAutoDeductionTime ? loanData.lastAutoDeductionTime.toDate() : loanData.requestTime.toDate();
+            
+            // ২৪ ঘণ্টার হিসাব (Milliseconds)
+            const diffHours = Math.floor((now - lastDeduction) / (1000 * 60 * 60));
+
+            if (diffHours >= 24) {
+                const daysPassed = Math.floor(diffHours / 24);
+                const dailyCut = Math.ceil(loanData.amount / 15); // ১৫ ভাগের ১ ভাগ
+                const totalAutoDeduct = dailyCut * daysPassed;
+
+                const currentDue = loanData.dueAmount !== undefined ? loanData.dueAmount : loanData.amount;
+                const actualDeduct = Math.min(totalAutoDeduct, currentDue);
+
+                if (actualDeduct > 0 && userBalance >= actualDeduct) {
+                    // TaskCash থেকে কাটা
+                    const userRef = doc(db, "users", userId);
+                    await updateDoc(userRef, { taskcash: increment(-actualDeduct) });
+
+                    // লোনের বকেয়া আপডেট
+                    const newDue = currentDue - actualDeduct;
+                    const loanRef = doc(db, "loan_requests", loanId);
+                    
+                    let updateObject = {
+                        dueAmount: newDue,
+                        lastAutoDeductionTime: serverTimestamp()
+                    };
+                    if (newDue <= 0) {
+                        updateObject.status = "paid";
+                    }
+
+                    await updateDoc(loanRef, updateObject);
+                }
+            }
+        }
 
         // লোন রিকোয়েস্ট পাঠানোর ফাংশন
         window.sendLoanRequest = async function(userId, userName, userPhone, userPackage) {
@@ -135,14 +275,80 @@
                     userPhone: userPhone,
                     userPackage: userPackage,
                     amount: userLoanAmount,
+                    dueAmount: userLoanAmount,
                     status: "pending",
                     requestTime: serverTimestamp()
                 });
 
                 alert("আপনার লোন রিকোয়েস্টটি সফলভাবে জমা হয়েছে!");
+                location.reload();
             } catch (error) {
                 console.error("Error sending request: ", error);
                 alert("রিকোয়েস্ট পাঠাতে সমস্যা হয়েছে।");
+            }
+        };
+
+        // পেমেন্ট মোডাল ওপেন
+        window.openPayModal = function(loanId, dueAmount) {
+            selectedLoanForPay = { id: loanId, due: dueAmount };
+            document.getElementById('modalLoanDetails').innerText = `বর্তমান বকেয়া পরিমাণ: ৳ ${dueAmount}`;
+            document.getElementById('payInputAmount').value = dueAmount;
+            document.getElementById('payModal').style.display = 'flex';
+        };
+
+        // পেমেন্ট মোডাল ক্লোজ
+        window.closePayModal = function() {
+            document.getElementById('payModal').style.display = 'none';
+            selectedLoanForPay = null;
+        };
+
+        // ম্যানুয়ালি টাকা শোধ করার ফাংশন
+        window.processPayment = async function() {
+            const payAmount = parseFloat(document.getElementById('payInputAmount').value);
+
+            if (!payAmount || payAmount <= 0) {
+                alert("সঠিক টাকার পরিমাণ দিন!");
+                return;
+            }
+
+            if (payAmount > selectedLoanForPay.due) {
+                alert(`আপনার বকেয়া ৳ ${selectedLoanForPay.due} টাকার চেয়ে বেশি পেমেন্ট করতে পারবেন না।`);
+                return;
+            }
+
+            try {
+                const userRef = doc(db, "users", currentUser.uid);
+                const userSnap = await getDoc(userRef);
+                const currentTaskCash = userSnap.data().taskcash || 0;
+
+                if (currentTaskCash < payAmount) {
+                    alert("আপনার TaskCash (My Cash) এ পর্যাপ্ত ব্যালেন্স নেই!");
+                    return;
+                }
+
+                // ১. ইউজার ব্যালেন্স থেকে কাটা
+                await updateDoc(userRef, {
+                    taskcash: increment(-payAmount)
+                });
+
+                // ২. লোন ডকুমেন্টে বকেয়া আপডেট
+                const newDue = selectedLoanForPay.due - payAmount;
+                const loanRef = doc(db, "loan_requests", selectedLoanForPay.id);
+
+                let updateData = { dueAmount: newDue };
+                if (newDue <= 0) {
+                    updateData.status = "paid";
+                }
+
+                await updateDoc(loanRef, updateData);
+
+                alert("লোন সফলভাবে পরিশোধ করা হয়েছে!");
+                closePayModal();
+                location.reload();
+
+            } catch (error) {
+                console.error("Payment error:", error);
+                alert("পেমেন্ট সম্পন্ন করতে সমস্যা হয়েছে।");
             }
         };
     </script>
