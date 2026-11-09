@@ -278,6 +278,7 @@
 
     let unsubChat = null;
     let lastAdminMsgCount = 0;
+    let isInitialLoad = true;
 
     // টেলিগ্রাম/হোয়াটসঅ্যাপ সাব-মেনু টগল
     window.toggleSubmenu = function(id) {
@@ -295,22 +296,23 @@
 
       if (container.style.display === 'block') {
         container.style.display = 'none';
-        if (unsubChat) unsubChat();
       } else {
         container.style.display = 'block';
-        loadUserChatRealtime();
         document.getElementById('supportNotificationPopup').style.display = 'none';
+        const messagesArea = document.getElementById('chatMessagesArea');
+        messagesArea.scrollTop = messagesArea.scrollHeight;
       }
     }
 
     window.openDirectChatFromNotification = function() {
       document.getElementById('supportNotificationPopup').style.display = 'none';
       document.getElementById('directChatContainer').style.display = 'block';
-      loadUserChatRealtime();
+      const messagesArea = document.getElementById('chatMessagesArea');
+      messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
-    // ফায়ারবেস থেকে রিয়েল-টাইমে চ্যাট লোড করা
-    function loadUserChatRealtime() {
+    // ব্যাকগ্রাউন্ডে সবসময় রিয়েল-টাইমে চ্যাট লোড করা এবং নোটিফিকেশন চেক করা
+    function initBackgroundChatListener() {
       const messagesArea = document.getElementById('chatMessagesArea');
       const q = query(collection(db, "support_chats", currentUserId, "messages"), orderBy("timestamp", "asc"));
 
@@ -322,6 +324,7 @@
 
         if (snapshot.empty) {
           messagesArea.innerHTML = `<div style="text-align: center; color: #888; font-size: 12px; margin: auto;">কোনো বার্তা নেই। আপনার মেসেজ পাঠান!</div>`;
+          isInitialLoad = false;
           return;
         }
 
@@ -343,13 +346,24 @@
           `;
         });
 
-        if (lastAdminMsgCount > 0 && adminMsgTotal > lastAdminMsgCount && document.getElementById('directChatContainer').style.display !== 'block') {
+        // যদি পেজ লোড হওয়ার পরের ঘটনা হয় এবং চ্যাট বক্স বন্ধ থাকে, তবে পপআপ দেখাবে
+        const chatContainer = document.getElementById('directChatContainer');
+        const isChatOpen = chatContainer && chatContainer.style.display === 'block';
+
+        if (!isInitialLoad && adminMsgTotal > lastAdminMsgCount && !isChatOpen) {
           document.getElementById('supportNotificationPopup').style.display = 'block';
         }
+
         lastAdminMsgCount = adminMsgTotal;
+        isInitialLoad = false;
         messagesArea.scrollTop = messagesArea.scrollHeight;
       });
     }
+
+    // পেজ ওপেন হওয়ার সাথেই ব্যাকগ্রাউন্ড লিসেনার চালু করা
+    document.addEventListener("DOMContentLoaded", () => {
+      initBackgroundChatListener();
+    });
 
     // এন্টার প্রেস করে মেসেজ পাঠানোর সুবিধা
     window.handleChatKeypress = function(e) {
@@ -378,7 +392,7 @@
           text: text,
           timestamp: serverTimestamp()
         });
-        
+
         inputEl.value = '';
       } catch (error) {
         alert("মেসেজ পাঠাতে সমস্যা হয়েছে: " + error.message);
