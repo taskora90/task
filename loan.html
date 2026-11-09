@@ -3,38 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>লোন পেজ - Loan</title>
+    <title>লোন পেজ - TaskOra</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f9;
             margin: 0;
             padding: 20px;
         }
         .main-container {
-            max-width: 400px;
+            max-width: 450px;
             margin: 0 auto;
         }
-        /* নোটিফিকেশন বক্সের ডিজাইন */
-        .loan-status-box {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        /* পেজ হেডার ডিজাইন */
+        .page-header {
             text-align: center;
+            margin-bottom: 20px;
+            color: #2b2d42;
         }
-        .loan-status-box h3 {
+        .page-header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+        .page-header p {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        /* লোন কার্ড ডিজাইন */
+        .loan-card {
+            background: #fff;
+            padding: 25px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            text-align: center;
+            margin-bottom: 20px;
+            border-top: 4px solid #ffc107;
+        }
+        .loan-card h3 {
             margin-top: 0;
-            margin-bottom: 10px;
+            color: #333;
             font-size: 18px;
         }
-        .loan-status-box p {
-            margin: 0;
+        .loan-amount-badge {
+            font-size: 26px;
+            font-weight: bold;
+            color: #28a745;
+            margin: 15px 0;
+            display: block;
+        }
+        .loan-desc {
             font-size: 14px;
-            line-height: 1.5;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
         }
         /* লোন বাটন স্টাইল */
         .loan-btn {
@@ -43,19 +65,29 @@
             color: #000;
             border: none;
             padding: 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 15px;
+            transition: background 0.3s;
         }
         .loan-btn:hover {
             background: #e0a800;
         }
-        /* আপনার দেওয়া অ্যাড স্টাইল */
-        .ads-wrapper {
-            margin-top: 20px;
+        /* নোট বক্স */
+        .info-note {
+            background: #e2f0d9;
+            color: #385723;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
             text-align: center;
+            margin-bottom: 20px;
+        }
+        /* ব্যানার অ্যাড স্টাইল */
+        .ads-wrapper {
+            text-align: center;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -63,23 +95,30 @@
 
     <div class="main-container">
 
-        <!-- লোন স্ট্যাটাস মেসেজ বক্স -->
-        <div class="loan-status-box" id="loanStatusBox">
-            <h3 id="statusTitle">লোন সেকশন</h3>
-            <p id="statusDesc">আপনি চাইলে নিচে থেকে লোন রিকোয়েস্ট পাঠাতে পারেন।</p>
+        <div class="page-header">
+            <h2>জরুরি লোন সুবিধা</h2>
+            <p>আপনার প্যাকেজ অনুযায়ী প্রযোজ্য লোন গ্রহণ করুন</p>
+        </div>
+
+        <!-- মূল লোন কার্ড -->
+        <div class="loan-card">
+            <h3>আপনার জন্য বরাদ্দকৃত লোন</h3>
+            <span class="loan-amount-badge" id="loanAmountText">লোড হচ্ছে...</span>
+            <p class="loan-desc" id="loanDescText">দয়া করে একটু অপেক্ষা করুন, আপনার প্যাকেজ চেক করা হচ্ছে...</p>
             
-            <!-- রিকোয়েস্ট পাঠানোর বাটন -->
-            <div id="actionArea" style="display: block;">
-                <button class="loan-btn" onclick="sendLoanRequest()">লোন রিকোয়েস্ট পাঠান</button>
+            <div id="actionArea">
+                <!-- ডাইনামিক বাটন এখানে আসবে -->
             </div>
+        </div>
+
+        <div class="info-note">
+            💡 <strong>সতর্কতা:</strong> লোন অ্যাডমিন কর্তৃক অ্যাপ্রুভ হওয়ার সাথে সাথে সরাসরি আপনার <b>My Cash</b> ব্যালেন্সে যুক্ত হয়ে যাবে।
         </div>
 
         <!-- ব্যানার অ্যাড সেকশন -->
         <div class="ads-wrapper">
-            <div class="ad-banner-container">
-                <script async="async" data-cfasync="false" src="https://bauval.org/21/e67235acb5b7230c8c2fdb2cd4915292"></script>
-                <div id="container-e67235acb5b7230c8c2fdb2cd4915292"></div>
-            </div>
+            <script async="async" data-cfasync="false" src="https://bauval.org/21/e67235acb5b7230c8c2fdb2cd4915292"></script>
+            <div id="container-e67235acb5b7230c8c2fdb2cd4915292"></div>
         </div>
 
     </div>
@@ -87,7 +126,7 @@
     <!-- Firebase JavaScript Modular SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -104,35 +143,63 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const loanAmount = 1000; // লোনের পরিমাণ
+        // গ্লোবাল ভেরিয়েবল যাতে লোন অ্যামাউন্ট ফাংশনগুলোর মধ্যে ব্যবহার করা যায়
+        let assignedLoanAmount = 1000; 
 
-        // লোন রিকোয়েস্ট পাঠানোর ফাংশন (সম্পূর্ণ আলাদা কালেকশনে ডাটা তৈরি হবে)
-        window.sendLoanRequest = async function() {
-            const user = auth.currentUser;
-            if (!user) {
-                alert("দয়া করে প্রথমে লগইন করুন।");
-                return;
+        // ইউজার লগইন চেক এবং প্যাকেজ অনুযায়ী লোন নির্ধারণ
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userRef = doc(db, "users", user.uid);
+                    const userSnap = await getDoc(userRef);
+                    
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
+                        const userPackage = userData.package || "none";
+
+                        // এডমিন প্যানেল থেকে প্যাকেজ অনুযায়ী লোনের অ্যামাউন্ট সেট করতে পারেন (যেমন: VIP হলে ৫০০০, সাধারণ হলে ১০০০)
+                        if (userPackage === "VIP") {
+                            assignedLoanAmount = 5000;
+                        } else if (userPackage === "Standard") {
+                            assignedLoanAmount = 2500;
+                        } else {
+                            assignedLoanAmount = 1000; // ডিফল্ট লোন অ্যামাউন্ট
+                        }
+
+                        document.getElementById('loanAmountText').innerText = `৳ ${assignedLoanAmount.toLocaleString()}`;
+                        document.getElementById('loanDescText').innerText = `আপনার বর্তমান প্যাকেজ (${userPackage}) অনুযায়ী আপনি এই লোনটির জন্য আবেদন করতে পারবেন।`;
+                        
+                        document.getElementById('actionArea').innerHTML = `
+                            <button class="loan-btn" onclick="sendLoanRequest('${user.uid}', '${userData.name || "Unknown"}', '${userData.phone || "N/A"}')">
+                                লোন রিকোয়েস্ট পাঠান
+                            </button>
+                        `;
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            } else {
+                document.getElementById('loanAmountText').innerText = "লগইন প্রয়োজন";
+                document.getElementById('loanDescText').innerText = "লোন দেখতে বা রিকোয়েস্ট পাঠাতে প্রথমে লগইন করুন।";
             }
+        });
 
-            if (!confirm(`আপনি কি ${loanAmount} টাকার জন্য লোন রিকোয়েস্ট পাঠাতে চান?`)) return;
+        // লোন রিকোয়েস্ট সম্পূর্ণ আলাদা কালেকশনে (loan_requests) পাঠানোর ফাংশন
+        window.sendLoanRequest = async function(userId, userName, userPhone) {
+            if (!confirm(`আপনি কি ${assignedLoanAmount} টাকার জন্য লোন রিকোয়েস্ট পাঠাতে চান?`)) return;
 
             try {
-                // ইউজারের নাম বা ফোন নম্বর তোলার জন্য শুধু তার প্রোফাইল ডেটা পড়া হচ্ছে (কিন্তু ইউজারের টেবিলে কোনো লোন ফিল্ড বা পরিবর্তন করা হবে না)
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                const userData = userSnap.exists() ? userSnap.data() : {};
-
-                // ফায়ারবেসে সম্পূর্ণ আলাদা 'loan_requests' কালেকশনে নতুন রিকোয়েস্ট ফাইল/ডকুমেন্ট তৈরি হবে
+                // ইউজারের মূল ডাটা পরিবর্তন না করে সম্পূর্ণ আলাদা ফোল্ডারে রিকোয়েস্ট জমা হবে
                 await addDoc(collection(db, "loan_requests"), {
-                    userId: user.uid,
-                    userName: userData.name || "Unknown",
-                    userPhone: userData.phone || "N/A",
-                    amount: loanAmount,
+                    userId: userId,
+                    userName: userName,
+                    userPhone: userPhone,
+                    amount: assignedLoanAmount,
                     status: "pending",
                     requestTime: serverTimestamp()
                 });
 
-                alert("আপনার লোন রিকোয়েস্ট সফলভাবে জমা হয়েছে!");
+                alert("আপনার লোন রিকোয়েস্ট সফলভাবে অ্যাডমিনের কাছে জমা হয়েছে!");
 
             } catch (error) {
                 console.error("Error sending loan request: ", error);
