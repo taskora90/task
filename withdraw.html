@@ -185,7 +185,7 @@
         }
       });
 
-      // ৩. আলাদা কালেকশনে উইথড্র প্রোফাইল সেভ করার লজিক (এখানে ইউজার আইডি এর বদলে জিমেইল বা ফোন নম্বর দেওয়া হলো)
+      // ৩. আলাদা কালেকশনে উইথড্র প্রোফাইল সেভ করার লজিক
       document.getElementById('saveProfileBtn').onclick = async () => {
         const method = document.getElementById('setupMethod').value;
         const account = document.getElementById('setupAccountNo').value.trim();
@@ -200,20 +200,18 @@
         saveBtn.innerText = "সেভ হচ্ছে...";
 
         try {
-          // ইউজারের ইমেইল থাকলে সেটাই ব্যবহার হবে, না থাকলে ফোন নম্বর দিয়ে আপনার ফরম্যাট তৈরি করবে
           let userIdentifier = currentUser.email;
           if (!userIdentifier && currentUser.phoneNumber) {
             userIdentifier = currentUser.phoneNumber + "@taskora90.app";
           }
           if (!userIdentifier) {
-            userIdentifier = currentUser.uid + "@taskora90.app"; // বিকল্প হিসেবে
+            userIdentifier = currentUser.uid + "@taskora90.app";
           }
 
-          // 'withdrawProfiles' নামের আলাদা কালেকশনে ইউজারের UID দিয়ে ডকুমেন্ট তৈরি হবে
           const profileDocRef = doc(db, "withdrawProfiles", currentUser.uid);
           await setDoc(profileDocRef, {
             userId: currentUser.uid,
-            userEmailOrPhone: userIdentifier, // এখানে জিমেইল বা ফোন ফরম্যাট সেভ হবে
+            userEmailOrPhone: userIdentifier,
             method: method,
             account: account,
             createdAt: serverTimestamp()
@@ -229,7 +227,7 @@
         }
       };
 
-      // ৪. টাকা উত্তোলন রিকোয়েস্ট পাঠানোর লজিক
+      // ৪. টাকা উত্তোলন রিকোয়েস্ট পাঠানোর লজিক (প্যাকেজ চেক সিকিউরিটি সহ)
       document.getElementById('withdrawBtn').onclick = async () => {
         const amount = selectedAmount;
 
@@ -266,7 +264,7 @@
           const userDocRef = doc(db, "users", currentUser.uid);
           const todayStr = now.toISOString().split('T')[0];
 
-          // ট্রানজেকশনের মাধ্যমে লিমিট ও ব্যালেন্স চেক এবং আপডেট
+          // ট্রানজেকশনের মাধ্যমে প্যাকেজ, লিমিট ও ব্যালেন্স চেক এবং আপডেট
           await runTransaction(db, async (transaction) => {
             const userDocSnap = await transaction.get(userDocRef);
             if (!userDocSnap.exists()) {
@@ -274,6 +272,13 @@
             }
 
             const userData = userDocSnap.data();
+            
+            // --- নতুন সিকিউরিটি চেক: প্যাকেজ কেনা না থাকলে উইথড্র ব্লক করা ---
+            const userPackage = userData.package || 'none';
+            if (userPackage === 'none') {
+              throw new Error("⚠️ দুঃখিত! উইথড্র করার জন্য আপনাকে অবশ্যই যেকোনো একটি প্যাকেজ কিনতে হবে।");
+            }
+
             const latestTaskCash = userData.taskCash || 0;
             const lastWithdrawDate = userData.lastWithdrawDate || "";
 
@@ -297,7 +302,7 @@
           // অ্যাডমিন প্যানেলের রিকোয়েস্ট কালেকশনে ডাটা সেভ করা
           await addDoc(collection(db, "withdrawals"), {
             userId: currentUser.uid,
-            userEmail: userIdentifier, // এখানে জিমেইল বা ফোন নম্বর সেভ হবে
+            userEmail: userIdentifier,
             amount: amount,
             method: userWithdrawMethod,
             account: userWithdrawAccount,
