@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>লোন অ্যাডমিন প্যানেল - TaskOra</title>
+    <title>লোন ও উইথড্র অ্যাডমিন প্যানেল - TaskOra</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
         .container { max-width: 850px; margin: 0 auto; }
         #loginBox { max-width: 350px; margin: 100px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
         #loginBox input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        #adminDashboard { display: none; }
+        
+        #adminDashboard, #withdrawManagerPage { display: none; }
+        
         .header { background: #2b2d42; color: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .header h2 { margin: 0; font-size: 20px; }
         .settings-card { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -23,37 +25,37 @@
         .request-info p { margin: 3px 0; font-size: 14px; color: #666; }
         .btn-group button { padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-left: 5px; }
         .btn-approve { background-color: #28a745; color: white; }
-        .btn-approve:hover { background-color: #218838; }
         .btn-reject { background-color: #dc3545; color: white; }
-        .btn-reject:hover { background-color: #c82333; }
         .logout-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
         .no-data { text-align: center; color: #777; background: #fff; padding: 20px; border-radius: 8px; }
 
-        /* উইথড্র প্রোফাইল ম্যানেজমেন্ট বাটন ও সেকশন স্টাইল */
-        .withdraw-section-toggle { background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; text-align: left; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .withdraw-profile-section { background: #fff; padding: 20px; border-radius: 8px; margin-top: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: none; }
-        .withdraw-profile-section h3 { color: #2b2d42; margin-top: 0; margin-bottom: 15px; }
-        .profile-search-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; font-size: 14px; }
-        .profile-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .profile-table th, .profile-table td { border: 1px solid #dee2e6; padding: 10px; text-align: left; font-size: 14px; }
+        /* মেনু বাটন স্টাইল */
+        .menu-card-btn { background: #2b2d42; color: white; border: none; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; text-align: left; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s; }
+        .menu-card-btn:hover { background: #3f4261; }
+
+        /* আলাদা উইথড্র পেজের স্টাইল */
+        .profile-search-input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; font-size: 15px; }
+        .profile-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .profile-table th, .profile-table td { border: 1px solid #dee2e6; padding: 12px; text-align: left; font-size: 14px; }
         .profile-table th { background-color: #f8f9fa; color: #333; }
         .profile-table select, .profile-table input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        .btn-update { background-color: #17a2b8; color: white; padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-delete { background-color: #dc3545; color: white; padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-update { background-color: #17a2b8; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-delete { background-color: #dc3545; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-<body>
 
+
+<body>
     <div class="container">
         <!-- ১. পাসওয়ার্ড প্রবেশ বক্স -->
         <div id="loginBox">
             <h3>অ্যাডমিন লগইন</h3>
-            <p style="font-size: 13px; color: #666;">লোন প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন</p>
+            <p style="font-size: 13px; color: #666;">প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন</p>
             <input type="password" id="adminPassword" placeholder="পাসওয়ার্ড দিন">
             <button onclick="checkAdminLogin()" style="width:100%; background:#007bff; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">লগইন করুন</button>
         </div>
 
-        <!-- ২. অ্যাডমিন ড্যাশবোর্ড -->
+        <!-- ২. মূল লোন অ্যাডমিন ড্যাশবোর্ড -->
         <div id="adminDashboard">
             <div class="header">
                 <h2>📋 লোন রিকোয়েস্ট ও প্যাকেজ লোন সেটিংস</h2>
@@ -74,17 +76,23 @@
                 <p style="text-align:center;">ডাটা লোড হচ্ছে...</p>
             </div>
 
-            <!-- ৩. উইথড্র প্রোফাইল ম্যানেজমেন্ট টগল বাটন -->
-            <button class="withdraw-section-toggle" onclick="promptWithdrawPassword()">
+            <!-- আলাদা পেজে যাওয়ার বাটন -->
+            <button class="menu-card-btn" onclick="openWithdrawManagerPage()">
                 <span>👥 ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট</span>
-                <span>▼</span>
+                <span>➔</span>
             </button>
+        </div>
 
-            <!-- উইথড্র প্রোফাইল ম্যানেজমেন্ট সেকশন -->
-            <div id="withdrawProfileSection" class="withdraw-profile-section">
-                <h3>ইউজার উইথড্র প্রোফাইল লিস্ট</h3>
-                <!-- সার্চ বাটন/ইনপুট -->
-                <input type="text" id="withdrawSearchInput" class="profile-search-input" placeholder="ফোন নম্বর বা ইউজার আইডি দিয়ে সার্চ করুন..." onkeyup="filterWithdrawProfiles()">
+        <!-- ৩. সম্পূর্ণ আলাদা উইথড্র প্রোফাইল ম্যানেজমেন্ট পেজ -->
+        <div id="withdrawManagerPage">
+            <div class="header">
+                <h2>👥 ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট</h2>
+                <button class="logout-btn" onclick="backToMainDashboard()">⬅️ ড্যাশবোর্ডে ফিরে যান</button>
+            </div>
+
+            <div class="settings-card">
+                <!-- সার্চ ইনপুট -->
+                <input type="text" id="withdrawSearchInput" class="profile-search-input" placeholder="🔍 ফোন নম্বর, ইমেইল বা ইউজার আইডি দিয়ে সার্চ করুন..." onkeyup="filterWithdrawProfiles()">
                 
                 <div id="withdrawProfilesContainer">
                     <p style="text-align:center;">উইথড্র প্রোফাইলগুলো লোড হচ্ছে...</p>
@@ -112,10 +120,10 @@
         let packageList = [];
         let allWithdrawProfiles = [];
 
-        // ১. অ্যাডমিন প্যানেলে ঢোকার পাসওয়ার্ড
+        // ১. লোন প্যানেল লগইন
         window.checkAdminLogin = function() {
             const pass = document.getElementById('adminPassword').value;
-            const correctPassword = "TarekHasan@36"; // লোন প্যানেলের পাসওয়ার্ড
+            const correctPassword = "TarekHasan@36";
 
             if (pass === correctPassword) {
                 document.getElementById('loginBox').style.display = "none";
@@ -127,29 +135,27 @@
             }
         };
 
-        // ২. আলাদা সিক্রেট পাসওয়ার্ড দিয়ে উইথড্র প্রোফাইল সেকশন খোলার ফাংশন
-        window.promptWithdrawPassword = function() {
-            const section = document.getElementById('withdrawProfileSection');
-            
-            if (section.style.display === "block") {
-                section.style.display = "none";
-                return;
-            }
-
-            const pass = prompt("উইথড্র প্রোফাইল ম্যানেজমেন্টে প্রবেশ করতে সিক্রেট পাসওয়ার্ড দিন:");
-            
-            // উইথড্র সেকশনের জন্য আলাদা পাসওয়ার্ড
-            const correctWithdrawPassword = "NIRJONA@36"; 
+        // ২. আলাদা পাসওয়ার্ড (NIRJONA@36) দিয়ে উইথড্র প্রোফাইল পেজে প্রবেশ
+        window.openWithdrawManagerPage = function() {
+            const pass = prompt("উইথড্র প্রোফাইল ম্যানেজমেন্ট পেজে প্রবেশ করতে সিক্রেট পাসওয়ার্ড দিন:");
+            const correctWithdrawPassword = "NIRJONA@36"; // আপনার নতুন সিক্রেট পাসওয়ার্ড
 
             if (pass === correctWithdrawPassword) {
-                section.style.display = "block";
+                document.getElementById('adminDashboard').style.display = "none";
+                document.getElementById('withdrawManagerPage').style.display = "block";
                 loadWithdrawProfiles();
             } else if (pass !== null) {
                 alert("ভুল সিক্রেট পাসওয়ার্ড!");
             }
         };
 
-        // প্যাকেজসমূহ ও লোন সেটিংস একসাথে লোড করা
+        // ৩. মূল লোন ড্যাশবোর্ডে ফিরে আসার ফাংশন
+        window.backToMainDashboard = function() {
+            document.getElementById('withdrawManagerPage').style.display = "none";
+            document.getElementById('adminDashboard').style.display = "block";
+        };
+
+        // প্যাকেজসমূহ ও লোন সেটিংস লোড করা
         async function loadPackagesAndSettings() {
             const settingsContainer = document.getElementById('dynamicPackageSettings');
             try {
@@ -255,7 +261,7 @@
             }
         }
 
-        // অ্যাপ্রুভ / রিজেক্ট হ্যান্ডেলিং
+        // লোন অ্যাপ্রুভ / রিজেক্ট হ্যান্ডেলিং
         window.handleLoan = async function(requestId, userId, amount, action) {
             const confirmMsg = action === 'approved' 
                 ? `আপনি কি নিশ্চিতভাবে এই লোনটি অ্যাপ্রুভ করতে চান? এটি ইউজারের My Cash-এ জমা হবে।` 
@@ -274,7 +280,7 @@
                     });
 
                     await updateDoc(requestRef, { status: "approved" });
-                    alert("লোন অ্যাপ্রুভ করা হয়েছে এবং ইউজারের My Cash (রিচার্জ ব্যালেন্স)-এ যোগ হয়েছে!");
+                    alert("লোন অ্যাপ্রুভ করা হয়েছে এবং ইউজারের My Cash-এ যোগ হয়েছে!");
                 } else {
                     await updateDoc(requestRef, { status: "rejected" });
                     alert("লোন রিকোয়েস্টটি রিজেক্ট করা হয়েছে।");
