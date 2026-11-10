@@ -30,10 +30,18 @@
         .form-group select, .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; background-color: #fcfcfc; }
         .form-group select:focus, .form-group input:focus { outline: none; border-color: #007bff; }
 
+        /* অ্যামাউন্ট চিপস বা বাটন ডিজাইন */
+        .amount-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+        .amount-chip { background: #fff; border: 1px solid #ccc; padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .amount-chip:hover, .amount-chip.active { background: #007bff; color: white; border-color: #007bff; }
+
         .number-card { background: #ffffff; padding: 12px 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #dcdcdc; }
         .number-card span { font-weight: bold; font-size: 16px; color: #333; letter-spacing: 1px; }
         .copy-btn { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .copy-btn:hover { background: #0056b3; }
+
+        .next-btn { width: 100%; background: #007bff; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; margin-top: 10px; }
+        .next-btn:hover { background-color: #0056b3; }
 
         .submit-btn { width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; margin-top: 10px; }
         .submit-btn:hover { background-color: #218838; }
@@ -45,7 +53,7 @@
 <body>
 
     <div class="container">
-        <!-- অ্যাশ কালার বক্সের ভেতরে হেডার এবং ফর্ম রাখা হয়েছে -->
+        <!-- অ্যাশ কালার ব্যাকগ্রাউন্ড এবং সুন্দর বক্স স্টাইল -->
         <div class="header-card-box">
             <div class="top-banner">
                 <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
@@ -54,21 +62,41 @@
 
             <br>
 
-            <!-- ১. পেমেন্ট মাধ্যম সিলেক্ট করার ড্রপডাউন পেজ -->
-            <div id="selectMethodSection" class="form-group" style="margin-bottom: 0;">
-                <label>পেমেন্ট মাধ্যম সিলেক্ট করুন</label>
-                <select id="paymentDropdown" onchange="onMethodChange()">
-                    <option value="" disabled selected>মাধ্যম বেছে নিন</option>
-                    <option value="bKash">বিকাশ (bKash)</option>
-                    <option value="Nagad">নগদ (Nagad)</option>
-                </select>
+            <!-- ১. প্রথম পেজ: পেমেন্ট মাধ্যম এবং অ্যামাউন্ট সিলেকশন -->
+            <div id="selectMethodSection">
+                <div class="form-group">
+                    <label>পেমেন্ট মাধ্যম সিলেক্ট করুন</label>
+                    <select id="paymentDropdown">
+                        <option value="" disabled selected>মাধ্যম বেছে নিন</option>
+                        <option value="bKash">বিকাশ (bKash)</option>
+                        <option value="Nagad">নগদ (Nagad)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>টাকার পরিমাণ নির্বাচন করুন</label>
+                    <div class="amount-chips">
+                        <div class="amount-chip" onclick="selectAmount(100, this)">১০০</div>
+                        <div class="amount-chip" onclick="selectAmount(500, this)">৫০০</div>
+                        <div class="amount-chip" onclick="selectAmount(1000, this)">১০০০</div>
+                        <div class="amount-chip" onclick="selectAmount(3000, this)">৩০০০</div>
+                        <div class="amount-chip" onclick="selectAmount(4500, this)">৪৫০০</div>
+                        <div class="amount-chip" onclick="selectAmount(6000, this)">৬০০০</div>
+                        <div class="amount-chip" onclick="selectAmount(7500, this)">৭৫০০</div>
+                        <div class="amount-chip" onclick="selectAmount(10000, this)">১০০০০</div>
+                        <div class="amount-chip" onclick="selectAmount('custom', this)">অন্যান্য</div>
+                    </div>
+                    <input type="number" id="amountInput" placeholder="সর্বনিম্ন ১০০ টাকা" min="100" style="display:none; margin-top: 5px;">
+                </div>
+
+                <button type="button" class="next-btn" onclick="goToDetailsSection()">পরবর্তী ধাপে যান</button>
             </div>
 
-            <!-- ২. নির্দিষ্ট মাধ্যম সিলেক্ট করার পর যে ফর্ম ও নাম্বারগুলো দেখাবে -->
+            <!-- ২. দ্বিতীয় পেজ: নাম্বার কপি, ট্রানজেকশন আইডি এবং জমা দেওয়ার ফর্ম -->
             <div id="rechargeDetailsSection" class="section-box">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h3 id="selectedTitle" style="margin: 0; color: #2b2d42; font-size: 16px;">বিকাশ পার্সোনাল নম্বরসমূহ</h3>
-                    <button onclick="goBackToDropdown()" style="background: none; border: none; color: #007bff; cursor: pointer; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-rotate-left"></i> মাধ্যম পরিবর্তন</button>
+                    <button onclick="goBackToDropdown()" style="background: none; border: none; color: #007bff; cursor: pointer; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-rotate-left"></i> পরিবর্তন করুন</button>
                 </div>
 
                 <!-- নোটিশ বক্স -->
@@ -103,8 +131,8 @@
                 <!-- ফর্ম -->
                 <form id="rechargeForm">
                     <div class="form-group">
-                        <label>টাকার পরিমাণ (BDT)</label>
-                        <input type="number" id="amount" placeholder="সর্বনিম্ন ১০০ টাকা" min="100" required>
+                        <label>নির্বাচিত টাকার পরিমাণ (BDT)</label>
+                        <input type="number" id="displayAmount" readonly style="background-color: #e9ecef; font-weight: bold;">
                     </div>
 
                     <div class="form-group">
@@ -120,15 +148,49 @@
     <!-- UI Scripts -->
     <script>
         let currentMethod = '';
+        let selectedFinalAmount = 0;
 
-        function onMethodChange() {
+        function selectAmount(val, element) {
+            document.querySelectorAll('.amount-chip').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            const customInput = document.getElementById('amountInput');
+            if (val === 'custom') {
+                customInput.style.display = 'block';
+                customInput.value = '';
+                customInput.focus();
+                selectedFinalAmount = 0;
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = val;
+                selectedFinalAmount = val;
+            }
+        }
+
+        function goToDetailsSection() {
             const dropdown = document.getElementById('paymentDropdown');
             currentMethod = dropdown.value;
 
-            if (!currentMethod) return;
+            if (!currentMethod) {
+                alert("দয়া করে একটি পেমেন্ট মাধ্যম সিলেক্ট করুন।");
+                return;
+            }
+
+            const activeChip = document.querySelector('.amount-chip.active');
+            if (activeChip && activeChip.innerText === 'অন্যান্য') {
+                selectedFinalAmount = Number(document.getElementById('amountInput').value);
+            } else if (!selectedFinalAmount) {
+                selectedFinalAmount = Number(document.getElementById('amountInput').value);
+            }
+
+            if (!selectedFinalAmount || selectedFinalAmount < 100) {
+                alert("সর্বনিম্ন রিচার্জ পরিমাণ ১০০ টাকা। সঠিক পরিমাণ নির্বাচন বা লিখুন।");
+                return;
+            }
 
             document.getElementById('selectMethodSection').style.display = 'none';
             document.getElementById('rechargeDetailsSection').style.display = 'block';
+            document.getElementById('displayAmount').value = selectedFinalAmount;
 
             if (currentMethod === 'bKash') {
                 document.getElementById('selectedTitle').innerText = "বিকাশ পার্সোনাল নম্বরসমূহ";
@@ -148,7 +210,6 @@
         }
 
         function goBackToDropdown() {
-            document.getElementById('paymentDropdown').value = "";
             document.getElementById('selectMethodSection').style.display = 'block';
             document.getElementById('rechargeDetailsSection').style.display = 'none';
         }
@@ -211,10 +272,9 @@
           return;
         }
 
-        const amount = Number(document.getElementById('amount').value);
         const trxId = document.getElementById('trxId').value.trim();
 
-        if (amount < 100) {
+        if (selectedFinalAmount < 100) {
           alert("সর্বনিম্ন রিচার্জ পরিমাণ ১০০ টাকা।");
           return;
         }
@@ -228,7 +288,7 @@
             userName: userData ? (userData.name || "N/A") : "N/A",
             userPhone: userData ? (userData.phone || "N/A") : "N/A",
             userEmail: currentUser.email || "",
-            amount: amount,
+            amount: selectedFinalAmount,
             trxId: trxId,
             method: currentMethod,
             status: "pending",
