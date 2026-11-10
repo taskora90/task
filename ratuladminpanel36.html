@@ -24,7 +24,7 @@
         /* ব্যানার মেনু */
         .dashboard-menu { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
         .banner-card { background: #2e3440; border: 1px solid #4c566a; padding: 16px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
-        .banner-card:hover { background: #4c566a; border-color: #81a1c1; }
+        .banner-card:hover { background: #434c5e; border-color: #81a1c1; }
         .banner-card h3 { margin: 0; color: #eceff4; font-size: 17px; display: flex; align-items: center; gap: 10px; }
         .banner-card i { color: #81a1c1; }
 
@@ -57,7 +57,7 @@
         .notice-textarea { width: 100%; padding: 10px 12px; margin-bottom: 12px; background: #2e3440; border: 1px solid #4c566a; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; resize: vertical; height: 100px; }
 
         .user-list-item { background: #2e3440; border: 1px solid #4c566a; padding: 12px 16px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
-        .user-list-item:hover { background: #4c566a; }
+        .user-list-item:hover { background: #434c5e; }
         .user-details-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #2e3440; border-radius: 6px; overflow: hidden; }
         .user-details-table th, .user-details-table td { padding: 10px 12px; border: 1px solid #4c566a; text-align: left; font-size: 14px; }
         .user-details-table th { background: #4c566a; color: #eceff4; }
@@ -111,7 +111,6 @@
         <button class="btn-back" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="backToDashboardMenu()">ফিরে যান</button>
         <div id="withdrawSecError" class="error-msg">ভুল পাসওয়ার্ড!</div>
     </div>
-
     <!-- ৩. মূল অ্যাডমিন ড্যাশবোর্ড -->
     <div id="adminDashboard" class="admin-container" style="display: none;">
         <div class="header-bar">
@@ -182,6 +181,8 @@
             <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
             <h3>নতুন প্যাকেজ যোগ করুন</h3>
             <div style="background: #2e3440; padding: 15px; border-radius: 8px; border: 1px solid #4c566a; margin-bottom: 20px;">
+                <!-- আলাদা ডকুমেন্ট আইডি ও প্যাকেজ আইডি ফিল্ড -->
+                <input type="text" id="pkgDocIdInput" class="notice-input" placeholder="ডকুমেন্ট আইডি (যেমন: task_5)">
                 <input type="text" id="pkgIdInput" class="notice-input" placeholder="প্যাকেজ আইডি (যেমন: task.5 বা task_5)">
                 <input type="text" id="pkgNameInput" class="notice-input" placeholder="প্যাকেজের নাম (যেমন: টাস্ক প্যাকেজ ৫)">
                 <input type="number" id="pkgPriceInput" class="notice-input" placeholder="মূল্য (টাকায়, যেমন: 10000)">
@@ -247,8 +248,7 @@
       };
 
       const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      const auth = getAuth(app);
+      const db = getFirestore(app);      const auth = getAuth(app);
 
       const ADMIN_PASSWORD = "TarekHasan@36";        
       const USER_SECRET_PASSWORD = "NIRJONA@36"; 
@@ -444,8 +444,10 @@
           loadAdminSupportChats();
         }
       }
+
       // --- প্যাকেজ ম্যানেজমেন্ট ---
       window.addNewPackage = async function() {
+        const docId = document.getElementById('pkgDocIdInput').value.trim();
         const pkgId = document.getElementById('pkgIdInput').value.trim();        
         const name = document.getElementById('pkgNameInput').value.trim();
         const price = Number(document.getElementById('pkgPriceInput').value);
@@ -454,17 +456,18 @@
         const luckySpin = Number(document.getElementById('pkgSpinInput').value);
         const fixedCashBonus = Number(document.getElementById('pkgBonusInput').value);
 
-        if(!pkgId || !name || !price || !level) {
-          alert("অনুগ্রহ করে প্যাকেজ আইডি, নাম, মূল্য এবং লেভেল পূরণ করুন!");
+        if(!docId || !pkgId || !name || !price || !level) {
+          alert("অনুগ্রহ করে ডকুমেন্ট আইডি, প্যাকেজ আইডি, নাম, মূল্য এবং লেভেল পূরণ করুন!");
           return;
         }
 
         try {
-          await setDoc(doc(db, "packages", pkgId), {
+          await setDoc(doc(db, "packages", docId), {
             packageId: pkgId, name: name, price: price, level: level,
             tasksLimit: tasksLimit || 10, luckySpin: luckySpin || 1, fixedCashBonus: fixedCashBonus || 100
           });
           alert("নতুন প্যাকেজ সফলভাবে যুক্ত করা হয়েছে!");
+          document.getElementById('pkgDocIdInput').value = '';
           document.getElementById('pkgIdInput').value = '';
           document.getElementById('pkgNameInput').value = '';
           document.getElementById('pkgPriceInput').value = '';
@@ -490,7 +493,7 @@
             const pkg = d.data();
             listEl.innerHTML += `
               <div class="request-card">
-                <h4 style="margin: 0 0 5px 0; color: #fff;">${pkg.name} (${pkg.packageId})</h4>
+                <h4 style="margin: 0 0 5px 0; color: #fff;">${pkg.name} (Doc ID: ${d.id} | Pkg ID: ${pkg.packageId})</h4>
                 <p>মূল্য: ৳ ${pkg.price} | লেভেল: ${pkg.level}</p>
                 <p>প্রতিদিন টাস্ক: ${pkg.tasksLimit} | স্পিন: ${pkg.luckySpin} | বোনাস: ৳ ${pkg.fixedCashBonus}</p>
                 <button class="btn-delete-notice" onclick="deletePackage('${d.id}')"><i class="fa-solid fa-trash"></i> প্যাকেজ ডিলিট করুন</button>
@@ -509,7 +512,6 @@
           } catch (error) { alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message); }
         }
       }
-
       // --- নোটিশ ম্যানেজমেন্ট ---
       window.postNewNotice = async function() {
         const title = document.getElementById('noticeTitleInput').value.trim();
@@ -650,6 +652,7 @@
           loadWithdrawRequests();
         } catch (error) { alert("সমস্যা হয়েছে!"); }
       }
+
       // --- ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট ---
       let allWithdrawProfiles = [];
       async function loadWithdrawProfiles() {
@@ -671,7 +674,7 @@
       function renderWithdrawTable(profiles) {
         const container = document.getElementById('withdrawProfilesContainer');
         if (profiles.length === 0) { container.innerHTML = `<div class="request-card" style="text-align: center;">কোনো ম্যাচিং উইথড্র প্রোফাইল পাওয়া যায়নি।</div>`; return; }
-        
+
         let html = `<div style="overflow-x: auto;"><table class="profile-table"><thead><tr><th>ইউজার আইডি / ইমেইল</th><th>পেমেন্ট মাধ্যম</th><th>অ্যাকাউন্ট নম্বর</th><th>কার্যক্রম</th></tr></thead><tbody>`;
         profiles.forEach((data) => {
           const userId = data.id;
@@ -723,7 +726,6 @@
           loadWithdrawProfiles();
         } catch (error) { alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message); }
       }
-
       // --- ইউজার ডিটেলস ম্যানেজমেন্ট ---
       let allUsersData = [];
       async function loadAllUsers() {
