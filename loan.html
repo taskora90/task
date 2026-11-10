@@ -17,30 +17,48 @@
         .loan-btn { width: 100%; background: #ffc107; color: #000; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
         .loan-btn:hover { background: #e0a800; }
         .loan-btn:disabled { background: #cccccc; cursor: not-allowed; }
-        .info-note { background: #e2f0d9; color: #385723; padding: 12px; border-radius: 8px; font-size: 13px; text-align: center; margin-bottom: 20px; }
+        .info-note { background: #e2f0d9; color: #385723; padding: 12px; border-radius: 8px; font-size: 13px; text-align: center; margin-bottom: 20px; line-height: 1.5; }
         .ads-wrapper { text-align: center; margin-top: 20px; }
-        
+
         /* লোন লিস্ট স্টাইল */
         .loan-history-section { margin-top: 25px; text-align: left; }
         .loan-history-section h4 { font-size: 16px; color: #333; margin-bottom: 12px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
-        .loan-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .loan-item.active { cursor: pointer; border-left: 4px solid #007bff; }
-        .loan-item.active:hover { background: #f8f9fa; }
-        .loan-item.paid { border-left: 4px solid #28a745; opacity: 0.8; background: #fdfdfd; cursor: not-allowed; }
-        .loan-item.pending { border-left: 4px solid #ffc107; cursor: not-allowed; }
+        .loan-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; transition: 0.2s; }
+        .loan-item.active { border-left: 4px solid #007bff; }
+        .loan-item.paid { border-left: 4px solid #28a745; opacity: 0.9; background: #fdfdfd; }
+        .loan-item.pending { border-left: 4px solid #ffc107; }
+        .loan-row-content { display: flex; justify-content: space-between; align-items: center; }
         .loan-info p { margin: 2px 0; font-size: 13px; }
-        .status-badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-align: center; }
-        .badge-pending { background: #fff3cd; color: #856404; }
-        .badge-active { background: #cce5ff; color: #004085; }
-        .badge-paid { background: #d4edda; color: #155724; }
+        .status-badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-align: center; display: inline-block; cursor: pointer; background: #cce5ff; color: #004085; }
+        .badge-pending { background: #fff3cd; color: #856404; cursor: default; }
+        .badge-paid { background: #d4edda; color: #155724; cursor: default; }
 
-        /* পেমেন্ট মোডাল */
+        .loan-footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 6px; border-top: 1px dashed #eee; }
+        .btn-details { background: #6c757d; color: #fff; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+
+        /* পেমেন্ট ও বিবরণ মোডাল */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #fff; padding: 20px; border-radius: 10px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .modal-content input { width: 90%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-align: center; }
         .modal-btn-group { display: flex; gap: 10px; justify-content: center; }
         .btn-pay { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .btn-close { background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        
+        .history-list { max-height: 180px; overflow-y: auto; margin: 10px 0; padding: 0; list-style: none; text-align: left; }
+        .history-list li { font-size: 12px; padding: 6px 4px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; }
+
+        /* নোটিশ পপ-আপ স্টাইল */
+        .notice-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .notice-modal-content {
+            background-color: #3b4252; padding: 20px; border-radius: 12px; width: 90%; max-width: 350px; position: relative;
+        }
+        .notice-close-btn {
+            position: absolute; top: 10px; right: 15px; color: #fff; font-size: 24px; font-weight: bold; cursor: pointer;
+            background: #4c566a; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;
+        }
     </style>
 </head>
 <body>
@@ -61,7 +79,9 @@
         </div>
 
         <div class="info-note">
-            💡 <strong>নোট:</strong> লোন অনুমোদিত হলে টাকা সরাসরি আপনার <b>রিচার্জ ক্যাশ</b> ব্যালেন্সে জমা হবে এবং অটো/ম্যানুয়ালি <b>মাই ক্যাশ</b> থেকে পর্যাপ্ত ব্যালেন্স সাপেক্ষে পরিশোধ হবে।
+            💡 <strong>নোট:</strong> লোন অনুমোদিত হলে টাকা সরাসরি আপনার <b>রিচার্জ ক্যাশ</b> ব্যালেন্সে জমা হবে এবং অটো/ম্যানুয়ালি <b>মাই ক্যাশ</b> থেকে পর্যাপ্ত ব্যালেন্স সাপেক্ষে পরিশোধ হবে。<br>
+            • প্রতিদিন রাত ১০:০০ টায় অটো/ম্যানুয়ালি টাকা কাটবে।<br>
+            • ম্যানুয়ালি লোন পরিশোধ করার সুযোগ আছে।
         </div>
 
         <!-- লোনের ইতিহাস ও পরিশোধের তালিকা -->
@@ -90,6 +110,26 @@
         </div>
     </div>
 
+    <!-- বিবরণ দেখার মোডাল (Popup) -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; font-size:16px;">লোন কাটার বিবরণ</h3>
+            <ul class="history-list" id="historyListContainer">
+                <!-- ট্রানজেকশন হিস্ট্রি লোড হবে -->
+            </ul>
+            <button class="btn-close" onclick="closeDetailsModal()" style="width:100%; margin-top:10px;">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <!-- হোমপেজ পপ-আপ মোডাল -->
+    <div id="homeNoticeModal" class="notice-modal-overlay">
+        <div class="notice-modal-content">
+            <span class="notice-close-btn" onclick="closeHomeNotice()">&times;</span>
+            <div class="notice-image-container">
+                <img src="https://i.ibb.co.com/YFFHRx5z/1794218517036.jpg" alt="Notice" style="width: 100%; border-radius: 8px;">
+            </div>
+        </div>
+    </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -155,7 +195,6 @@
             }
         });
 
-        // মাই ক্যাশ ব্যালেন্স বের করার ফাংশন
         function getTaskCashBalance(userData) {
             return Number(userData.taskCash !== undefined ? userData.taskCash : (userData.taskcash !== undefined ? userData.taskcash : 0));
         }
@@ -183,28 +222,33 @@
 
                     const taskCashBalance = getTaskCashBalance(userData);
                     if ((loan.status === "approved" || loan.status === "active") && dueAmount > 0) {
-                        await checkAndApplyAutoDeduction(loanId, loan, userId, taskCashBalance, userData);
+                        await checkAndApplyNightTenDeduction(loanId, loan, userId, taskCashBalance, userData);
                     }
 
                     let statusBadge = "";
-                    let clickAction = "";
+                    let isPaid = (dueAmount <= 0 || loan.status === "paid");
 
                     if (loan.status === "pending") {
                         statusBadge = `<span class="status-badge badge-pending">পেন্ডিং</span>`;
-                    } else if (dueAmount <= 0 || loan.status === "paid") {
+                    } else if (isPaid) {
                         statusBadge = `<span class="status-badge badge-paid">পরিশোধিত</span>`;
                     } else {
-                        statusBadge = `<span class="status-badge badge-active">চলমান (পরিশোধ করুন)</span>`;
-                        clickAction = `onclick="openPayModal('${loanId}', ${dueAmount})"`;
+                        statusBadge = `<span class="status-badge" onclick="openPayModal('${loanId}', ${dueAmount})">চলমান (পরিশোধ করুন)</span>`;
                     }
 
                     loanListHTML += `
-                        <div class="loan-item ${loan.status === 'paid' || dueAmount <= 0 ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}" ${clickAction}>
-                            <div class="loan-info">
-                                <p><strong>মূল লোন:</strong> ৳${loan.amount}</p>
-                                <p><strong>বকেয়া:</strong> <span style="color:red; font-weight:bold;">৳${dueAmount}</span></p>
+                        <div class="loan-item ${isPaid ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}">
+                            <div class="loan-row-content">
+                                <div class="loan-info">
+                                    <p><strong>মূল লোন:</strong> ৳${loan.amount}</p>
+                                    <p><strong>বকেয়া:</strong> <span style="color:red; font-weight:bold;">৳${dueAmount}</span></p>
+                                </div>
+                                <div>${statusBadge}</div>
                             </div>
-                            <div>${statusBadge}</div>
+                            ${!isPaid && loan.status !== 'pending' ? `
+                            <div class="loan-footer-row">
+                                <button class="btn-details" onclick="openDetailsModal('${loanId}')">বিবরণ</button>
+                            </div>` : ''}
                         </div>
                     `;
                 }
@@ -227,40 +271,59 @@
             }
         }
 
-        // ১৫ দিনের অটো-ডিডাকশন লজিক (ব্যালেন্স চেক করে পর্যাপ্ত থাকলে কাটবে, কম থাকলে কাটবে না)
-        async function checkAndApplyAutoDeduction(loanId, loanData, userId, taskCashBalance, userData) {
+        async function checkAndApplyNightTenDeduction(loanId, loanData, userId, taskCashBalance, userData) {
             const now = new Date();
-            const lastDeduction = loanData.lastAutoDeductionTime ? loanData.lastAutoDeductionTime.toDate() : loanData.requestTime.toDate();
-            
-            const diffHours = Math.floor((now - lastDeduction) / (1000 * 60 * 60));
+            const currentHour = now.getHours();
+            const todayStr = now.toISOString().split('T')[0];
 
-            if (diffHours >= 24) {
-                const daysPassed = Math.floor(diffHours / 24);
-                const dailyCut = Math.ceil(loanData.amount / 15);
-                const totalAutoDeduct = dailyCut * daysPassed;
+            const lastDeductionDate = loanData.lastAutoDeductionDate || "";
+
+            if (currentHour >= 22 && lastDeductionDate !== todayStr) {
+                const dailyTarget = Math.ceil(loanData.amount / 15);
+                const todayPaid = loanData.todayPaidAmount || 0;
+
+                let neededDeduct = 0;
+                if (todayPaid < dailyTarget) {
+                    neededDeduct = dailyTarget - todayPaid;
+                }
 
                 const currentDue = loanData.dueAmount !== undefined ? Number(loanData.dueAmount) : Number(loanData.amount);
-                const actualDeduct = Math.min(totalAutoDeduct, currentDue);
+                let actualDeduct = Math.min(neededDeduct, currentDue);
 
-                // ব্যালেন্স চেক: সমপরিমাণ বা বেশি থাকলেই কাটবে, কম থাকলে কাটবে না
                 if (actualDeduct > 0 && taskCashBalance >= actualDeduct) {
                     const taskCashField = userData.taskCash !== undefined ? "taskCash" : "taskcash";
                     const userRef = doc(db, "users", userId);
-                    
+
                     await updateDoc(userRef, { [taskCashField]: increment(-actualDeduct) });
 
                     const newDue = currentDue - actualDeduct;
                     const loanRef = doc(db, "loan_requests", loanId);
-                    
+
+                    let history = loanData.history || [];
+                    history.push({
+                        date: todayStr,
+                        amount: actualDeduct,
+                        type: "অটো ডেডিকেশন (রাত ১০:০০)"
+                    });
+
                     let updateObject = {
                         dueAmount: newDue,
-                        lastAutoDeductionTime: serverTimestamp()
+                        lastAutoDeductionDate: todayStr,
+                        todayPaidAmount: 0,
+                        history: history
                     };
+
                     if (newDue <= 0) {
                         updateObject.status = "paid";
                     }
 
                     await updateDoc(loanRef, updateObject);
+                } else if (todayPaid >= dailyTarget) {
+                    const loanRef = doc(db, "loan_requests", loanId);
+                    await updateDoc(loanRef, {
+                        lastAutoDeductionDate: todayStr,
+                        todayPaidAmount: 0
+                    });
                 }
             }
         }
@@ -277,7 +340,8 @@
                     amount: userLoanAmount,
                     dueAmount: userLoanAmount,
                     status: "pending",
-                    requestTime: serverTimestamp()
+                    requestTime: serverTimestamp(),
+                    history: []
                 });
 
                 alert("আপনার লোন রিকোয়েস্টটি সফলভাবে জমা হয়েছে!");
@@ -300,7 +364,35 @@
             selectedLoanForPay = null;
         };
 
-        // ম্যানুয়াল পেমেন্ট (ব্যালেন্স চেক লজিক সহ)
+        window.openDetailsModal = async function(loanId) {
+            try {
+                const loanRef = doc(db, "loan_requests", loanId);
+                const loanSnap = await getDoc(loanRef);
+
+                if (loanSnap.exists()) {
+                    const data = loanSnap.data();
+                    const historyListContainer = document.getElementById('historyListContainer');
+                    historyListContainer.innerHTML = "";
+
+                    if (data.history && data.history.length > 0) {
+                        data.history.forEach(item => {
+                            historyListContainer.innerHTML += `<li><span>${item.date} (${item.type})</span> <b>৳${item.amount}</b></li>`;
+                        });
+                    } else {
+                        historyListContainer.innerHTML = "<li>কোনো বিবরণ বা কাটার ইতিহাস পাওয়া যায়নি</li>";
+                    }
+
+                    document.getElementById('detailsModal').style.display = 'flex';
+                }
+            } catch (err) {
+                console.error("Error loading details:", err);
+            }
+        };
+
+        window.closeDetailsModal = function() {
+            document.getElementById('detailsModal').style.display = 'none';
+        };
+
         window.processPayment = async function() {
             const payAmount = parseFloat(document.getElementById('payInputAmount').value);
 
@@ -321,7 +413,6 @@
 
                 const taskCashBalance = getTaskCashBalance(userData);
 
-                // ব্যালেন্স চেক: মাই ক্যাশে পরিশোধ করতে চাওয়া টাকার চেয়ে কম থাকলে পেমেন্ট হবে না
                 if (taskCashBalance < payAmount) {
                     alert(`আপনার মাই ক্যাশ (Task Cash) এ পর্যাপ্ত ব্যালেন্স নেই! আপনার বর্তমান ব্যালেন্স: ৳ ${taskCashBalance}`);
                     return;
@@ -329,16 +420,32 @@
 
                 const taskCashField = userData.taskCash !== undefined ? "taskCash" : "taskcash";
 
-                // ১. মাই ক্যাশ থেকে টাকা কাটা
                 await updateDoc(userRef, {
                     [taskCashField]: increment(-payAmount)
                 });
 
-                // ২. লোনের বকেয়া কমানো
-                const newDue = selectedLoanForPay.due - payAmount;
                 const loanRef = doc(db, "loan_requests", selectedLoanForPay.id);
+                const loanSnap = await getDoc(loanRef);
+                const loanData = loanSnap.data();
 
-                let updateData = { dueAmount: newDue };
+                const newDue = selectedLoanForPay.due - payAmount;
+                const currentTodayPaid = loanData.todayPaidAmount || 0;
+                const newTodayPaid = currentTodayPaid + payAmount;
+                const todayStr = new Date().toISOString().split('T')[0];
+
+                let history = loanData.history || [];
+                history.push({
+                    date: todayStr,
+                    amount: payAmount,
+                    type: "ম্যানুয়াল পরিশোধ"
+                });
+
+                let updateData = {
+                    dueAmount: newDue,
+                    todayPaidAmount: newTodayPaid,
+                    history: history
+                };
+
                 if (newDue <= 0) {
                     updateData.status = "paid";
                 }
@@ -354,65 +461,20 @@
                 alert("পেমেন্ট সম্পন্ন করতে সমস্যা হয়েছে।");
             }
         };
+
+        window.closeHomeNotice = function() {
+            const modal = document.getElementById('homeNoticeModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('homeNoticeModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        });
     </script>
-
-
-
-
-<!-- হোমপেজ পপ-আপ মোডাল -->
-<div id="homeNoticeModal" class="notice-modal-overlay">
-    <div class="notice-modal-content">
-        <span class="notice-close-btn" onclick="closeHomeNotice()">&times;</span>
-        <div class="notice-image-container">
-            <img src="https://i.ibb.co.com/YFFHRx5z/1794218517036.jpg" alt="Notice" style="width: 100%; border-radius: 8px;">
-        </div>
-    </div>
-</div>
-
-<style>
-.notice-modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 9999;
-}
-.notice-modal-content {
-    background-color: #3b4252;
-    padding: 20px; border-radius: 12px;
-    width: 90%; max-width: 350px; position: relative;
-}
-.notice-close-btn {
-    position: absolute; top: 10px; right: 15px;
-    color: #fff; font-size: 24px; font-weight: bold; cursor: pointer;
-    background: #4c566a; width: 30px; height: 30px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; z-index: 10;
-}
-</style>
-
-
-
-<script>
-// পপ-আপ বন্ধ করার ফাংশন
-function closeHomeNotice() {
-    const modal = document.getElementById('homeNoticeModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// ইনডেক্স পেজে ঢোকার সাথে সাথে পপ-আপ দেখানোর জন্য
-window.addEventListener('DOMContentLoaded', (event) => {
-    const modal = document.getElementById('homeNoticeModal');
-    if (modal) {
-        modal.style.display = 'flex';
-    }
-});
-</script>
-
-
-
-
-
 </body>
 </html>
