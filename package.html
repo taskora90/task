@@ -320,9 +320,11 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // কাজের বিবরণ বা 'সকল আয়ের বিবরণ' (work-details) পেজে দেখানোর জন্য হিস্ট্রি সেভ করা
+          // কাজের বিবরণ বা 'সকল আয়ের বিবরণ' পেজে দেখানোর জন্য হিস্ট্রি সেভ করা (type ও taskNumber যুক্ত করা হয়েছে)
           try {
             await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
+              type: "package_bonus",
+              taskNumber: "বোনাস",
               title: `প্যাকেজ আপগ্রেড (${pkgDetails.name})`,
               desc: previousPackageRefund > 0 
                 ? `ফিক্সড বোনাস ৳${fixedCashBonus} এবং পূর্বের প্যাকেজের ৮০% রিফান্ড ৳${previousPackageRefund} সহ মোট ৳${totalTaskCashBonus} অর্জিত হয়েছে` 
