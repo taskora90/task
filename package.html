@@ -316,24 +316,40 @@
             package: packageId,
             myCash: increment(-price),
             taskCash: increment(totalTaskCashBonus),     
-            totalEarnings: increment(totalTaskCashBonus), 
+            totalEarnings: increment(totalTaskTaskCashBonus || totalTaskCashBonus), 
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // কাজের বিবরণ বা 'সকল আয়ের বিবরণ' পেজে দেখানোর জন্য হিস্ট্রি সেভ করা (type ও taskNumber যুক্ত করা হয়েছে)
-          try {
-            await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
-              type: "package_bonus",
-              taskNumber: "বোনাস",
-              title: `প্যাকেজ আপগ্রেড (${pkgDetails.name})`,
-              desc: previousPackageRefund > 0 
-                ? `ফিক্সড বোনাস ৳${fixedCashBonus} এবং পূর্বের প্যাকেজের ৮০% রিফান্ড ৳${previousPackageRefund} সহ মোট ৳${totalTaskCashBonus} অর্জিত হয়েছে` 
-                : `ফিক্সড বোনাস ৳${fixedCashBonus} অর্জিত হয়েছে`,
-              amount: totalTaskCashBonus,
-              timestamp: serverTimestamp()
-            });
-          } catch (historyErr) {
-            console.error("History log error:", historyErr);
+          // ১. ফিক্সড ক্যাশ বোনাসের হিস্ট্রি সেভ করা (যদি বোনাস থাকে)
+          if (fixedCashBonus > 0) {
+            try {
+              await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
+                type: "package_bonus",
+                taskNumber: "বোনাস",
+                title: `প্যাকেজ বোনাস (${pkgDetails.name})`,
+                desc: `ফিক্সড ক্যাশ বোনাস অর্জিত হয়েছে`,
+                amount: fixedCashBonus,
+                timestamp: serverTimestamp()
+              });
+            } catch (historyErr) {
+              console.error("Bonus history log error:", historyErr);
+            }
+          }
+
+          // ২. পূর্বের প্যাকেজের ৮০% রিফান্ড হিস্ট্রি আলাদা সেভ করা (যদি রিফান্ড থাকে)
+          if (previousPackageRefund > 0) {
+            try {
+              await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
+                type: "package_refund",
+                taskNumber: "রিফান্ড",
+                title: `পূর্বের প্যাকেজ রিফান্ড`,
+                desc: `প্যাকেজ আপগ্রেড করায় পূর্বের প্যাকেজের ৮০% রিফান্ড অর্জিত হয়েছে`,
+                amount: previousPackageRefund,
+                timestamp: serverTimestamp()
+              });
+            } catch (historyErr) {
+              console.error("Refund history log error:", historyErr);
+            }
           }
 
           // রেফারেল কমিশন লজিক (প্যাকেজ চেক সিকিউরিটি ও ওয়ার্ক ডিটেইলস হিস্ট্রি সেভ সহ)
