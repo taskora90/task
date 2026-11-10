@@ -142,6 +142,13 @@
       border-top: 22px solid #dc3545;
       z-index: 12;
     }
+
+    .ads-wrapper {
+      margin-top: 30px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -181,13 +188,31 @@
       <!-- মাঝের শুরু বাটন -->
       <div class="spin-btn" id="spinBtn" onclick="spinWheel()">শুরু</div>
     </div>
+
+    <div class="ads-wrapper">
+      <!-- ব্যানার স্লট ১ -->
+      <div class="ad-banner-container">
+        <script>
+          atOptions = {
+            'key' : 'edb0510109f6c4d56e1c54025858881c',
+            'format' : 'iframe',
+            'height' : 250,
+            'width' : 320,
+            'params' : {}
+          };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/edb0510109f6c4d56e1c54025858881c/invoke.js"></script>
+        <script src="https://bauval.org/22/edb0510109f6c4d56e1c54025858881c"></script>
+        <span style="font-size: 11px; color: #a0aec0;"></span>
+      </div>
+    </div>
   </div>
 
   <!-- Firebase Script & Integration -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -216,9 +241,11 @@
     let isSpinning = false;
     let userDocRef = null;
     let availableSpins = 0;
+    let currentUserObj = null;
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        currentUserObj = user;
         userDocRef = doc(db, "users", user.uid);
         try {
           const userDoc = await getDoc(userDocRef);
@@ -269,10 +296,20 @@
 
           if (prize.amount > 0) {
             updateData.taskCash = increment(prize.amount);
-            updateData.totalEarnings = increment(prize.amount); // ড্যাশবোর্ডের সাথে মিলিয়ে 'totalEarnings' করা হলো
+            updateData.totalEarnings = increment(prize.amount);
           }
 
           await updateDoc(userDocRef, updateData);
+
+          // স্পিন জেতার হিস্ট্রি 'spinHistory' সাব-কালেকশনে সেভ করা (যাতে আয়ের বিবরণে দেখা যায়)
+          if (prize.amount > 0 && currentUserObj) {
+            await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
+              title: "লাকি স্পিন",
+              desc: `স্পিন করে ${prize.name} জিতেছেন`,
+              amount: Number(prize.amount),
+              timestamp: serverTimestamp()
+            });
+          }
 
           if (prize.amount > 0) {
             alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
@@ -290,28 +327,6 @@
       }, 4000);
     }
   </script>
-
-
-
-       <div class="ads-wrapper">
-            <!-- ব্যানার স্লট ১ -->
-      <div class="ad-banner-container">
-        <script>
-  atOptions = {
-    'key' : 'edb0510109f6c4d56e1c54025858881c',
-    'format' : 'iframe',
-    'height' :250,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/edb0510109f6c4d56e1c54025858881c/invoke.js"></script>
-<script src="https://bauval.org/22/edb0510109f6c4d56e1c54025858881c"></script>
-        <span style="font-size: 11px; color: #a0aec0;"></span>
-      </div>
-
-
-
 
 </body>
 </html>
