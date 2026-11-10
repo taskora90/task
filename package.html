@@ -116,6 +116,13 @@
             color: #fff; 
         }
 
+        /* ব্লক বাটন - অ্যাস কালার (Ash Color / Disabled) */
+        .btn-blocked { 
+            background-color: #9ca3af !important; 
+            cursor: not-allowed; 
+            color: #fff; 
+        }
+
         /* নিচের নেভবার */
         .bottom-nav {
             position: fixed;
@@ -217,12 +224,13 @@
 
             const currentPkg = userData ? userData.package : "";
             let currentLevel = 0;
+            let currentPkgLevel = -1;
 
             querySnapshot.forEach((docSnap) => {
               const pkgData = docSnap.data();
               allPackages[pkgData.packageId] = pkgData;
               if (pkgData.packageId === currentPkg) {
-                currentLevel = pkgData.level;
+                currentPkgLevel = pkgData.level;
               }
             });
 
@@ -234,12 +242,19 @@
               let isDisabled = "";
 
               if (currentPkg === pkg.packageId) {
+                // ১. বর্তমান সক্রিয় প্যাকেজ
                 btnText = "সক্রিয় আছে";
                 btnClass = "btn-buy btn-active";
                 isDisabled = "disabled";
-              } else if (currentLevel > pkg.level) {
+              } else if (currentPkg && allPackages[currentPkg] && pkg.level === currentPkgLevel - 1) {
+                // ২. ঠিক আগের প্যাকেজটি (যেটি থেকে সরাসরি আপগ্রেড করা হয়েছিল) -> লাল রঙের "পূর্বের প্যাকেজ"
                 btnText = "পূর্বের প্যাকেজ";
                 btnClass = "btn-buy btn-old";
+                isDisabled = "disabled";
+              } else if (currentPkgLevel > pkg.level) {
+                // ৩. মাঝের বা অন্য ছোট প্যাকেজ যা কখনোই কেনা হয়নি -> লেখা "প্যাকেজ কিনুন" কিন্তু অ্যাস কালার ও ব্লক থাকবে
+                btnText = "প্যাকেজ কিনুন";
+                btnClass = "btn-buy btn-blocked";
                 isDisabled = "disabled";
               }
 
@@ -278,13 +293,14 @@
         }
 
         const currentPkg = userData.package;
-        let currentLevel = 0;
+        let currentPkgLevel = -1;
         if (currentPkg && allPackages[currentPkg]) {
-          currentLevel = allPackages[currentPkg].level;
+          currentPkgLevel = allPackages[currentPkg].level;
         }
 
-        if (currentLevel >= targetLevel) {
-          alert("আপনি এর চেয়ে উঁচু বা সমান প্যাকেজে আছেন। নিম্ন প্যাকেজ কিনতে পারবেন না।");
+        // ছোট প্যাকেজে বা নিচের লেভেলে যাওয়ার সিকিউরিটি চেক
+        if (currentPkgLevel >= targetLevel && currentPkg !== packageId) {
+          alert("বড় প্যাকেজ থেকে ছোট প্যাকেজে আসা যাবে না।");
           return;
         }
 
@@ -305,8 +321,8 @@
           const fixedCashBonus = pkgDetails.fixedCashBonus || 0;
           let previousPackageRefund = 0;
 
-          // আগের প্যাকেজের ৮০% রিফান্ড হিসাব করা
-          if (currentPkg && allPackages[currentPkg]) {
+          // আগের প্যাকেজের ৮০% রিফান্ড হিসাব করা (শুধুমাত্র ঠিক আগের লেভেল থেকে আপগ্রেড হলে রিফান্ড পাবে)
+          if (currentPkg && allPackages[currentPkg] && pkgDetails.level === currentPkgLevel + 1) {
             previousPackageRefund = allPackages[currentPkg].price * 0.80;
           }
 
@@ -320,7 +336,7 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // ১. ফিক্সড ক্যাশ বোনাসের হিস্ট্রি সেভ করা (সঠিক টাইটেল ও বিবরণ সহ)
+          // ১. ফিক্সড ক্যাশ বোনাসের হিস্ট্রি সেভ করা
           if (fixedCashBonus > 0) {
             try {
               await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
@@ -336,7 +352,7 @@
             }
           }
 
-          // ২. পূর্বের প্যাকেজের ৮০% রিফান্ড হিস্ট্রি আলাদা সেভ করা (সঠিক টাইটেল ও বিবরণ সহ)
+          // ২. পূর্বের প্যাকেজের ৮০% রিফান্ড হিস্ট্রি আলাদা সেভ করা
           if (previousPackageRefund > 0) {
             try {
               await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
@@ -352,7 +368,7 @@
             }
           }
 
-          // রেফারেল কমিশন লজিক (প্যাকেজ চেক সিকিউরিটি ও ওয়ার্ক ডিটেইলস হিস্ট্রি সেভ সহ)
+          // রেফারেল কমিশন লজিক
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -377,11 +393,9 @@
               const referrerData = referrerSnap.data();
               const referrerPackage = referrerData.package || 'none';
 
-              // শর্ত: রেফারকারীর নিজের প্যাকেজ 'none' বা খালি না থাকলে তবেই কমিশন/বোনাস পাবে
               if (referrerPackage !== 'none') {
                 const commissionAmount = price * 0.10; 
 
-                // ১. রেফারকারীর ব্যালেন্সে কমিশন ও স্পিন যোগ করা
                 await updateDoc(referrerRef, {
                   teamCommission: increment(commissionAmount),     
                   taskCash: increment(commissionAmount),           
@@ -389,7 +403,6 @@
                   luckySpinCount: increment(bonusSpins) 
                 });
 
-                // ২. রেফারকারীর ওয়ার্ক ডিটেইলস পেজের জন্য হিস্ট্রি সেভ করা (প্যাকেজ ক্রয়ের কমিশন ও স্পিন সহ)
                 await addDoc(collection(db, "users", referrerDocId, "referralHistory"), {
                   title: "রেফার কমিশন (প্যাকেজ ক্রয়)",
                   desc: `টিম মেম্বার '${pkgDetails.name}' ক্রয় করায় ১০% কমিশন (${commissionAmount} টাকা) এবং ${bonusSpins}টি স্পিন অর্জিত হয়েছে`,
