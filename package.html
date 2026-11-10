@@ -258,13 +258,16 @@
                 isDisabled = "disabled";
               }
 
+              // ফায়ারবেস থেকে LuckySpinCount ডাইনামিকালি শো করার ব্যবস্থা
+              const displayLuckySpin = Number(pkg.LuckySpinCount || pkg.luckySpin || 0);
+
               const cardHTML = `
                 <div class="card" id="pkg-card-${pkg.packageId}">
                     <h3>${pkg.name}</h3>
                     <p>প্রতিদিন ${pkg.tasksLimit}টি টাস্ক</p>
                     <p>প্রতি টাস্কে আয়: ৳ 10</p>
                     <p>ফিক্সড ক্যাশ বোনাস: ৳ ${pkg.fixedCashBonus || 0}</p>
-                    <p>আপগ্রেড করলে ${pkg.luckySpin}টি লাকি স্পিন</p>
+                    <p>আপগ্রেড করলে ${displayLuckySpin}টি লাকি স্পিন</p>
                     <div class="price">মূল্য: ৳ ${pkg.price}</div>
                     <button class="${btnClass}" id="btn-${pkg.packageId}" ${isDisabled} onclick="buyPackage('${pkg.packageId}', ${pkg.price}, ${pkg.level})">${btnText}</button>
                 </div>
@@ -317,8 +320,9 @@
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
 
-          const bonusSpins = pkgDetails.luckySpin || 0;
-          const fixedCashBonus = pkgDetails.fixedCashBonus || 0;
+          // সঠিক LuckySpinCount ফিল্ড রিড করা (না থাকলে 0 ধরা)
+          const bonusSpins = Number(pkgDetails.LuckySpinCount || pkgDetails.luckySpin || 0);
+          const fixedCashBonus = Number(pkgDetails.fixedCashBonus || 0);
           let previousPackageRefund = 0;
 
           // ছোট থেকে যেকোনো বড় প্যাকেজে গেলেই আগের প্যাকেজের ৮০% রিফান্ড হিসাব করা
