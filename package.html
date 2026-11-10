@@ -349,7 +349,7 @@
               if (referrerPackage !== 'none') {
                 const commissionAmount = price * 0.10; 
 
-                // ১. রেফারকারীর ব্যালেন্সে কমিশন যোগ করা
+                // ১. রেফারকারীর ব্যালেন্সে কমিশন ও স্পিন যোগ করা
                 await updateDoc(referrerRef, {
                   teamCommission: increment(commissionAmount),     
                   taskCash: increment(commissionAmount),           
@@ -357,10 +357,10 @@
                   luckySpinCount: increment(bonusSpins) 
                 });
 
-                // ২. রেফারকারীর ওয়ার্ক ডিটেইলস পেজের জন্য হিস্ট্রি সেভ করা
+                // ২. রেফারকারীর ওয়ার্ক ডিটেইলস পেজের জন্য হিস্ট্রি সেভ করা (প্যাকেজ ক্রয়ের কমিশন ও স্পিন সহ)
                 await addDoc(collection(db, "users", referrerDocId, "referralHistory"), {
-                  title: "রেফার কমিশন",
-                  desc: "টিম মেম্বার প্যাকেজ ক্রয় করায় কমিশন অর্জিত হয়েছে",
+                  title: "রেফার কমিশন (প্যাকেজ ক্রয়)",
+                  desc: `টিম মেম্বার '${pkgDetails.name}' ক্রয় করায় ১০% কমিশন (${commissionAmount} টাকা) এবং ${bonusSpins}টি স্পিন অর্জিত হয়েছে`,
                   amount: commissionAmount,
                   timestamp: serverTimestamp()
                 });
