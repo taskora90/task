@@ -320,7 +320,7 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // ওয়ার্ক ডিটেইলস পেজের হিস্ট্রিতে প্যাকেজ আপগ্রেড ও রিফান্ড যুক্ত করার জন্য সাব-কালেকশনে সেভ করা
+          // ওয়ার্ক ডিটেইলস পেজের হিস্টிரিতে প্যাকেজ আপগ্রেড ও রিফান্ড যুক্ত করার জন্য সাব-কালেকশনে সেভ করা
           try {
             await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
               title: `প্যাকেজ আপগ্রেড (${pkgDetails.name})`,
@@ -392,7 +392,7 @@
             msg += `• সাথে ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
           }
 
-,          alert(msg);
+          alert(msg);
           location.reload();
 
         } catch (error) {
