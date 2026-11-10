@@ -43,7 +43,7 @@
         .modal-btn-group { display: flex; gap: 10px; justify-content: center; }
         .btn-pay { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .btn-close { background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        
+
         .history-list { max-height: 180px; overflow-y: auto; margin: 10px 0; padding: 0; list-style: none; text-align: left; }
         .history-list li { font-size: 12px; padding: 6px 4px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; }
 
@@ -209,11 +209,21 @@
             if (querySnapshot.empty) {
                 loanListHTML = "<p style='color:#777;'>আপনার কোনো পূর্ববর্তী লোন নেই।</p>";
             } else {
-                const docsArray = querySnapshot.docs.reverse();
-for (const docSnap of docsArray) {
-    const loan = docSnap.data();
+                // ডাটাগুলোকে জাভাস্ক্রিপ্ট দিয়ে সাজানো হয়েছে যাতে নতুন লোন বা আবেদন সবসময় উপরে থাকে (ইনডেক্স ছাড়াই)
+                let docsArray = querySnapshot.docs.map(docSnap => ({
+                    id: docSnap.id,
+                    data: docSnap.data()
+                }));
 
-                    const loanId = docSnap.id;
+                docsArray.sort((a, b) => {
+                    let timeA = a.data.requestTime ? a.data.requestTime.toMillis() : 0;
+                    let timeB = b.data.requestTime ? b.data.requestTime.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                for (const item of docsArray) {
+                    const loan = item.data;
+                    const loanId = item.id;
                     const dueAmount = loan.dueAmount !== undefined ? Number(loan.dueAmount) : Number(loan.amount);
 
                     if (loan.status === "pending" || loan.status === "approved" || loan.status === "active") {
@@ -237,7 +247,6 @@ for (const docSnap of docsArray) {
                     } else {
                         statusBadge = `<span class="status-badge" onclick="openPayModal('${loanId}', ${dueAmount})">চলমান (পরিশোধ করুন)</span>`;
                     }
-
                     loanListHTML += `
                         <div class="loan-item ${isPaid ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}">
                             <div class="loan-row-content">
