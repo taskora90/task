@@ -251,7 +251,9 @@
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            availableSpins = userData.luckySpinCount || 0;
+            
+            // নিরাপদভাবে luckySpinCount রিড করা (না থাকলে 0 ধরে নেবে)
+            availableSpins = userData.luckySpinCount !== undefined ? Number(userData.luckySpinCount) : 0;
             document.getElementById('spinCountDisplay').innerText = availableSpins;
 
             if (availableSpins <= 0) {
@@ -301,7 +303,7 @@
 
           await updateDoc(userDocRef, updateData);
 
-          // স্পিন জেতার হিস্ট্রি 'spinHistory' সাব-কালেকশনে সেভ করা (যাতে আয়ের বিবরণে দেখা যায়)
+          // স্পিন জেতার হিস্ট্রি 'spinHistory' সাব-কালেকশনে সেভ করা
           if (prize.amount > 0 && currentUserObj) {
             await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
               title: "লাকি স্পিন",
@@ -323,6 +325,7 @@
         } catch (error) {
           console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
           alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
+          isSpinning = false;
         }
       }, 4000);
     }
