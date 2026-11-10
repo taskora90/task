@@ -231,14 +231,12 @@
                   regDate = new Date(user.metadata.creationTime);
                 }
 
-                // ক্যালেন্ডার ডে হিসাব (তারিখের পার্থক্য বের করা)
                 const regDateOnly = new Date(regDate.getFullYear(), regDate.getMonth(), regDate.getDate());
                 const todayDateOnly = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-                
-                const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // ১ম দিন থেকে শুরু
 
-                // যদি ৩ দিন পার হয়ে যায় (৪র্থ দিন হয়)
+                const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
                 if (diffDays > 3) {
                   document.getElementById('taskCard').style.display = 'none';
                   document.getElementById('userInfoBox').style.display = 'none';
@@ -248,7 +246,7 @@
                   return;
                 } else {
                   userPackage = "free_trial";
-                  let remainingDays = 4 - diffDays; // ৩ দিন, ২ দিন, ১ দিন বাকি দেখাবে
+                  let remainingDays = 4 - diffDays;
                   if (remainingDays < 1) remainingDays = 1;
                   trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
                 }
@@ -323,8 +321,12 @@
             totalEarnings: increment(rewardAmount)
           });
 
+          // টাস্ক হিস্ট্রি সেভ করার অংশটি এখানে ঠিক করে সঠিক title ও desc যুক্ত করা হয়েছে
           await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
+            type: "task_complete",
             taskNumber: nextTaskNumber,
+            title: `টাস্ক #${nextTaskNumber}`,
+            desc: `ডেইলি ভিডিও টাস্ক সম্পন্ন হয়েছে`,
             amount: rewardAmount,
             timestamp: serverTimestamp()
           });
