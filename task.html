@@ -221,6 +221,7 @@
               currentTaskCount = currentUserData.dailyTaskCount || 0;
 
               let hasActivePaidPackage = userPackage && packageRules[userPackage] && userPackage !== "free_trial";
+              let trialTextDisplay = "ফ্রি ট্রায়াল (৩ দিন)";
 
               if (!hasActivePaidPackage) {
                 let createdAt = currentUserData.createdAt;
@@ -235,22 +236,35 @@
                 }
 
                 let currentTime = new Date().getTime();
-                let threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
+                let diffTime = currentTime - registrationTime;
+                let oneDayInMillis = 24 * 60 * 60 * 1000;
+                let threeDaysInMillis = 3 * oneDayInMillis;
 
-                if ((currentTime - registrationTime) <= threeDaysInMillis) {
+                if (diffTime <= threeDaysInMillis) {
                   userPackage = "free_trial";
+
+                  // ডাইনামিক দিন হিসাব (৩ দিন, ২ দিন, ১ দিন)
+                  let passedDays = Math.floor(diffTime / oneDayInMillis);
+                  let remainingDays = 3 - passedDays;
+                  if (remainingDays < 1) remainingDays = 1;
+
+                  trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
                 } else {
+                  // ৩ দিন মেয়াদ শেষ হলে টাস্ক ব্লক করে মেসেজ ও পপ-আপ দেখানো
                   document.getElementById('taskCard').style.display = 'none';
                   document.getElementById('userInfoBox').style.display = 'none';
                   document.getElementById('dynamic-status-box').style.display = 'none';
                   document.getElementById('noPackageMsg').style.display = 'block';
-                  document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! কাজ করতে প্যাকেজ কিনুন।";
+                  document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।";
+                  
+                  alert("আপনার ফ্রি ট্রায়াল প্যাকেজটি শেষ হয়েছে। অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।");
+                  window.location.href = "package.html";
                   return;
                 }
               }
 
               activePackageRule = packageRules[userPackage];
-              document.getElementById('userPackageText').innerText = userPackage === "free_trial" ? "ফ্রি ট্রায়াল (৩ দিন)" : userPackage;
+              document.getElementById('userPackageText').innerText = userPackage === "free_trial" ? trialTextDisplay : userPackage;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
 
               // নোটিশ বক্স আপডেট কল করা হলো
