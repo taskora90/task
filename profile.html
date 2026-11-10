@@ -329,7 +329,11 @@
   import {
     getFirestore,
     doc,
-    getDoc
+    getDoc,
+    collection,
+    query,
+    where,
+    getDocs
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -345,17 +349,6 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-
-  const packageDetails = {
-    "টাস্ক প্যাকেজ ১": { name: "টাস্ক প্যাকেজ ১", price: "3000" },
-    "টাস্ক প্যাকেজ ২": { name: "টাস্ক প্যাকেজ ২", price: "4500" },
-    "টাস্ক প্যাকেজ ৩": { name: "টাস্ক প্যাকেজ ৩", price: "6000" },
-    "টাস্ক প্যাকেজ ৪": { name: "টাস্ক প্যাকেজ ৪", price: "7500" },
-    "task.1": { name: "টাস্ক প্যাকেজ ১", price: "3000" },
-    "task.2": { name: "টাস্ক প্যাকেজ ২", price: "4500" },
-    "task.3": { name: "টাস্ক প্যাকেজ ৩", price: "6000" },
-    "task.4": { name: "টাস্ক প্যাকেজ ৪", price: "7500" }
-  };
 
   onAuthStateChanged(auth, async (user) => {
 
@@ -377,33 +370,45 @@
           document.getElementById('userPhone').innerText =
             data.phone || data.mobile || user.phoneNumber || "---";
 
-          // প্যাকেজ তথ্য
-          const pkgKey = data.package;
+          // ফায়ারবেস থেকে ডাইনামিকালি প্যাকেজ তথ্য ফেচ করা
+          let userPackage = data.package;
+          let pkgName = "কোনো প্যাকেজ নেই";
+          let pkgPrice = "0";
 
-          if (pkgKey && packageDetails[pkgKey]) {
+          if (userPackage && userPackage !== "free_trial" && userPackage !== "none") {
+            // ১. ডকুমেন্ট আইডি দিয়ে খোঁজার চেষ্টা
+            let pkgDocRef = doc(db, "packages", userPackage);
+            let pkgSnap = await getDoc(pkgDocRef);
 
-            const pkg = packageDetails[pkgKey];
-
-            document.getElementById('packageName').innerText = pkg.name;
-            document.getElementById('packagePrice').innerText = pkg.price;
-
-          } else {
-
-            document.getElementById('packageName').innerText = "কোনো প্যাকেজ নেই";
-            document.getElementById('packagePrice').innerText = "0";
-
+            if (pkgSnap.exists()) {
+              let pkgData = pkgSnap.data();
+              pkgName = pkgData.name || userPackage;
+              pkgPrice = pkgData.price || "0";
+            } else {
+              // ২. packageId ফিল্ড দিয়ে খোঁজার চেষ্টা
+              const q = query(collection(db, "packages"), where("packageId", "==", userPackage));
+              const querySnap = await getDocs(q);
+              if (!querySnap.empty) {
+                let pkgData = querySnap.docs[0].data();
+                pkgName = pkgData.name || userPackage;
+                pkgPrice = pkgData.price || "0";
+              }
+            }
+          } else if (userPackage === "free_trial") {
+            pkgName = "ফ্রি ট্রায়াল";
+            pkgPrice = "0";
           }
 
-       // Firebase থেকে সঠিক আয়ের তথ্য ফেচ করা
+          document.getElementById('packageName').innerText = pkgName;
+          document.getElementById('packagePrice').innerText = pkgPrice;
+
+          // Firebase থেকে সঠিক আয়ের তথ্য ফেচ করা
           const teamComm = Number(data.teamCommission || 0);
           const dailyTsk = Number(data.dailyTaskIncome || data.dailyTask || 0);
           const myCsh = Number(data.myCash || 0);
           const taskCsh = Number(data.taskCash || 0);
 
-          // সমাধান: যদি ডাটাবেজে আলাদা 'totalEarnings' ফিল্ড থাকে, সেটি দেখাবে। 
-          // না থাকলে (fallback হিসেবে) টিম কমিশন ও টাস্ক ক্যাশের যোগফল দেখাবে।
           const totalEarn = Number(data.totalEarnings || (teamComm + taskCsh));
-
 
           // স্ক্রিনে দেখানো
           document.getElementById('totalIncome').innerText =
@@ -436,7 +441,6 @@
     }
 
   });
-
   // Logout Function
   window.logoutUser = function() {
 
@@ -453,7 +457,6 @@
   };
 
 </script>
-
 
 </body>
 </html>
