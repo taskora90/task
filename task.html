@@ -73,7 +73,7 @@
             <div class="video-container">
                 <div style="width: 100%; text-align: center; padding: 20px;">
                     <div style="background: #3b82f6; color: #fff; padding: 15px; border-radius: 8px; font-weight: bold;">
-                        <i class="fa-solid fa-ad"></i> রিওয়ার্ড পেতে বিজ্ঞাপনটি দেখুন এবং বিজ্ঞাপনে ক্লিক করুন
+                        <i class="fa-solid fa-ad"></i> রিওয়ার্ড পেতে বিজ্ঞাপনটি দেখুন,বিজ্ঞাপনে ক্লিক করুন এবং ১০ সেকেন্ড অপেক্ষা করুন।
                     </div>
                 </div>
             </div>
@@ -93,11 +93,13 @@
                 </div>
                 <p style="margin: 0; font-size: 12px; color: #cccccc; line-height: 1.5;">
                     কাজের নিয়মাবলী বা সতর্কতা বক্স:<br>
-                    . সম্পূর্ণ নিয়ম মেনে কাজ করুন।<br>
-                    .ভিপিএন বা অবৈধ মাধ্যম ব্যবহার থেকে বিরত থাকুন。<br>
-                    .সঠিক নিয়মে বিজ্ঞাপন দেখে এবং ক্লিক করে টাস্ক সম্পন্ন করুন。<br>
+                    *সম্পূর্ণ নিয়ম মেনে কাজ করুন।<br>
+          
+                    *সঠিক নিয়মে বিজ্ঞাপন দেখে এবং ক্লিক করে টাস্ক সম্পন্ন করুন।<br>
+
+*বিজ্ঞাপনে ক্লিক করার পর অবশ্যই ১০ সেকেন্ড অপেক্ষা করুন।
 <br>
-                    নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে পেমেন্ট বাতিল হতে পারে।
+                    নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে বা বিজ্ঞাপনে ১০ সেকেন্ড অপেক্ষা না করলে পেমেন্ট বাতিল হতে পারে।
                 </p>
             </div>
 
@@ -263,7 +265,7 @@
                 document.getElementById('actionBtn').disabled = true;
               } else {
                 document.getElementById('actionBtn').innerText = `টাস্ক নম্বর ${currentTaskCount + 1} শুরু করুন`;
-                document.getElementById('actionBtn').onclick = () => startTimer(5);
+                document.getElementById('actionBtn').onclick = () => startTimer(10);
               }
             }
           } catch (error) {
