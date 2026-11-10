@@ -209,8 +209,10 @@
             if (querySnapshot.empty) {
                 loanListHTML = "<p style='color:#777;'>আপনার কোনো পূর্ববর্তী লোন নেই।</p>";
             } else {
-                for (const docSnap of querySnapshot.docs) {
-                    const loan = docSnap.data();
+                const docsArray = querySnapshot.docs.reverse();
+for (const docSnap of docsArray) {
+    const loan = docSnap.data();
+
                     const loanId = docSnap.id;
                     const dueAmount = loan.dueAmount !== undefined ? Number(loan.dueAmount) : Number(loan.amount);
 
