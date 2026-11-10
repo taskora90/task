@@ -781,6 +781,9 @@
               <tr><td>মাই ক্যাশ</td><td><span id="view_myCash">${user.myCash || 0}</span><input type="number" id="edit_myCash" class="edit-input" value="${user.myCash || 0}" style="display:none;"></td></tr>
               <tr><td>মোট আয়</td><td><span id="view_totalEarnings">${user.totalEarnings || 0}</span><input type="number" id="edit_totalEarnings" class="edit-input" value="${user.totalEarnings || 0}" style="display:none;"></td></tr>
               <tr><td>সক্রিয় প্যাকেজ</td><td><span id="view_package">${user.package || 'none'}</span><input type="text" id="edit_package" class="edit-input" value="${user.package || 'none'}" style="display:none;"></td></tr>
+
+              <tr><td>লাকি স্পিন</td><td><span id="view_luckySpinCount">${user.luckySpinCount || 0}</span><input type="number" id="edit_luckySpinCount" class="edit-input" value="${user.luckySpinCount || 0}" style="display:none;"></td></tr>
+
               <tr><td>রেফারকারী</td><td>${user.referredBy || 'none'}</td></tr>
             </table>
             <button id="editBtn" class="btn-edit-mode" onclick="enableUserEdit()"><i class="fa-solid fa-pen-to-square"></i> তথ্য ও পাসওয়ার্ড এডিট করুন</button>
