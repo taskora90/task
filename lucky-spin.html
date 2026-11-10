@@ -212,7 +212,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -251,7 +251,7 @@
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            
+
             // নিরাপদভাবে luckySpinCount রিড করা (না থাকলে 0 ধরে নেবে)
             availableSpins = userData.luckySpinCount !== undefined ? Number(userData.luckySpinCount) : 0;
             document.getElementById('spinCountDisplay').innerText = availableSpins;
@@ -260,6 +260,20 @@
               document.getElementById('spinBtn').style.opacity = "0.5";
             }
           }
+
+          // ফায়ারবেসের spinHistory সাব-কালেকশন থেকে এ পর্যন্ত জেতা মোট টাকার পরিমাণ হিসাব করা
+          const historySnap = await getDocs(collection(db, "users", user.uid, "spinHistory"));
+          let totalSpinEarnings = 0;
+          historySnap.forEach((docSnap) => {
+            const historyData = docSnap.data();
+            if (historyData.amount) {
+              totalSpinEarnings += Number(historyData.amount);
+            }
+          });
+
+          // পুরস্কারের পরিমাণ বক্সে মোট ইনকাম শো করা
+          document.getElementById('reward-display').innerText = totalSpinEarnings.toFixed(2);
+
         } catch (error) {
           console.error("স্পিন ডাটা আনতে সমস্যা:", error);
         }
@@ -315,8 +329,6 @@
 
           if (prize.amount > 0) {
             alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
-            let currentReward = parseFloat(document.getElementById('reward-display').innerText);
-            document.getElementById('reward-display').innerText = (currentReward + prize.amount).toFixed(2);
           } else {
             alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
           }
