@@ -94,11 +94,8 @@
                 <p style="margin: 0; font-size: 12px; color: #cccccc; line-height: 1.5;">
                     কাজের নিয়মাবলী বা সতর্কতা বক্স:<br>
                     *সম্পূর্ণ নিয়ম মেনে কাজ করুন।<br>
-
                     *সঠিক নিয়মে বিজ্ঞাপন দেখে এবং ক্লিক করে টাস্ক সম্পন্ন করুন।<br>
-
-*বিজ্ঞাপনে ক্লিক করার পর অবশ্যই ১০ সেকেন্ড অপেক্ষা করুন।
-<br>
+                    *বিজ্ঞাপনে ক্লিক করার পর অবশ্যই ১০ সেকেন্ড অপেক্ষা করুন。<br>
                     নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে বা বিজ্ঞাপনে ১০ সেকেন্ড অপেক্ষা না করলে পেমেন্ট বাতিল হতে পারে।
                 </p>
             </div>
@@ -180,7 +177,6 @@
       let currentUser = null;
       let currentUserData = null;
 
-      // নোটিশ বক্স বদলানোর ফাংশন
       function updateTaskStatusBox(completedTasks, totalPackageTasks) {
         const ongoingBox = document.getElementById('task-ongoing-box');
         const finishedBox = document.getElementById('task-finished-box');
@@ -221,45 +217,40 @@
               currentTaskCount = currentUserData.dailyTaskCount || 0;
 
               let hasActivePaidPackage = userPackage && packageRules[userPackage] && userPackage !== "free_trial";
-              let trialTextDisplay = "ফ্রি ট্রায়াল (৩ দিন)";
+              let trialTextDisplay = "ফ্রি ট্রায়াল";
 
               if (!hasActivePaidPackage) {
                 let createdAt = currentUserData.createdAt;
-                let registrationTime = 0;
+                let regDate = new Date();
 
-                if (createdAt && typeof createdAt.toMillis === 'function') {
-                  registrationTime = createdAt.toMillis();
+                if (createdAt && typeof createdAt.toDate === 'function') {
+                  regDate = createdAt.toDate();
                 } else if (createdAt) {
-                  registrationTime = new Date(createdAt).getTime();
+                  regDate = new Date(createdAt);
                 } else {
-                  registrationTime = new Date(user.metadata.creationTime).getTime();
+                  regDate = new Date(user.metadata.creationTime);
                 }
 
-                let currentTime = new Date().getTime();
-                let diffTime = currentTime - registrationTime;
-                let oneDayInMillis = 24 * 60 * 60 * 1000;
-                let threeDaysInMillis = 3 * oneDayInMillis;
+                // ক্যালেন্ডার ডে হিসাব (তারিখের পার্থক্য বের করা)
+                const regDateOnly = new Date(regDate.getFullYear(), regDate.getMonth(), regDate.getDate());
+                const todayDateOnly = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+                
+                const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // ১ম দিন থেকে শুরু
 
-                if (diffTime <= threeDaysInMillis) {
-                  userPackage = "free_trial";
-
-                  // ডাইনামিক দিন হিসাব (৩ দিন, ২ দিন, ১ দিন)
-                  let passedDays = Math.floor(diffTime / oneDayInMillis);
-                  let remainingDays = 3 - passedDays;
-                  if (remainingDays < 1) remainingDays = 1;
-
-                  trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
-                } else {
-                  // ৩ দিন মেয়াদ শেষ হলে টাস্ক ব্লক করে মেসেজ ও পপ-আপ দেখানো
+                // যদি ৩ দিন পার হয়ে যায় (৪র্থ দিন হয়)
+                if (diffDays > 3) {
                   document.getElementById('taskCard').style.display = 'none';
                   document.getElementById('userInfoBox').style.display = 'none';
                   document.getElementById('dynamic-status-box').style.display = 'none';
                   document.getElementById('noPackageMsg').style.display = 'block';
                   document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।";
-                  
-                  alert("আপনার ফ্রি ট্রায়াল প্যাকেজটি শেষ হয়েছে। অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।");
-                  window.location.href = "package.html";
                   return;
+                } else {
+                  userPackage = "free_trial";
+                  let remainingDays = 4 - diffDays; // ৩ দিন, ২ দিন, ১ দিন বাকি দেখাবে
+                  if (remainingDays < 1) remainingDays = 1;
+                  trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
                 }
               }
 
@@ -267,7 +258,6 @@
               document.getElementById('userPackageText').innerText = userPackage === "free_trial" ? trialTextDisplay : userPackage;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
 
-              // নোটিশ বক্স আপডেট কল করা হলো
               updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
 
               document.getElementById('userInfoBox').style.display = 'block';
@@ -367,7 +357,6 @@
                 totalEarnings: increment(level1Commission)
               });
 
-              // লেভেল ১ রেফারারের হিস্ট্রি সেভ করা
               await addDoc(collection(db, "users", level1Ref.id, "referralHistory"), {
                 title: "রেফার কমিশন (লেভেল ১)",
                 desc: "টিম মেম্বারের টাস্ক সম্পন্ন করার মাধ্যমে কমিশন অর্জিত হয়েছে",
@@ -399,7 +388,6 @@
                     totalEarnings: increment(level2Commission)
                   });
 
-                  // লেভেল ২ রেফারারের হিস্ট্রি সেভ করা
                   await addDoc(collection(db, "users", level2Ref.id, "referralHistory"), {
                     title: "রেফার কমিশন (লেভেল ২)",
                     desc: "সেকেন্ড লেভেল টিম মেম্বারের টাস্ক থেকে কমিশন অর্জিত হয়েছে",
