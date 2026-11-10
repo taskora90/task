@@ -320,6 +320,20 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
+          // ওয়ার্ক ডিটেইলস পেজের হিস্ট্রিতে প্যাকেজ আপগ্রেড ও রিফান্ড যুক্ত করার জন্য সাব-কালেকশনে সেভ করা
+          try {
+            await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
+              title: `প্যাকেজ আপগ্রেড (${pkgDetails.name})`,
+              desc: previousPackageRefund > 0 
+                ? `ফিক্সড বোনাস ৳${fixedCashBonus} এবং পূর্বের প্যাকেজের ৮০% রিফান্ড ৳${previousPackageRefund} সহ মোট ৳${totalTaskCashBonus} অর্জিত হয়েছে` 
+                : `ফিক্সড বোনাস ৳${fixedCashBonus} অর্জিত হয়েছে`,
+              amount: totalTaskCashBonus,
+              timestamp: serverTimestamp()
+            });
+          } catch (historyErr) {
+            console.error("History log error:", historyErr);
+          }
+
           // রেফারেল কমিশন লজিক (প্যাকেজ চেক সিকিউরিটি ও ওয়ার্ক ডিটেইলস হিস্ট্রি সেভ সহ)
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
@@ -378,7 +392,7 @@
             msg += `• সাথে ${bonusSpins}টি লাকি স্পিন পেয়েছেন!`;
           }
 
-          alert(msg);
+,          alert(msg);
           location.reload();
 
         } catch (error) {
