@@ -223,7 +223,7 @@
             packagesContainer.innerHTML = "";
 
             const currentPkg = userData ? userData.package : "";
-            let currentLevel = 0;
+            const prevPkg = userData ? userData.previousPackage : ""; // ইউজারের একদম আগের কেনা প্যাকেজ
             let currentPkgLevel = -1;
 
             querySnapshot.forEach((docSnap) => {
@@ -246,13 +246,13 @@
                 btnText = "সক্রিয় আছে";
                 btnClass = "btn-buy btn-active";
                 isDisabled = "disabled";
-              } else if (currentPkg && allPackages[currentPkg] && pkg.level === currentPkgLevel - 1) {
-                // ২. ঠিক আগের প্যাকেজটি (যেটি থেকে সরাসরি আপগ্রেড করা হয়েছিল) -> লাল রঙের "পূর্বের প্যাকেজ"
+              } else if (prevPkg && pkg.packageId === prevPkg) {
+                // ২. যেটি ড্রপ বা পরিবর্তন করে এসেছেন (শুধু সেটিই লাল রঙের "পূর্বের প্যাকেজ" হবে)
                 btnText = "পূর্বের প্যাকেজ";
                 btnClass = "btn-buy btn-old";
                 isDisabled = "disabled";
               } else if (currentPkgLevel > pkg.level) {
-                // ৩. মাঝের বা অন্য ছোট প্যাকেজ যা কখনোই কেনা হয়নি -> লেখা "প্যাকেজ কিনুন" কিন্তু অ্যাস কালার ও ব্লক থাকবে
+                // ৩. মাঝের স্কিপ করা বা অন্য ছোট প্যাকেজ -> অ্যাস কালার ব্লকড থাকবে
                 btnText = "প্যাকেজ কিনুন";
                 btnClass = "btn-buy btn-blocked";
                 isDisabled = "disabled";
@@ -292,7 +292,7 @@
           return;
         }
 
-        const currentPkg = userData.package;
+        const currentPkg = userData.package || "";
         let currentPkgLevel = -1;
         if (currentPkg && allPackages[currentPkg]) {
           currentPkgLevel = allPackages[currentPkg].level;
@@ -321,14 +321,16 @@
           const fixedCashBonus = pkgDetails.fixedCashBonus || 0;
           let previousPackageRefund = 0;
 
-          // আগের প্যাকেজের ৮০% রিফান্ড হিসাব করা (শুধুমাত্র ঠিক আগের লেভেল থেকে আপগ্রেড হলে রিফান্ড পাবে)
-          if (currentPkg && allPackages[currentPkg] && pkgDetails.level === currentPkgLevel + 1) {
+          // ছোট থেকে যেকোনো বড় প্যাকেজে গেলেই আগের প্যাকেজের ৮০% রিফান্ড হিসাব করা
+          if (currentPkg && allPackages[currentPkg] && pkgDetails.level > currentPkgLevel) {
             previousPackageRefund = allPackages[currentPkg].price * 0.80;
           }
 
           const totalTaskCashBonus = fixedCashBonus + previousPackageRefund;
 
+          // আপডেট করার সময় বর্তমান প্যাকেজটিকে previousPackage হিসেবে সেভ করা হচ্ছে
           await updateDoc(userDocRef, {
+            previousPackage: currentPkg ? currentPkg : "",
             package: packageId,
             myCash: increment(-price),
             taskCash: increment(totalTaskCashBonus),     
