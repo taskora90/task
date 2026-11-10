@@ -134,18 +134,24 @@
           try {
             let allEarnings = [];
 
-            // ১. মূল টাস্ক হিস্ট্রি সাব-কালেকশন ফেচ করা
+            // ১. মূল টাস্ক ও প্যাকেজ হিস্ট্রি সাব-কালেকশন ফেচ করা
             try {
               const taskRef = collection(db, "users", user.uid, "taskHistory");
               const taskSnap = await getDocs(taskRef);
               taskSnap.forEach((docItem) => {
                 const data = docItem.data();
+                
+                // টাইপের ওপর ভিত্তি করে সঠিক আইকন নির্ধারণ
+                let itemIcon = 'fa-tasks';
+                if (data.type === 'package_bonus') itemIcon = 'fa-box';
+                else if (data.type === 'package_refund') itemIcon = 'fa-rotate-left';
+
                 allEarnings.push({
-                  title: `টাস্ক #${data.taskNumber || 'কম্প্লিট'}`,
-                  desc: "ডেইলি ভিডিও টাস্ক সম্পন্ন হয়েছে",
+                  title: data.title || `টাস্ক #${data.taskNumber || 'কম্প্লিট'}`,
+                  desc: data.desc || "ডেইলি ভিডিও টাস্ক সম্পন্ন হয়েছে", // ডাটাবেজ থেকে ডাইনামিক বিবরণ পাবে
                   amount: Number(data.amount || 0),
                   timestamp: data.timestamp,
-                  icon: 'fa-tasks'
+                  icon: itemIcon
                 });
               });
             } catch (e) {
@@ -162,8 +168,8 @@
                   spinSnap.forEach((docItem) => {
                     const data = docItem.data();
                     allEarnings.push({
-                      title: `লাকি স্পিন`,
-                      desc: data.description || "স্পিন বোনাস অর্জিত হয়েছে",
+                      title: data.title || `লাকি স্পিন`,
+                      desc: data.desc || data.description || "স্পিন বোনাস অর্জিত হয়েছে",
                       amount: Number(data.amount || data.winAmount || 0),
                       timestamp: data.timestamp,
                       icon: 'fa-rotate'
@@ -176,7 +182,7 @@
               }
             }
 
-            // ৩. রেফার বা টিম কমিশন হিস্ট্রি সাব-কালেকশন ফেচ করা (সকল সম্ভাব্য নাম কভার করা হয়েছে)
+            // ৩. রেফার বা টিম কমিশন হিস্ট্রি সাব-কালেকশন ফেচ করা
             const referralCollectionNames = ["referralHistory", "commissionHistory", "referrals", "teamCommissionHistory"];
             for (let colName of referralCollectionNames) {
               try {
