@@ -320,7 +320,7 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // ওয়ার্ক ডিটেইলস পেজের হিস্টிரিতে প্যাকেজ আপগ্রেড ও রিফান্ড যুক্ত করার জন্য সাব-কালেকশনে সেভ করা
+          // কাজের বিবরণ বা 'সকল আয়ের বিবরণ' (work-details) পেজে দেখানোর জন্য হিস্ট্রি সেভ করা
           try {
             await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
               title: `প্যাকেজ আপগ্রেড (${pkgDetails.name})`,
