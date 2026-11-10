@@ -139,7 +139,6 @@
             <span>প্রোফাইল</span>
         </a>
     </nav>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -158,18 +157,6 @@
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
-
-      const packageRules = {
-        "টাস্ক প্যাকেজ ১": { maxTasks: 10, reward: 10 },
-        "টাস্ক প্যাকেজ ২": { maxTasks: 15, reward: 10 },
-        "টাস্ক প্যাকেজ ৩": { maxTasks: 20, reward: 10 },
-        "টাস্ক প্যাকেজ ৪": { maxTasks: 25, reward: 10 },
-        "task.1": { maxTasks: 10, reward: 10 },
-        "task.2": { maxTasks: 15, reward: 10 },
-        "task.3": { maxTasks: 20, reward: 10 },
-        "task.4": { maxTasks: 25, reward: 10 },
-        "free_trial": { maxTasks: 2, reward: 10 }
-      };
 
       let userDocRef = null;
       let activePackageRule = null;
@@ -216,7 +203,29 @@
 
               currentTaskCount = currentUserData.dailyTaskCount || 0;
 
-              let hasActivePaidPackage = userPackage && packageRules[userPackage] && userPackage !== "free_trial";
+              let pkgRule = null;
+              let displayName = userPackage;
+
+              if (userPackage && userPackage !== "free_trial" && userPackage !== "none") {
+                let pkgDocRef = doc(db, "packages", userPackage);
+                let pkgSnap = await getDoc(pkgDocRef);
+
+                if (pkgSnap.exists()) {
+                  let data = pkgSnap.data();
+                  pkgRule = { maxTasks: data.tasksLimit || 10, reward: 10 };
+                  displayName = data.name || userPackage;
+                } else {
+                  const q = query(collection(db, "packages"), where("packageId", "==", userPackage));
+                  const querySnap = await getDocs(q);
+                  if (!querySnap.empty) {
+                    let data = querySnap.docs[0].data();
+                    pkgRule = { maxTasks: data.tasksLimit || 10, reward: 10 };
+                    displayName = data.name || userPackage;
+                  }
+                }
+              }
+
+              let hasActivePaidPackage = pkgRule !== null;
               let trialTextDisplay = "ফ্রি ট্রায়াল";
 
               if (!hasActivePaidPackage) {
@@ -246,14 +255,15 @@
                   return;
                 } else {
                   userPackage = "free_trial";
+                  pkgRule = { maxTasks: 2, reward: 10 };
                   let remainingDays = 4 - diffDays;
                   if (remainingDays < 1) remainingDays = 1;
                   trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
                 }
               }
 
-              activePackageRule = packageRules[userPackage];
-              document.getElementById('userPackageText').innerText = userPackage === "free_trial" ? trialTextDisplay : userPackage;
+              activePackageRule = pkgRule;
+              document.getElementById('userPackageText').innerText = (userPackage === "free_trial") ? trialTextDisplay : displayName;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
 
               updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
@@ -277,7 +287,6 @@
           window.location.href = "login.html";
         }
       });
-
       function startTimer(duration) {
         window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
 
@@ -321,7 +330,6 @@
             totalEarnings: increment(rewardAmount)
           });
 
-          // টাস্ক হিস্ট্রি সেভ করার অংশটি এখানে ঠিক করে সঠিক title ও desc যুক্ত করা হয়েছে
           await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
             type: "task_complete",
             taskNumber: nextTaskNumber,
