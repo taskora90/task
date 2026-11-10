@@ -82,7 +82,6 @@
         <button class="login-btn" onclick="verifyAdminPassword()">প্রবেশ করুন</button>
         <div id="loginError" class="error-msg">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
     </div>
-
     <!-- ২. ইউজার ডিটেলস পাসওয়ার্ড প্রম্পট বক্স (সিক্রেট) -->
     <div id="userSecPassSection" class="login-box" style="display: none;">
         <h3><i class="fa-solid fa-user-shield"></i> ইউজার ডিটেলস সিকিউরিটি</h3>
@@ -112,6 +111,7 @@
         <button class="btn-back" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="backToDashboardMenu()">ফিরে যান</button>
         <div id="withdrawSecError" class="error-msg">ভুল পাসওয়ার্ড!</div>
     </div>
+
     <!-- ৩. মূল অ্যাডমিন ড্যাশবোর্ড -->
     <div id="adminDashboard" class="admin-container" style="display: none;">
         <div class="header-bar">
@@ -194,7 +194,6 @@
             <h3>সকল প্যাকেজ তালিকা</h3>
             <div id="adminPackageList">প্যাকেজ লোড হচ্ছে...</div>
         </div>
-
         <!-- ইউজার ডিটেলস সেকশন -->
         <div id="usersSection" style="display: none;">
             <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
@@ -211,7 +210,7 @@
             <div id="withdrawProfilesContainer">উইথড্র প্রোফাইলগুলো লোড হচ্ছে...</div>
         </div>
 
-        <!-- ইউজার সাপোর্ট চ্যাট সেকশন (আপডেটসহ যেখানে মোবাইল/ইমেইল শো করবে) -->
+        <!-- ইউজার সাপোর্ট চ্যাট সেকশন -->
         <div id="supportChatSection" style="display: none;">
             <button class="btn-back" onclick="backToDashboardMenu()"><i class="fa-solid fa-arrow-left"></i> মেনুতে ফিরুন</button>
             <h3>ইউজার সাপোর্ট লাইভ চ্যাট</h3>
@@ -447,7 +446,7 @@
       }
       // --- প্যাকেজ ম্যানেজমেন্ট ---
       window.addNewPackage = async function() {
-        const pkgId = document.getElementById('pkgIdInput').value.trim();
+        const pkgId = document.getElementById('pkgIdInput').value.trim();        
         const name = document.getElementById('pkgNameInput').value.trim();
         const price = Number(document.getElementById('pkgPriceInput').value);
         const level = Number(document.getElementById('pkgLevelInput').value);
@@ -651,7 +650,6 @@
           loadWithdrawRequests();
         } catch (error) { alert("সমস্যা হয়েছে!"); }
       }
-
       // --- ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট ---
       let allWithdrawProfiles = [];
       async function loadWithdrawProfiles() {
@@ -673,6 +671,7 @@
       function renderWithdrawTable(profiles) {
         const container = document.getElementById('withdrawProfilesContainer');
         if (profiles.length === 0) { container.innerHTML = `<div class="request-card" style="text-align: center;">কোনো ম্যাচিং উইথড্র প্রোফাইল পাওয়া যায়নি।</div>`; return; }
+        
         let html = `<div style="overflow-x: auto;"><table class="profile-table"><thead><tr><th>ইউজার আইডি / ইমেইল</th><th>পেমেন্ট মাধ্যম</th><th>অ্যাকাউন্ট নম্বর</th><th>কার্যক্রম</th></tr></thead><tbody>`;
         profiles.forEach((data) => {
           const userId = data.id;
@@ -724,6 +723,7 @@
           loadWithdrawProfiles();
         } catch (error) { alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message); }
       }
+
       // --- ইউজার ডিটেলস ম্যানেজমেন্ট ---
       let allUsersData = [];
       async function loadAllUsers() {
@@ -781,9 +781,7 @@
               <tr><td>মাই ক্যাশ</td><td><span id="view_myCash">${user.myCash || 0}</span><input type="number" id="edit_myCash" class="edit-input" value="${user.myCash || 0}" style="display:none;"></td></tr>
               <tr><td>মোট আয়</td><td><span id="view_totalEarnings">${user.totalEarnings || 0}</span><input type="number" id="edit_totalEarnings" class="edit-input" value="${user.totalEarnings || 0}" style="display:none;"></td></tr>
               <tr><td>সক্রিয় প্যাকেজ</td><td><span id="view_package">${user.package || 'none'}</span><input type="text" id="edit_package" class="edit-input" value="${user.package || 'none'}" style="display:none;"></td></tr>
-
-              <tr><td>লাকি স্পিন</td><td><span id="view_luckySpinCount">${user.luckySpinCount || 0}</span><input type="number" id="edit_luckySpinCount" class="edit-input" value="${user.luckySpinCount || 0}" style="display:none;"></td></tr>
-
+              <tr><td>লাকি স্পিন (সংখ্যা)</td><td><span id="view_luckySpinCount">${user.luckySpinCount || 0}</span><input type="number" id="edit_luckySpinCount" class="edit-input" value="${user.luckySpinCount || 0}" style="display:none;"></td></tr>
               <tr><td>রেফারকারী</td><td>${user.referredBy || 'none'}</td></tr>
             </table>
             <button id="editBtn" class="btn-edit-mode" onclick="enableUserEdit()"><i class="fa-solid fa-pen-to-square"></i> তথ্য ও পাসওয়ার্ড এডিট করুন</button>
@@ -795,7 +793,7 @@
       }
 
       window.enableUserEdit = function() {
-        ['name', 'phone', 'password', 'taskCash', 'myCash', 'totalEarnings', 'package'].forEach(field => {
+        ['name', 'phone', 'password', 'taskCash', 'myCash', 'totalEarnings', 'package', 'luckySpinCount'].forEach(field => {
           const viewSpan = document.getElementById(`view_${field}`);
           const editInput = document.getElementById(`edit_${field}`);
           if(viewSpan && editInput) { viewSpan.style.display = 'none'; editInput.style.display = 'block'; }
@@ -810,7 +808,6 @@
             name: document.getElementById('edit_name').value.trim(),
             phone: document.getElementById('edit_phone').value.trim(),
             luckySpinCount: Number(document.getElementById('edit_luckySpinCount').value),
-
             taskCash: Number(document.getElementById('edit_taskCash').value),
             myCash: Number(document.getElementById('edit_myCash').value),
             totalEarnings: Number(document.getElementById('edit_totalEarnings').value),
@@ -840,7 +837,7 @@
         }
       }
 
-      // --- লাইভ চ্যাট ম্যানেজমেন্ট (মোবাইল নম্বর/ইমেইল শো করার ফিচারসহ আপডেট) ---
+      // --- লাইভ চ্যাট ম্যানেজমেন্ট ---
       let activeChatUserId = null;
       let unsubscribeAdminChat = null;
 
