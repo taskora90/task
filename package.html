@@ -320,7 +320,7 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // ১. ফিক্সড ক্যাশ বোনাসের হিস্ট্রি সেভ করা (যদি বোনাস থাকে)
+          // ১. ফিক্সড ক্যাশ বোনাসের হিস্ট্রি সেভ করা (সঠিক টাইটেল ও বিবরণ সহ)
           if (fixedCashBonus > 0) {
             try {
               await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
@@ -336,7 +336,7 @@
             }
           }
 
-          // ২. পূর্বের প্যাকেজের ৮০% রিফান্ড হিস্ট্রি আলাদা সেভ করা (যদি রিফান্ড থাকে)
+          // ২. পূর্বের প্যাকেজের ৮০% রিফান্ড হিস্ট্রি আলাদা সেভ করা (সঠিক টাইটেল ও বিবরণ সহ)
           if (previousPackageRefund > 0) {
             try {
               await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
