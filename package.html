@@ -116,10 +116,10 @@
             color: #fff; 
         }
 
-        /* ব্লক বাটন - অ্যাস কালার (Ash Color / Disabled) */
+        /* ব্লক বাটন - অ্যাস কালার (Ash Color / Clickable for Warning) */
         .btn-blocked { 
             background-color: #9ca3af !important; 
-            cursor: not-allowed; 
+            cursor: pointer; 
             color: #fff; 
         }
 
@@ -269,7 +269,7 @@
               } else if (currentPkgLevel > -1 && currentPkgLevel > pkgLevel) {
                 btnText = "প্যাকেজ কিনুন";
                 btnClass = "btn-buy btn-blocked";
-                isDisabled = "disabled";
+                isDisabled = ""; // ছোট প্যাকেজের ক্ষেত্রে disabled রাখা হয়নি যাতে ক্লিক করলে ওয়ার্নিং আসে
               }
 
               const displayLuckySpin = Number(pkg.LuckySpinCount || pkg.luckySpin || 0);
@@ -321,7 +321,7 @@
           }
         }
 
-        // সিকিউরিটি চেক: যদি টার্গেট প্যাকেজের লেভেল বর্তমান প্যাকেজের কম হয়
+        // সিকিউরিটি চেক: যদি টার্গেট প্যাকেজের লেভেল বর্তমান প্যাকেজের কম হয়, তবে ওয়ার্নিং পপ-আপ দেখাবে
         if (currentPkgLevel > -1 && targetLevel < currentPkgLevel && currentPkg !== packageId && currentPkg !== pkgDetails.packageId && currentPkg !== pkgDetails.id) {
           alert("বড় প্যাকেজ থেকে ছোট প্যাকেজে আসা যাবে না।");
           return;
