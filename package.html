@@ -184,7 +184,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -220,8 +220,8 @@
             const packagesContainer = document.getElementById('packages-list');
             packagesContainer.innerHTML = "";
 
-            const currentPkg = userData ? String(userData.package || "") : "";
-            const prevPkg = userData ? String(userData.previousPackage || "") : ""; 
+            const currentPkg = userData ? String(userData.package || "").trim() : "";
+            const prevPkg = userData ? String(userData.previousPackage || "").trim() : ""; 
             let currentPkgLevel = -1;
 
             let packagesArray = [];
@@ -234,7 +234,6 @@
               const fullPkg = { id: docSnap.id, ...pkgData, packageId: pId, level: level, price: price };
               packagesArray.push(fullPkg);
               
-              // উভয় কী (Doc ID এবং PackageID) দিয়ে ম্যাপে সেভ করে রাখছি
               allPackages[pId] = fullPkg;
               allPackages[docSnap.id] = fullPkg;
             });
@@ -242,9 +241,15 @@
             // মূল্য বা লেভেল অনুযায়ী ছোট থেকে বড় সাজানো
             packagesArray.sort((a, b) => (a.level || a.price) - (b.level || b.price));
 
-            // ইউজারের বর্তমান প্যাকেজ লেভেল নিশ্চিতভাবে বের করা
-            if (currentPkg && allPackages[currentPkg]) {
-              currentPkgLevel = Number(allPackages[currentPkg].level || 0);
+            // সঠিক উপায়ে ইউজারের বর্তমান লেভেল খুঁজে বের করা
+            if (currentPkg) {
+              for (let key in allPackages) {
+                let p = allPackages[key];
+                if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
+                  currentPkgLevel = Number(p.level || 0);
+                  break;
+                }
+              }
             }
 
             packagesArray.forEach((pkg) => {
@@ -254,17 +259,14 @@
               let isDisabled = "";
 
               if (currentPkg === pkg.packageId || currentPkg === pkg.id) {
-                // ১. বর্তমান সক্রিয় প্যাকেজ
                 btnText = "সক্রিয় আছে";
                 btnClass = "btn-buy btn-active";
                 isDisabled = "disabled";
               } else if (prevPkg && (prevPkg === pkg.packageId || prevPkg === pkg.id)) {
-                // ২. পূর্বের প্যাকেজ
                 btnText = "পূর্বের প্যাকেজ";
                 btnClass = "btn-buy btn-old";
                 isDisabled = "disabled";
               } else if (currentPkgLevel > -1 && currentPkgLevel > pkgLevel) {
-                // ৩. ছোট প্যাকেজ ব্লকড থাকবে
                 btnText = "প্যাকেজ কিনুন";
                 btnClass = "btn-buy btn-blocked";
                 isDisabled = "disabled";
@@ -306,14 +308,21 @@
           return;
         }
 
-        const currentPkg = userData.package || "";
+        const currentPkg = String(userData.package || "").trim();
         let currentPkgLevel = -1;
-        if (currentPkg && allPackages[currentPkg]) {
-          currentPkgLevel = Number(allPackages[currentPkg].level || 0);
+
+        if (currentPkg) {
+          for (let key in allPackages) {
+            let p = allPackages[key];
+            if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
+              currentPkgLevel = Number(p.level || 0);
+              break;
+            }
+          }
         }
 
-        // সিকিউরিটি চেক: যদি টার্গেট প্যাকেজের লেভেল বর্তমান প্যাকেজ লেভেলের সমান বা কম হয়
-        if (currentPkgLevel > -1 && targetLevel <= currentPkgLevel && currentPkg !== packageId) {
+        // সিকিউরিটি চেক: যদি টার্গেট প্যাকেজের লেভেল বর্তমান প্যাকেজের সমান বা কম হয়
+        if (currentPkgLevel > -1 && targetLevel <= currentPkgLevel && currentPkg !== packageId && currentPkg !== pkgDetails.packageId && currentPkg !== pkgDetails.id) {
           alert("বড় প্যাকেজ থেকে ছোট প্যাকেজে আসা যাবে না।");
           return;
         }
@@ -335,8 +344,14 @@
           const fixedCashBonus = Number(pkgDetails.fixedCashBonus || 0);
           let previousPackageRefund = 0;
 
-          if (currentPkg && allPackages[currentPkg] && targetLevel > currentPkgLevel) {
-            previousPackageRefund = Number(allPackages[currentPkg].price || 0) * 0.80;
+          if (currentPkg && targetLevel > currentPkgLevel) {
+            for (let key in allPackages) {
+              let p = allPackages[key];
+              if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
+                previousPackageRefund = Number(p.price || 0) * 0.80;
+                break;
+              }
+            }
           }
 
           const totalTaskCashBonus = fixedCashBonus + previousPackageRefund;
