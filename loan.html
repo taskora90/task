@@ -14,9 +14,17 @@
         .loan-card h3 { margin-top: 0; color: #333; font-size: 18px; }
         .loan-amount-badge { font-size: 26px; font-weight: bold; color: #28a745; margin: 15px 0; display: block; }
         .loan-desc { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 20px; }
+        
+        /* মূল লোন রিকোয়েস্ট বাটন (হলুদ কালার অপরিবর্তিত) */
         .loan-btn { width: 100%; background: #ffc107; color: #000; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
         .loan-btn:hover { background: #e0a800; }
-        .loan-btn:disabled { background: #cccccc; cursor: not-allowed; }
+
+        /* পেন্ডিং অবস্থায় অ্যাস কালার বাটন */
+        .loan-btn-pending { width: 100%; background: #9ca3af !important; color: #fff !important; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: not-allowed; }
+
+        /* চলমান অবস্থায় সবুজ কালার বাটন */
+        .loan-btn-active { width: 100%; background: #10b981 !important; color: #fff !important; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: not-allowed; }
+
         .info-note { background: #e2f0d9; color: #385723; padding: 12px; border-radius: 8px; font-size: 13px; text-align: center; margin-bottom: 20px; line-height: 1.5; }
         .ads-wrapper { text-align: center; margin-top: 20px; }
 
@@ -61,9 +69,7 @@
         }
     </style>
 </head>
-<body>
-
-    <div class="main-container">
+<body>   <div class="main-container">
 
         <div class="page-header">
             <h2>জরুরি লোন সুবিধা</h2>
@@ -204,12 +210,12 @@
             const querySnapshot = await getDocs(q);
 
             let hasUnpaidLoan = false;
+            let isPendingLoan = false;
             let loanListHTML = "";
 
             if (querySnapshot.empty) {
                 loanListHTML = "<p style='color:#777;'>আপনার কোনো পূর্ববর্তী লোন নেই।</p>";
             } else {
-                // ডাটাগুলোকে জাভাস্ক্রিপ্ট দিয়ে সাজানো হয়েছে যাতে নতুন লোন বা আবেদন সবসময় উপরে থাকে (ইনডেক্স ছাড়াই)
                 let docsArray = querySnapshot.docs.map(docSnap => ({
                     id: docSnap.id,
                     data: docSnap.data()
@@ -226,7 +232,11 @@
                     const loanId = item.id;
                     const dueAmount = loan.dueAmount !== undefined ? Number(loan.dueAmount) : Number(loan.amount);
 
-                    if (loan.status === "pending" || loan.status === "approved" || loan.status === "active") {
+                    if (loan.status === "pending") {
+                        if (dueAmount > 0) {
+                            isPendingLoan = true;
+                        }
+                    } else if (loan.status === "approved" || loan.status === "active") {
                         if (dueAmount > 0) {
                             hasUnpaidLoan = true;
                         }
@@ -247,8 +257,7 @@
                     } else {
                         statusBadge = `<span class="status-badge" onclick="openPayModal('${loanId}', ${dueAmount})">চলমান (পরিশোধ করুন)</span>`;
                     }
-                    loanListHTML += `
-                        <div class="loan-item ${isPaid ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}">
+                    loanListHTML += `                        <div class="loan-item ${isPaid ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}">
                             <div class="loan-row-content">
                                 <div class="loan-info">
                                     <p><strong>মূল লোন:</strong> ৳${loan.amount}</p>
@@ -263,13 +272,16 @@
                         </div>
                     `;
                 }
-            }
+            }document.getElementById('loanList').innerHTML = loanListHTML;
 
-            document.getElementById('loanList').innerHTML = loanListHTML;
-
-            if (hasUnpaidLoan) {
+            // এখানে পেন্ডিং এবং চলমান লোনের জন্য আলাদা বাটন ও কালার সেট করা হয়েছে
+            if (isPendingLoan) {
                 document.getElementById('actionArea').innerHTML = `
-                    <button class="loan-btn" disabled>আপনার একটি লোন সচল/পেন্ডিং রয়েছে</button>
+                    <button class="loan-btn-pending" disabled>আপনার লোনটি পেন্ডিং আছে</button>
+                `;
+            } else if (hasUnpaidLoan) {
+                document.getElementById('actionArea').innerHTML = `
+                    <button class="loan-btn-active" disabled>আপনার একটি লোন চলমান আছে</button>
                 `;
             } else if (userLoanAmount > 0) {
                 document.getElementById('actionArea').innerHTML = `
