@@ -215,9 +215,8 @@
               document.getElementById('myCashBalance').innerText = (userData.myCash || 0).toFixed(2);
             }
 
-            // ফায়ারবেস থেকে প্যাকেজগুলো লেভেল অনুযায়ী লোড করা
-            const q = query(collection(db, "packages"), orderBy("level", "asc"));
-            const querySnapshot = await getDocs(q);
+            // ফায়ারবেস থেকে প্যাকেজগুলো নিয়ে আসা
+            const querySnapshot = await getDocs(collection(db, "packages"));
 
             const packagesContainer = document.getElementById('packages-list');
             packagesContainer.innerHTML = "";
@@ -226,17 +225,25 @@
             const prevPkg = userData ? userData.previousPackage : ""; // ইউজারের একদম আগের কেনা প্যাকেজ
             let currentPkgLevel = -1;
 
+            // প্যাকেজগুলোকে অ্যারেতে রূপান্তর করে লেভেল বা মূল্য অনুযায়ী ছোট থেকে বড় সাজিয়ে নেওয়া
+            let packagesArray = [];
             querySnapshot.forEach((docSnap) => {
               const pkgData = docSnap.data();
-              allPackages[pkgData.packageId] = pkgData;
-              if (pkgData.packageId === currentPkg) {
-                currentPkgLevel = pkgData.level;
+              packagesArray.push({ id: docSnap.id, ...pkgData });
+            });
+
+            // সর্টিং লজিক: লেভেল বা প্রাইজ অনুযায়ী অটো ক্রমানুসারে সাজানো
+            packagesArray.sort((a, b) => Number(a.level || a.price) - Number(b.level || b.price));
+
+            packagesArray.forEach((pkg) => {
+              allPackages[pkg.packageId] = pkg;
+              if (pkg.packageId === currentPkg) {
+                currentPkgLevel = Number(pkg.level || 0);
               }
             });
 
-            querySnapshot.forEach((docSnap) => {
-              const pkg = docSnap.data();
-
+            packagesArray.forEach((pkg) => {
+              const pkgLevel = Number(pkg.level || 0);
               let btnText = "প্যাকেজ কিনুন";
               let btnClass = "btn-buy";
               let isDisabled = "";
@@ -251,7 +258,7 @@
                 btnText = "পূর্বের প্যাকেজ";
                 btnClass = "btn-buy btn-old";
                 isDisabled = "disabled";
-              } else if (currentPkgLevel > pkg.level) {
+              } else if (currentPkgLevel > pkgLevel) {
                 // ৩. মাঝের স্কিপ করা বা অন্য ছোট প্যাকেজ -> অ্যাস কালার ব্লকড থাকবে
                 btnText = "প্যাকেজ কিনুন";
                 btnClass = "btn-buy btn-blocked";
@@ -269,7 +276,7 @@
                     <p>ফিক্সড ক্যাশ বোনাস: ৳ ${pkg.fixedCashBonus || 0}</p>
                     <p>আপগ্রেড করলে ${displayLuckySpin}টি লাকি স্পিন</p>
                     <div class="price">মূল্য: ৳ ${pkg.price}</div>
-                    <button class="${btnClass}" id="btn-${pkg.packageId}" ${isDisabled} onclick="buyPackage('${pkg.packageId}', ${pkg.price}, ${pkg.level})">${btnText}</button>
+                    <button class="${btnClass}" id="btn-${pkg.packageId}" ${isDisabled} onclick="buyPackage('${pkg.packageId}', ${pkg.price}, ${pkgLevel})">${btnText}</button>
                 </div>
               `;
               packagesContainer.innerHTML += cardHTML;
@@ -298,7 +305,7 @@
         const currentPkg = userData.package || "";
         let currentPkgLevel = -1;
         if (currentPkg && allPackages[currentPkg]) {
-          currentPkgLevel = allPackages[currentPkg].level;
+          currentPkgLevel = Number(allPackages[currentPkg].level || 0);
         }
 
         // ছোট প্যাকেজে বা নিচের লেভেলে যাওয়ার সিকিউরিটি চেক
@@ -326,8 +333,8 @@
           let previousPackageRefund = 0;
 
           // ছোট থেকে যেকোনো বড় প্যাকেজে গেলেই আগের প্যাকেজের ৮০% রিফান্ড হিসাব করা
-          if (currentPkg && allPackages[currentPkg] && pkgDetails.level > currentPkgLevel) {
-            previousPackageRefund = allPackages[currentPkg].price * 0.80;
+          if (currentPkg && allPackages[currentPkg] && targetLevel > currentPkgLevel) {
+            previousPackageRefund = Number(allPackages[currentPkg].price || 0) * 0.80;
           }
 
           const totalTaskCashBonus = fixedCashBonus + previousPackageRefund;
