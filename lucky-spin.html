@@ -41,7 +41,6 @@
       border-radius: 12px;
       margin-bottom: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      border: 2px solid #ffd700;
     }
     .reward-box p { font-size: 15px; color: #666; margin-bottom: 5px; font-weight: bold; }
     .reward-amount { font-size: 26px; font-weight: bold; color: #28a745; }
@@ -56,65 +55,38 @@
       font-size: 15px;
       font-weight: bold;
       color: #2d3748;
-      border: 2px solid #ffd700;
     }
 
-    /* প্রিমিয়াম গোল্ডেন রিং ও অ্যাশ হুইল কনটেইনার */
+    /* স্পিন হুইল কনটেইনার */
     .wheel-container {
       position: relative;
-      width: 340px;
-      height: 340px;
+      width: 320px;
+      height: 320px;
       margin: 0 auto;
       border-radius: 50%;
-      background: linear-gradient(135deg, #ffcc00, #ff9900, #ffcc00);
-      border: 10px solid #d4af37;
+      background: #cbd5e1;
+      border: 8px solid #2d3748;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4), inset 0 0 15px rgba(255,255,255,0.6);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
     }
 
-    /* চারপাশে লাল রঙের টুপটুপ করে জ্বলা লাইটসমূহ */
-    @keyframes redLightBlink {
-      0% { background-color: #ff4d4d; box-shadow: 0 0 10px #ff0000, 0 0 15px #ff4d4d; }
-      50% { background-color: #550000; box-shadow: 0 0 2px #220000; }
-      100% { background-color: #ff4d4d; box-shadow: 0 0 10px #ff0000, 0 0 15px #ff4d4d; }
-    }
-
-    .wheel-light {
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      z-index: 25;
-      animation: redLightBlink 0.8s infinite alternate;
-    }
-    
-    .light-0 { top: 10px; left: 50%; transform: translateX(-50%); animation-delay: 0.1s; }
-    .light-1 { top: 50px; right: 50px; animation-delay: 0.3s; }
-    .light-2 { top: 50%; right: 10px; transform: translateY(-50%); animation-delay: 0.5s; }
-    .light-3 { bottom: 50px; right: 50px; animation-delay: 0.7s; }
-    .light-4 { bottom: 10px; left: 50%; transform: translateX(-50%); animation-delay: 0.2s; }
-    .light-5 { bottom: 50px; left: 50px; animation-delay: 0.4s; }
-    .light-6 { top: 50%; left: 10px; transform: translateY(-50%); animation-delay: 0.6s; }
-    .light-7 { top: 50px; left: 50px; animation-delay: 0.8s; }
-
-    /* ঘূর্ণায়মান চাকা (অ্যাশ ব্যাকগ্রাউন্ড) */
+    /* ঘূর্ণায়মান চাকা */
     .wheel {
-      width: 275px;
-      height: 275px;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
       position: relative;
       transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);
       background: #e2e8f0;
-      border: 4px dashed #94a3b8;
     }
 
-    /* চাকার আইটেম/কার্ডসমূহ */
+    /* চাকার আইটেম/বাটনসমূহ */
     .item {
       position: absolute;
-      width: 75px;
-      height: 55px;
+      width: 80px;
+      height: 60px;
       background: #ffffff;
       border: 2px solid #cbd5e1;
       border-radius: 10px;
@@ -122,56 +94,54 @@
       justify-content: center;
       align-items: center;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 15px;
       color: #333;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
     /* ৬টি পজিশন */
-    .item-0 { top: 10px; left: 50%; transform: translateX(-50%); }
-    .item-1 { top: 55px; right: 12px; }
-    .item-2 { bottom: 55px; right: 12px; }
-    .item-3 { bottom: 10px; left: 50%; transform: translateX(-50%); }
-    .item-4 { bottom: 55px; left: 12px; }
-    .item-5 { top: 55px; left: 12px; }
+    .item-0 { top: 15px; left: 50%; transform: translateX(-50%); }
+    .item-1 { top: 75px; right: 15px; }
+    .item-2 { bottom: 75px; right: 15px; }
+    .item-3 { bottom: 15px; left: 50%; transform: translateX(-50%); }
+    .item-4 { bottom: 75px; left: 15px; }
+    .item-5 { top: 75px; left: 15px; }
 
-    .try-again-text { color: #dc3545; font-size: 12px; }
-    .money-text { color: #28a745; font-size: 15px; }
+    .try-again-text { color: #dc3545; font-size: 13px; }
+    .money-text { color: #28a745; font-size: 16px; }
 
-    /* মাঝের শুরু বাটন (গোল্ডেন স্টাইল) */
+    /* শুরু বাটন (মাঝখানে) */
     .spin-btn {
       position: absolute;
-      width: 85px;
-      height: 85px;
-      background: linear-gradient(135deg, #ffcc00, #ff9900);
+      width: 90px;
+      height: 90px;
+      background: #2d3748;
       color: #fff;
       border-radius: 50%;
-      border: 4px solid #ffffff;
+      border: 4px solid #fff;
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      z-index: 20;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      z-index: 10;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       display: flex;
       justify-content: center;
       align-items: center;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
     .spin-btn:active { transform: scale(0.95); }
 
     /* ইন্ডিকেটর / পয়েন্টার */
     .pointer {
       position: absolute;
-      top: -18px;
+      top: -15px;
       left: 50%;
       transform: translateX(-50%);
       width: 0;
       height: 0;
       border-left: 12px solid transparent;
       border-right: 12px solid transparent;
-      border-top: 24px solid #dc354e;
-      z-index: 30;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+      border-top: 22px solid #dc3545;
+      z-index: 12;
     }
 
     .ads-wrapper {
@@ -206,22 +176,12 @@
     <div class="wheel-container">
       <div class="pointer"></div>
 
-      <!-- লাল রঙের টুপটুপ করে জ্বলা লাইটসমূহ -->
-      <div class="wheel-light light-0"></div>
-      <div class="wheel-light light-1"></div>
-      <div class="wheel-light light-2"></div>
-      <div class="wheel-light light-3"></div>
-      <div class="wheel-light light-4"></div>
-      <div class="wheel-light light-5"></div>
-      <div class="wheel-light light-6"></div>
-      <div class="wheel-light light-7"></div>
-
       <!-- ঘুরার চাকা -->
       <div class="wheel" id="wheel">
         <div class="item item-0 try-again-text">Try Again</div>
         <div class="item item-1 money-text">৳ 50</div>
         <div class="item item-2 money-text">৳ 100</div>
-        <div class="item item-3 try-again-text">Try Again</div>
+        <div class="item item-3 money-text">৳ 10</div>
         <div class="item item-4 money-text">৳ 150</div>
         <div class="item item-5 money-text">৳ 20</div>
       </div>
@@ -269,11 +229,12 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // আইটেম অ্যারে: ১টি ট্রাই এগেইন, ১টি ১০ টাকা এবং বাকিগুলো আগের মতো
     const items = [
       { name: "Try Again", amount: 0 },
       { name: "৳ 50", amount: 50 },
       { name: "৳ 100", amount: 100 },
-      { name: "Try Again", amount: 0 },
+      { name: "৳ 10", amount: 10 },
       { name: "৳ 150", amount: 150 },
       { name: "৳ 20", amount: 20 }
     ];
