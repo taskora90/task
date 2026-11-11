@@ -184,7 +184,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -202,7 +202,7 @@
 
       let currentUser = null;
       let userData = null;
-      let allPackages = {}; // ডাটাবেজের সব প্যাকেজ এখানে জমা থাকবে
+      let allPackages = {}; 
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -215,32 +215,37 @@
               document.getElementById('myCashBalance').innerText = (userData.myCash || 0).toFixed(2);
             }
 
-            // ফায়ারবেস থেকে প্যাকেজগুলো নিয়ে আসা
             const querySnapshot = await getDocs(collection(db, "packages"));
 
             const packagesContainer = document.getElementById('packages-list');
             packagesContainer.innerHTML = "";
 
-            const currentPkg = userData ? userData.package : "";
-            const prevPkg = userData ? userData.previousPackage : ""; // ইউজারের একদম আগের কেনা প্যাকেজ
+            const currentPkg = userData ? String(userData.package || "") : "";
+            const prevPkg = userData ? String(userData.previousPackage || "") : ""; 
             let currentPkgLevel = -1;
 
-            // প্যাকেজগুলোকে অ্যারেতে রূপান্তর করে লেভেল বা মূল্য অনুযায়ী ছোট থেকে বড় সাজিয়ে নেওয়া
             let packagesArray = [];
             querySnapshot.forEach((docSnap) => {
               const pkgData = docSnap.data();
-              packagesArray.push({ id: docSnap.id, ...pkgData });
+              const pId = pkgData.packageId || docSnap.id;
+              const level = Number(pkgData.level || 0);
+              const price = Number(pkgData.price || 0);
+
+              const fullPkg = { id: docSnap.id, ...pkgData, packageId: pId, level: level, price: price };
+              packagesArray.push(fullPkg);
+              
+              // উভয় কী (Doc ID এবং PackageID) দিয়ে ম্যাপে সেভ করে রাখছি
+              allPackages[pId] = fullPkg;
+              allPackages[docSnap.id] = fullPkg;
             });
 
-            // সর্টিং লজিক: লেভেল বা প্রাইজ অনুযায়ী অটো ক্রমানুসারে সাজানো
-            packagesArray.sort((a, b) => Number(a.level || a.price) - Number(b.level || b.price));
+            // মূল্য বা লেভেল অনুযায়ী ছোট থেকে বড় সাজানো
+            packagesArray.sort((a, b) => (a.level || a.price) - (b.level || b.price));
 
-            packagesArray.forEach((pkg) => {
-              allPackages[pkg.packageId] = pkg;
-              if (pkg.packageId === currentPkg) {
-                currentPkgLevel = Number(pkg.level || 0);
-              }
-            });
+            // ইউজারের বর্তমান প্যাকেজ লেভেল নিশ্চিতভাবে বের করা
+            if (currentPkg && allPackages[currentPkg]) {
+              currentPkgLevel = Number(allPackages[currentPkg].level || 0);
+            }
 
             packagesArray.forEach((pkg) => {
               const pkgLevel = Number(pkg.level || 0);
@@ -248,24 +253,23 @@
               let btnClass = "btn-buy";
               let isDisabled = "";
 
-              if (currentPkg === pkg.packageId) {
+              if (currentPkg === pkg.packageId || currentPkg === pkg.id) {
                 // ১. বর্তমান সক্রিয় প্যাকেজ
                 btnText = "সক্রিয় আছে";
                 btnClass = "btn-buy btn-active";
                 isDisabled = "disabled";
-              } else if (prevPkg && pkg.packageId === prevPkg) {
-                // ২. যেটি ড্রপ বা পরিবর্তন করে এসেছেন (শুধু সেটিই লাল রঙের "পূর্বের প্যাকেজ" হবে)
+              } else if (prevPkg && (prevPkg === pkg.packageId || prevPkg === pkg.id)) {
+                // ২. পূর্বের প্যাকেজ
                 btnText = "পূর্বের প্যাকেজ";
                 btnClass = "btn-buy btn-old";
                 isDisabled = "disabled";
-              } else if (currentPkgLevel > pkgLevel) {
-                // ৩. মাঝের স্কিপ করা বা অন্য ছোট প্যাকেজ -> অ্যাস কালার ব্লকড থাকবে
+              } else if (currentPkgLevel > -1 && currentPkgLevel > pkgLevel) {
+                // ৩. ছোট প্যাকেজ ব্লকড থাকবে
                 btnText = "প্যাকেজ কিনুন";
                 btnClass = "btn-buy btn-blocked";
                 isDisabled = "disabled";
               }
 
-              // ফায়ারবেস থেকে LuckySpinCount ডাইনামিকালি শো করার ব্যবস্থা
               const displayLuckySpin = Number(pkg.LuckySpinCount || pkg.luckySpin || 0);
 
               const cardHTML = `
@@ -308,8 +312,8 @@
           currentPkgLevel = Number(allPackages[currentPkg].level || 0);
         }
 
-        // ছোট প্যাকেজে বা নিচের লেভেলে যাওয়ার সিকিউরিটি চেক
-        if (currentPkgLevel >= targetLevel && currentPkg !== packageId) {
+        // সিকিউরিটি চেক: যদি টার্গেট প্যাকেজের লেভেল বর্তমান প্যাকেজ লেভেলের সমান বা কম হয়
+        if (currentPkgLevel > -1 && targetLevel <= currentPkgLevel && currentPkg !== packageId) {
           alert("বড় প্যাকেজ থেকে ছোট প্যাকেজে আসা যাবে না।");
           return;
         }
@@ -327,19 +331,16 @@
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
 
-          // সঠিক LuckySpinCount ফিল্ড রিড করা (না থাকলে 0 ধরা)
           const bonusSpins = Number(pkgDetails.LuckySpinCount || pkgDetails.luckySpin || 0);
           const fixedCashBonus = Number(pkgDetails.fixedCashBonus || 0);
           let previousPackageRefund = 0;
 
-          // ছোট থেকে যেকোনো বড় প্যাকেজে গেলেই আগের প্যাকেজের ৮০% রিফান্ড হিসাব করা
           if (currentPkg && allPackages[currentPkg] && targetLevel > currentPkgLevel) {
             previousPackageRefund = Number(allPackages[currentPkg].price || 0) * 0.80;
           }
 
           const totalTaskCashBonus = fixedCashBonus + previousPackageRefund;
 
-          // আপডেট করার সময় বর্তমান প্যাকেজটিকে previousPackage হিসেবে সেভ করা হচ্ছে
           await updateDoc(userDocRef, {
             previousPackage: currentPkg ? currentPkg : "",
             package: packageId,
@@ -349,7 +350,6 @@
             luckySpinCount: increment(bonusSpins) 
           });
 
-          // ১. ফিক্সড ক্যাশ বোনাসের হিস্ট্রি সেভ করা
           if (fixedCashBonus > 0) {
             try {
               await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
@@ -365,7 +365,6 @@
             }
           }
 
-          // ২. পূর্বের প্যাকেজের ৮০% রিফান্ড হিস্ট্রি আলাদা সেভ করা
           if (previousPackageRefund > 0) {
             try {
               await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
@@ -381,7 +380,6 @@
             }
           }
 
-          // রেফারেল কমিশন লজিক
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
