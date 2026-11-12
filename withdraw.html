@@ -137,18 +137,20 @@
 
       let currentTaskCash = 0;
       let currentUser = null;
-      let selectedAmount = 0; // ইউজার বক্স থেকে সরাসরি যে অ্যামাউন্ট সিলেক্ট করবে (যেমন: 500)
+      let selectedAmount = 0; 
       let userWithdrawMethod = "";
       let userWithdrawAccount = "";
 
       window.selectAmount = function(amount) {
-        selectedAmount = amount; // পুরো মূল অ্যামাউন্ট সংরক্ষণ করা হলো (ব্যালেন্স থেকে কাটার জন্য)
+        selectedAmount = amount; // মূল অ্যামাউন্ট (যেমন: 500) ব্যালেন্স থেকে কাটার জন্য সেভ থাকবে
         
-        // ১০% ভ্যাট বাদ দিয়ে রিসিভ করার বা ইনপুটে দেখানোর অ্যামাউন্ট হিসাব করা (যেমন: 500 থেকে ১০% বাদ দিলে 450)
+        // ১০% ভ্যাট বাদ দিয়ে ইনপুটে দেখানোর অ্যামাউন্ট (যেমন: 500 - 10% = 450)
         let amountAfterVat = amount - (amount * 0.10);
 
         document.querySelectorAll('.amount-grid .amount-btn').forEach(btn => btn.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add('active');
+        }
         
         // ইনপুট বক্সে ভ্যাট বাদে বাকি টাকা দেখাবে
         document.getElementById('withdrawAmount').value = amountAfterVat;
@@ -161,7 +163,6 @@
         if (user) {
           currentUser = user;
 
-          // ১. ইউজারের মূল ব্যালেন্স ফেচ করা
           const userDocRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userDocRef);
 
@@ -170,7 +171,6 @@
             document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
           }
 
-          // ২. আলাদা কালেকشن (withdrawProfiles) থেকে ইউজারের প্রোফাইল চেক করা
           const profileDocRef = doc(db, "withdrawProfiles", user.uid);
           const profileDoc = await getDoc(profileDocRef);
 
@@ -179,14 +179,12 @@
             userWithdrawMethod = profileData.method;
             userWithdrawAccount = profileData.account;
 
-            // প্রোফাইল থাকলে মূল উইথড্র সেকশন দেখাবে
             document.getElementById('profileSetupSection').style.display = 'none';
             document.getElementById('mainWithdrawSection').style.display = 'block';
 
             document.getElementById('displayMethod').innerText = userWithdrawMethod === 'bKash' ? 'বিকাশ' : 'নগদ';
             document.getElementById('displayAccountNo').value = userWithdrawAccount;
           } else {
-            // প্রোফাইল না থাকলে তৈরির ফর্ম দেখাবে
             document.getElementById('profileSetupSection').style.display = 'block';
             document.getElementById('mainWithdrawSection').style.display = 'none';
           }
@@ -196,7 +194,6 @@
         }
       });
 
-      // ৩. আলাদা কালেকশনে উইথড্র প্রোফাইল সেভ করার লজিক
       document.getElementById('saveProfileBtn').onclick = async () => {
         const method = document.getElementById('setupMethod').value;
         const account = document.getElementById('setupAccountNo').value.trim();
@@ -238,14 +235,12 @@
         }
       };
 
-      // ৪. টাকা উত্তোলন রিকোয়েস্ট পাঠানোর লজিক (প্যাকেজ চেক সিকিউরিটি সহ)
       document.getElementById('withdrawBtn').onclick = async () => {
-        const fullAmountToDeduct = selectedAmount; // ইউজার যে বাটন সিলেক্ট করেছিল (পুরো টাকা, যেমন 500)
-        const finalRequestAmount = selectedAmount - (selectedAmount * 0.10); // ভ্যাট বাদে রিকোয়েস্ট অ্যামাউন্ট (যেমন 450)
+        const fullAmountToDeduct = selectedAmount; // মূল সিলেক্ট করা টাকা (যেমন: 500) ব্যালেন্স থেকে কাটবে
+        const finalRequestAmount = selectedAmount - (selectedAmount * 0.10); // ভ্যাট বাদে রিকোয়েস্ট অ্যামাউন্ট (যেমন: 450)
 
-        // সময় ও দিন চেক (সকাল ১০টা থেকে বিকেল ৫টা, শুক্রবার ও রবিবার বন্ধ)
         const now = new Date();
-        const day = now.getDay(); // 0 = Sunday, 5 = Friday
+        const day = now.getDay(); 
         const hour = now.getHours();
 
         if (day === 5 || day === 0) {
@@ -276,7 +271,6 @@
           const userDocRef = doc(db, "users", currentUser.uid);
           const todayStr = now.toISOString().split('T')[0];
 
-          // ট্রানজেকশনের মাধ্যমে প্যাকেজ, লিমিট ও ব্যালেন্স চেক এবং আপডেট
           await runTransaction(db, async (transaction) => {
             const userDocSnap = await transaction.get(userDocRef);
             if (!userDocSnap.exists()) {
@@ -284,8 +278,6 @@
             }
 
             const userData = userDocSnap.data();
-
-            // --- নতুন সিকিউরিটি চেক: প্যাকেজ কেনা না থাকলে উইথড্র ব্লক করা ---
             const userPackage = userData.package || 'none';
             if (userPackage === 'none') {
               throw new Error("⚠️ দুঃখিত! উইথড্র করার জন্য আপনাকে অবশ্যই যেকোনো একটি প্যাকেজ কিনতে হবে।");
@@ -294,7 +286,6 @@
             const latestTaskCash = userData.taskCash || 0;
             const lastWithdrawDate = userData.lastWithdrawDate || "";
 
-            // দিনে ১ বার উইথড্র লিমিট চেক
             if (lastWithdrawDate === todayStr) {
               throw new Error("আজকের উইথড্র লিমিট শেষ! দিনে একবারের বেশি উইথড্র করা যাবে না।");
             }
@@ -303,7 +294,6 @@
               throw new Error("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
             }
 
-            // ইউজারের অ্যাকাউন্ট থেকে সম্পূর্ণ সিলেক্ট করা অ্যামাউন্টই কাটা হবে (যেমন: 500)
             transaction.update(userDocRef, {
               taskCash: latestTaskCash - fullAmountToDeduct,
               lastWithdrawDate: todayStr
@@ -312,12 +302,11 @@
 
           let userIdentifier = currentUser.email || currentUser.phoneNumber + "@taskora90.app" || "N/A";
 
-          // অ্যাডমিন প্যানেলের রিকোয়েস্ট কালেকশনে ডাটা সেভ করা (এখানে ভ্যাট বাদ দেওয়া চূড়ান্ত অ্যামাউন্ট ৪৫০ টাকা জমা হবে)
           await addDoc(collection(db, "withdrawals"), {
             userId: currentUser.uid,
             userEmail: userIdentifier,
-            amount: finalRequestAmount, 
-            deductedAmount: fullAmountToDeduct, // রেকর্ড রাখার জন্য মূল কাটা যাওয়া টাকাও সেভ থাকবে
+            amount: finalRequestAmount, // ভ্যাট বাদে রিকোয়েস্ট অ্যামাউন্ট (যেমন: 450)
+            deductedAmount: fullAmountToDeduct, // মূল কাটা যাওয়া টাকা (যেমন: 500)
             method: userWithdrawMethod,
             account: userWithdrawAccount,
             status: "waiting",
