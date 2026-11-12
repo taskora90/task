@@ -623,14 +623,18 @@
             const data = d.data();
             if (!data.status || data.status === 'waiting' || data.status === 'processing') {
               count++;
+              // এখানে deductedAmount বা amount দুটোই পাস করার ব্যবস্থা রাখা হলো, যাতে সঠিক টাকা রিফান্ড করা যায়
+              const amountToRefund = data.deductedAmount || data.amount; 
+              
               listEl.innerHTML += `
                 <div class="request-card">
                   <p>ইউজার: <strong>${data.userEmail || data.userName || 'N/A'}</strong></p>
-                  <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
+                  <p>রিকোয়েস্ট পরিমাণ (ভ্যাট বাদে): <strong>৳ ${data.amount}</strong></p>
+                  <p>কাটা হয়েছিল: <strong>৳ ${amountToRefund}</strong></p>
                   <p>মেথড: ${data.method || ''} (${data.account || ''})</p>
                   <p>স্ট্যাটাস: <em>${data.status || 'waiting'}</em></p>
-                  <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${data.amount}, 'approve')">এপ্রুভ</button>
-                  <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${data.amount}, 'reject')">রিজেক্ট</button>
+                  <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'approve')">এপ্রুভ</button>
+                  <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'reject')">রিজেক্ট</button>
                 </div>
               `;
             }
@@ -642,15 +646,38 @@
       window.handleWithdraw = async function(withdrawId, userId, amount, action) {
         try {
           const withdrawRef = doc(db, "withdrawals", withdrawId);
+          const userDocRef = doc(db, "users", userId);
+
           if (action === 'approve') {
+            // এপ্রুভ করলে শুধু স্ট্যাটাস আপডেট হবে (টাকা তো আগেই ইউজার অ্যাকাউন্ট থেকে কেটে নেওয়া হয়েছে)
             await updateDoc(withdrawRef, { status: 'approved' });
             alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
           } else {
-            await updateDoc(withdrawRef, { status: 'rejected' });
-            alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে।");
+            // রিজেক্ট করলে ট্রানজেকশনের মাধ্যমে ইউজারের ব্যালেন্সে টাকা ফেরত দেওয়া হবে
+            await runTransaction(db, async (transaction) => {
+              const userDocSnap = await transaction.get(userDocRef);
+              if (!userDocSnap.exists()) {
+                throw new Error("ইউজার ডাটা পাওয়া যায়নি!");
+              }
+
+              const currentCash = userDocSnap.data().taskCash || 0;
+
+              // উইথড্র স্ট্যাটাস 'rejected' করা
+              transaction.update(withdrawRef, { status: 'rejected' });
+
+              // ইউজারের অ্যাকাউন্ট থেকে কেটে নেওয়া টাকা আবার ফিরিয়ে দেওয়া (যেমন: 500 টাকা ব্যাক যোগ হবে)
+              transaction.update(userDocRef, {
+                taskCash: currentCash + Number(amount)
+              });
+            });
+
+            alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে এবং টাকা ইউজারের অ্যাকাউন্টে ফেরত দেওয়া হয়েছে।");
           }
           loadWithdrawRequests();
-        } catch (error) { alert("সমস্যা হয়েছে!"); }
+        } catch (error) { 
+          console.error("Withdraw Handle Error:", error);
+          alert("সমস্যা হয়েছে: " + (error.message || "আবার চেষ্টা করুন।")); 
+        }
       }
 
       // --- ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট ---
