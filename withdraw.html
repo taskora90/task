@@ -80,9 +80,11 @@
                 <button class="amount-btn" onclick="selectAmount(3000)">3000</button>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="position: relative;">
                 <label>নির্বাচিত পরিমাণ (৳)</label>
                 <input type="number" id="withdrawAmount" placeholder="উপরের বাটন থেকে সিলেক্ট করুন" readonly>
+                <!-- ভ্যাট নোটিশ (শুরুতে হাইড থাকবে, পরিমাণ সিলেক্ট করলে শো করবে) -->
+                <small id="vatNotice" style="display: none; color: red; font-size: 12px; margin-top: 4px; display: block; font-weight: bold;">VAT -১০%</small>
             </div>
             <div class="form-group">
                 <label>রিসিভ করার অ্যাকাউন্ট নম্বর (লক করা)</label>
@@ -135,15 +137,24 @@
 
       let currentTaskCash = 0;
       let currentUser = null;
-      let selectedAmount = 0;
+      let selectedAmount = 0; // ইউজার বক্স থেকে সরাসরি যে অ্যামাউন্ট সিলেক্ট করবে (যেমন: 500)
       let userWithdrawMethod = "";
       let userWithdrawAccount = "";
 
       window.selectAmount = function(amount) {
-        selectedAmount = amount;
+        selectedAmount = amount; // পুরো মূল অ্যামাউন্ট সংরক্ষণ করা হলো (ব্যালেন্স থেকে কাটার জন্য)
+        
+        // ১০% ভ্যাট বাদ দিয়ে রিসিভ করার বা ইনপুটে দেখানোর অ্যামাউন্ট হিসাব করা (যেমন: 500 থেকে ১০% বাদ দিলে 450)
+        let amountAfterVat = amount - (amount * 0.10);
+
         document.querySelectorAll('.amount-grid .amount-btn').forEach(btn => btn.classList.remove('active'));
         event.currentTarget.classList.add('active');
-        document.getElementById('withdrawAmount').value = amount;
+        
+        // ইনপুট বক্সে ভ্যাট বাদে বাকি টাকা দেখাবে
+        document.getElementById('withdrawAmount').value = amountAfterVat;
+        
+        // টাকার পরিমাণের নিচে লাল কালিতে VAT -১০% লেখা শো করবে
+        document.getElementById('vatNotice').style.display = 'block';
       };
 
       onAuthStateChanged(auth, async (user) => {
@@ -229,7 +240,8 @@
 
       // ৪. টাকা উত্তোলন রিকোয়েস্ট পাঠানোর লজিক (প্যাকেজ চেক সিকিউরিটি সহ)
       document.getElementById('withdrawBtn').onclick = async () => {
-        const amount = selectedAmount;
+        const fullAmountToDeduct = selectedAmount; // ইউজার যে বাটন সিলেক্ট করেছিল (পুরো টাকা, যেমন 500)
+        const finalRequestAmount = selectedAmount - (selectedAmount * 0.10); // ভ্যাট বাদে রিকোয়েস্ট অ্যামাউন্ট (যেমন 450)
 
         // সময় ও দিন চেক (সকাল ১০টা থেকে বিকেল ৫টা, শুক্রবার ও রবিবার বন্ধ)
         const now = new Date();
@@ -246,12 +258,12 @@
           return;
         }
 
-        if (!amount || amount <= 0) {
+        if (!fullAmountToDeduct || fullAmountToDeduct <= 0) {
           alert("অনুগ্রহ করে ওপরের বাটন থেকে উত্তোলনের একটি নির্দিষ্ট পরিমাণ নির্বাচন করুন!");
           return;
         }
 
-        if (amount > currentTaskCash) {
+        if (fullAmountToDeduct > currentTaskCash) {
           alert("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
           return;
         }
@@ -272,7 +284,7 @@
             }
 
             const userData = userDocSnap.data();
-            
+
             // --- নতুন সিকিউরিটি চেক: প্যাকেজ কেনা না থাকলে উইথড্র ব্লক করা ---
             const userPackage = userData.package || 'none';
             if (userPackage === 'none') {
@@ -287,23 +299,25 @@
               throw new Error("আজকের উইথড্র লিমিট শেষ! দিনে একবারের বেশি উইথড্র করা যাবে না।");
             }
 
-            if (amount > latestTaskCash) {
+            if (fullAmountToDeduct > latestTaskCash) {
               throw new Error("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
             }
 
+            // ইউজারের অ্যাকাউন্ট থেকে সম্পূর্ণ সিলেক্ট করা অ্যামাউন্টই কাটা হবে (যেমন: 500)
             transaction.update(userDocRef, {
-              taskCash: latestTaskCash - amount,
+              taskCash: latestTaskCash - fullAmountToDeduct,
               lastWithdrawDate: todayStr
             });
           });
 
           let userIdentifier = currentUser.email || currentUser.phoneNumber + "@taskora90.app" || "N/A";
 
-          // অ্যাডমিন প্যানেলের রিকোয়েস্ট কালেকশনে ডাটা সেভ করা
+          // অ্যাডমিন প্যানেলের রিকোয়েস্ট কালেকশনে ডাটা সেভ করা (এখানে ভ্যাট বাদ দেওয়া চূড়ান্ত অ্যামাউন্ট ৪৫০ টাকা জমা হবে)
           await addDoc(collection(db, "withdrawals"), {
             userId: currentUser.uid,
             userEmail: userIdentifier,
-            amount: amount,
+            amount: finalRequestAmount, 
+            deductedAmount: fullAmountToDeduct, // রেকর্ড রাখার জন্য মূল কাটা যাওয়া টাকাও সেভ থাকবে
             method: userWithdrawMethod,
             account: userWithdrawAccount,
             status: "waiting",
