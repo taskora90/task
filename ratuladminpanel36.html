@@ -609,76 +609,79 @@
         } catch (error) { alert("সমস্যা হয়েছে!"); }
       }
 
+
+
       // --- উত্তোলন রিকোয়েস্ট ---
-      async function loadWithdrawRequests() {
-        const listEl = document.getElementById('withdrawList');
-        if (!listEl) return;
-        listEl.innerHTML = "লোড হচ্ছে...";
-        try {
-          const querySnap = await getDocs(collection(db, "withdrawals"));
-          if (querySnap.empty) { listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।"; return; }
-          listEl.innerHTML = "";
-          let count = 0;
-          querySnap.forEach((d) => {
-            const data = d.data();
-            if (!data.status || data.status === 'waiting' || data.status === 'processing') {
-              count++;
-              // এখানে deductedAmount বা amount দুটোই পাস করার ব্যবস্থা রাখা হলো, যাতে সঠিক টাকা রিফান্ড করা যায়
-              const amountToRefund = data.deductedAmount || data.amount; 
-              
-              listEl.innerHTML += `
-                <div class="request-card">
-                  <p>ইউজার: <strong>${data.userEmail || data.userName || 'N/A'}</strong></p>
-                  <p>রিকোয়েস্ট পরিমাণ (ভ্যাট বাদে): <strong>৳ ${data.amount}</strong></p>
-                  <p>কাটা হয়েছিল: <strong>৳ ${amountToRefund}</strong></p>
-                  <p>মেথড: ${data.method || ''} (${data.account || ''})</p>
-                  <p>স্ট্যাটাস: <em>${data.status || 'waiting'}</em></p>
-                  <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'approve')">এপ্রুভ</button>
-                  <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'reject')">রিজেক্ট</button>
-                </div>
-              `;
-            }
-          });
-          if(count === 0) { listEl.innerHTML = "কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।"; }
-        } catch (error) { listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।"; }
+async function loadWithdrawRequests() {
+  const listEl = document.getElementById('withdrawList');
+  if (!listEl) return;
+  listEl.innerHTML = "লোড হচ্ছে...";
+  try {
+    const querySnap = await getDocs(collection(db, "withdrawals"));
+    if (querySnap.empty) { listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।"; return; }
+    listEl.innerHTML = "";
+    let count = 0;
+    querySnap.forEach((d) => {
+      const data = d.data();
+      if (!data.status || data.status === 'waiting' || data.status === 'processing') {
+        count++;
+        // এখানে deductedAmount বা amount দুটোই পাস করার ব্যবস্থা রাখা হলো, যাতে সঠিক টাকা রিফান্ড করা যায়
+        const amountToRefund = data.deductedAmount || data.amount; 
+        
+        listEl.innerHTML += `
+          <div class="request-card">
+            <p>ইউজার: <strong>${data.userEmail || data.userName || 'N/A'}</strong></p>
+            <p>রিকোয়েস্ট পরিমাণ (ভ্যাট বাদে): <strong>৳ ${data.amount}</strong></p>
+            <p>কাটা হয়েছিল: <strong>৳ ${amountToRefund}</strong></p>
+            <p>মেথড: ${data.method || ''} (${data.account || ''})</p>
+            <p>স্ট্যাটাস: <em>${data.status || 'waiting'}</em></p>
+            <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'approve')">এপ্রুভ</button>
+            <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'reject')">রিজেক্ট</button>
+          </div>
+        `;
+      }
+    });
+    if(count === 0) { listEl.innerHTML = "কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।"; }
+  } catch (error) { listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।"; }
+}
+
+window.handleWithdraw = async function(withdrawId, userId, amount, action) {
+  try {
+    const withdrawRef = doc(db, "withdrawals", withdrawId);
+    const userDocRef = doc(db, "users", userId);
+
+    if (action === 'approve') {
+      // এপ্রুভ করলে শুধু স্ট্যাটাস আপডেট হবে
+      await updateDoc(withdrawRef, { status: 'approved' });
+      alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
+    } else {
+      // রিজেক্ট করলে ইউজারের ব্যালেন্সে টাকা ফেরত দেওয়ার সহজ পদ্ধতি
+      const userDocSnap = await getDoc(userDocRef);
+      if (!userDocSnap.exists()) {
+        alert("ইউজার ডাটা পাওয়া যায়নি!");
+        return;
       }
 
-      window.handleWithdraw = async function(withdrawId, userId, amount, action) {
-        try {
-          const withdrawRef = doc(db, "withdrawals", withdrawId);
-          const userDocRef = doc(db, "users", userId);
+      const currentCash = userDocSnap.data().taskCash || 0;
 
-          if (action === 'approve') {
-            // এপ্রুভ করলে শুধু স্ট্যাটাস আপডেট হবে (টাকা তো আগেই ইউজার অ্যাকাউন্ট থেকে কেটে নেওয়া হয়েছে)
-            await updateDoc(withdrawRef, { status: 'approved' });
-            alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
-          } else {
-            // রিজেক্ট করলে ট্রানজেকশনের মাধ্যমে ইউজারের ব্যালেন্সে টাকা ফেরত দেওয়া হবে
-            await runTransaction(db, async (transaction) => {
-              const userDocSnap = await transaction.get(userDocRef);
-              if (!userDocSnap.exists()) {
-                throw new Error("ইউজার ডাটা পাওয়া যায়নি!");
-              }
+      // ১. উইথড্র স্ট্যাটাস 'rejected' করা
+      await updateDoc(withdrawRef, { status: 'rejected' });
 
-              const currentCash = userDocSnap.data().taskCash || 0;
+      // ২. ইউজারের অ্যাকাউন্ট থেকে কেটে নেওয়া মূল টাকা আবার ফিরিয়ে দেওয়া
+      await updateDoc(userDocRef, {
+        taskCash: currentCash + Number(amount)
+      });
 
-              // উইথড্র স্ট্যাটাস 'rejected' করা
-              transaction.update(withdrawRef, { status: 'rejected' });
+      alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে এবং টাকা ইউজারের অ্যাকাউন্টে ফেরত দেওয়া হয়েছে।");
+    }
+    loadWithdrawRequests();
+  } catch (error) { 
+    console.error("Withdraw Handle Error:", error);
+    alert("সমস্যা হয়েছে: " + (error.message || "আবার চেষ্টা করুন।")); 
+  }
+}
 
-              // ইউজারের অ্যাকাউন্ট থেকে কেটে নেওয়া টাকা আবার ফিরিয়ে দেওয়া (যেমন: 500 টাকা ব্যাক যোগ হবে)
-              transaction.update(userDocRef, {
-                taskCash: currentCash + Number(amount)
-              });
-            });
 
-            alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে এবং টাকা ইউজারের অ্যাকাউন্টে ফেরত দেওয়া হয়েছে।");
-          }
-          loadWithdrawRequests();
-        } catch (error) { 
-          console.error("Withdraw Handle Error:", error);
-          alert("সমস্যা হয়েছে: " + (error.message || "আবার চেষ্টা করুন।")); 
-        }
-      }
 
       // --- ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট ---
       let allWithdrawProfiles = [];
