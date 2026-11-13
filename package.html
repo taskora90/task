@@ -273,12 +273,13 @@
               }
 
               const displayLuckySpin = Number(pkg.LuckySpinCount || pkg.luckySpin || 0);
+              const displayReward = Number(pkg.reward || 10); // ডাইনামিক রিওয়ার্ড (ডিফল্ট ১০ টাকা)
 
               const cardHTML = `
                 <div class="card" id="pkg-card-${pkg.packageId}">
                     <h3>${pkg.name}</h3>
                     <p>প্রতিদিন ${pkg.tasksLimit}টি টাস্ক</p>
-                    <p>প্রতি টাস্কে আয়: ৳ 10</p>
+                    <p>প্রতি টাস্কে আয়: ৳ ${displayReward}</p>
                     <p>ফিক্সড ক্যাশ বোনাস: ৳ ${pkg.fixedCashBonus || 0}</p>
                     <p>আপগ্রেড করলে ${displayLuckySpin}টি লাকি স্পিন</p>
                     <div class="price">মূল্য: ৳ ${pkg.price}</div>
