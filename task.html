@@ -266,6 +266,32 @@
               document.getElementById('userPackageText').innerText = (userPackage === "free_trial") ? trialTextDisplay : displayName;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
 
+              // রবিবার ছুটির দিন চেক করা হচ্ছে
+              if (new Date().getDay() === 0) {
+                document.getElementById('userInfoBox').style.display = 'block';
+                document.getElementById('taskCard').style.display = 'block';
+                document.getElementById('noPackageMsg').style.display = 'none';
+
+                const actionBtn = document.getElementById('actionBtn');
+                actionBtn.innerText = "আজকে (রবিবার) ছুটির দিন";
+                actionBtn.disabled = true;
+
+                const ongoingBox = document.getElementById('task-ongoing-box');
+                const finishedBox = document.getElementById('task-finished-box');
+                if (ongoingBox && finishedBox) {
+                    ongoingBox.style.display = 'none';
+                    finishedBox.style.display = 'block';
+                    finishedBox.innerHTML = `
+                        <div style="font-size: 22px; margin-bottom: 5px;">🏖️</div>
+                        <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #dc3545; font-weight: bold;">আজকে (রবিবার) ছুটির দিন</h4>
+                        <p style="margin: 0; font-size: 11px; color: #aaaaaa; line-height: 1.4;">
+                            আজ রবিবার সাপ্তাহিক ছুটির কারণে কাজ বন্ধ রয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
+                        </p>
+                    `;
+                }
+                return;
+              }
+
               updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
 
               document.getElementById('userInfoBox').style.display = 'block';
