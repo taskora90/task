@@ -20,7 +20,7 @@
 
 <!-- অতি সরু ও চিকন লাইভ সময় ও তারিখ বার -->
 <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; color: #2e3440; padding: 4px 12px; margin-bottom: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.03); border: 1px solid #e5e9f0;">
-    <span id="tickerTime"><i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ০২:১৫:৪৫</span>
+    <span id="tickerTime"><i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ০২:১৫:৪৫ এএম</span>
     <span id="tickerDate"><i class="fa-solid fa-calendar-days" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> ১৭ নভেম্বর, ২০২৬</span>
 </div>
 
@@ -29,23 +29,29 @@ function updateLiveDateTime() {
     const now = new Date();
     const bnDigits = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
     const toBn = (val) => String(val).replace(/[0-9]/g, d => bnDigits[d]);
-    
-    let hours = String(now.getHours()).padStart(2, '0');
+
+    let hours = now.getHours();
+    const ampm = hours >= 12 ? 'পিএম' : 'এএম';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0-কে 12 বানিয়ে নেওয়া
+
+    let hoursStr = String(hours).padStart(2, '0');
     let mins = String(now.getMinutes()).padStart(2, '0');
     let secs = String(now.getSeconds()).padStart(2, '0');
-    
+
     let day = now.getDate();
     let monthIndex = now.getMonth();
     let year = now.getFullYear();
-    
+
     const bnMonths = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
-    
-    document.getElementById('tickerTime').innerHTML = `<i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ${toBn(hours)}:${toBn(mins)}:${toBn(secs)}`;
+
+    document.getElementById('tickerTime').innerHTML = `<i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ${toBn(hoursStr)}:${toBn(mins)}:${toBn(secs)} ${ampm}`;
     document.getElementById('tickerDate').innerHTML = `<i class="fa-solid fa-calendar-days" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> ${toBn(day)} ${bnMonths[monthIndex]}, ${toBn(year)}`;
 }
 setInterval(updateLiveDateTime, 1000);
 updateLiveDateTime();
 </script>
+
 
 
 <!-- ২. নোটিশ বোর্ড -->
