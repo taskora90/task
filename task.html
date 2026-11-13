@@ -68,7 +68,7 @@
 
         <div class="task-card" id="taskCard" style="display: none;">
             <div class="task-title" style="font-weight: bold; margin-bottom: 5px;">সঠিকভাবে কাজ করুন</div>
-            <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 10px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: ১০ টাকা</div>
+            <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 10px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: <span id="rewardText">10</span> টাকা</div>
 
             <div class="video-container">
                 <div style="width: 100%; text-align: center; padding: 20px;">
@@ -212,14 +212,20 @@
 
                 if (pkgSnap.exists()) {
                   let data = pkgSnap.data();
-                  pkgRule = { maxTasks: data.tasksLimit || 10, reward: 10 };
+                  pkgRule = { 
+                    maxTasks: Number(data.tasksLimit || 10), 
+                    reward: Number(data.reward || 10) 
+                  };
                   displayName = data.name || userPackage;
                 } else {
                   const q = query(collection(db, "packages"), where("packageId", "==", userPackage));
                   const querySnap = await getDocs(q);
                   if (!querySnap.empty) {
                     let data = querySnap.docs[0].data();
-                    pkgRule = { maxTasks: data.tasksLimit || 10, reward: 10 };
+                    pkgRule = { 
+                      maxTasks: Number(data.tasksLimit || 10), 
+                      reward: Number(data.reward || 10) 
+                    };
                     displayName = data.name || userPackage;
                   }
                 }
@@ -247,15 +253,14 @@
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
                 if (diffDays > 3) {
-                  document.getElementById('taskCard').style.display = 'none';
-                  document.getElementById('userInfoBox').style.display = 'none';
+                  document.getElementById('taskCard').style.display = 'none';                  document.getElementById('userInfoBox').style.display = 'none';
                   document.getElementById('dynamic-status-box').style.display = 'none';
                   document.getElementById('noPackageMsg').style.display = 'block';
                   document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।";
                   return;
                 } else {
                   userPackage = "free_trial";
-                  pkgRule = { maxTasks: 2, reward: 10 };
+                  pkgRule = { maxTasks: 2, reward: 10 }; 
                   let remainingDays = 4 - diffDays;
                   if (remainingDays < 1) remainingDays = 1;
                   trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
@@ -265,8 +270,8 @@
               activePackageRule = pkgRule;
               document.getElementById('userPackageText').innerText = (userPackage === "free_trial") ? trialTextDisplay : displayName;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
+              document.getElementById('rewardText').innerText = activePackageRule.reward; 
 
-              // রবিবার ছুটির দিন চেক করা হচ্ছে
               if (new Date().getDay() === 0) {
                 document.getElementById('userInfoBox').style.display = 'block';
                 document.getElementById('taskCard').style.display = 'block';
@@ -313,6 +318,7 @@
           window.location.href = "login.html";
         }
       });
+
       function startTimer(duration) {
         window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
 
