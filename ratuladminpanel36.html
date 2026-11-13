@@ -188,6 +188,7 @@
                 <input type="number" id="pkgPriceInput" class="notice-input" placeholder="মূল্য (টাকায়, যেমন: 10000)">
                 <input type="number" id="pkgLevelInput" class="notice-input" placeholder="লেভেল (সংখ্যা, যেমন: 5)">
                 <input type="number" id="pkgTasksInput" class="notice-input" placeholder="প্রতিদিনের টাস্ক লিমিট (যেমন: 30)">
+                <input type="number" id="pkgRewardInput" class="notice-input" placeholder="প্রতি টাস্কে আয় / রিওয়ার্ড (যেমন: 10)">
                 <input type="number" id="pkgSpinInput" class="notice-input" placeholder="লাকি স্পিন সংখ্যা (যেমন: 4)">
                 <input type="number" id="pkgBonusInput" class="notice-input" placeholder="নির্দিষ্ট ক্যাশ বোনাস (যেমন: 600)">
                 <button class="btn-notice-submit" onclick="addNewPackage()"><i class="fa-solid fa-plus"></i> প্যাকেজ সেভ করুন</button>
@@ -232,6 +233,7 @@
             </div>
         </div>
     </div>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -246,10 +248,10 @@
         messagingSenderId: "376297360134",
         appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
         measurementId: "G-9803M7DPM5"
-      };
-
+      };      
       const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);      const auth = getAuth(app);
+      const db = getFirestore(app);      
+      const auth = getAuth(app);
 
       const ADMIN_PASSWORD = "TarekHasan@36";        
       const USER_SECRET_PASSWORD = "NIRJONA@36"; 
@@ -258,13 +260,13 @@
 
       // --- ২ মিনিট নিষ্ক্রিয় থাকলে অটো লগআউট সিস্টেম ---
       let inactivityTimer;
-      const INACTIVITY_LIMIT = 2 * 60 * 1000;
+      const INACTIVITY_LIMIT = 5 * 60 * 1000;
 
       function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
         if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
           inactivityTimer = setTimeout(() => {
-            alert("⚠️ ২ মিনিট কোনো কার্যক্রম না থাকায় নিরাপত্তা সুরক্ষায় অ্যাডমিন প্যানেল স্বয়ংক্রিয়ভাবে লগআউট হয়ে গেছে!");
+            alert("⚠️ ৫ মিনিট কোনো কার্যক্রম না থাকায় নিরাপত্তা সুরক্ষায় অ্যাডমিন প্যানেল স্বয়ংক্রিয়ভাবে লগআউট হয়ে গেছে!");
             adminLogout();
           }, INACTIVITY_LIMIT);
         }
@@ -454,6 +456,7 @@
         const price = Number(document.getElementById('pkgPriceInput').value);
         const level = Number(document.getElementById('pkgLevelInput').value);
         const tasksLimit = Number(document.getElementById('pkgTasksInput').value);
+        const reward = Number(document.getElementById('pkgRewardInput').value);
         const luckySpin = Number(document.getElementById('pkgSpinInput').value);
         const fixedCashBonus = Number(document.getElementById('pkgBonusInput').value);
 
@@ -465,7 +468,7 @@
         try {
           await setDoc(doc(db, "packages", docId), {
             packageId: pkgId, name: name, price: price, level: level,
-            tasksLimit: tasksLimit || 10, luckySpin: luckySpin || 1, fixedCashBonus: fixedCashBonus || 100
+            tasksLimit: tasksLimit || 10, reward: reward || 10, luckySpin: luckySpin || 1, fixedCashBonus: fixedCashBonus || 100
           });
           alert("নতুন প্যাকেজ সফলভাবে যুক্ত করা হয়েছে!");
           document.getElementById('pkgDocIdInput').value = '';
@@ -474,6 +477,7 @@
           document.getElementById('pkgPriceInput').value = '';
           document.getElementById('pkgLevelInput').value = '';
           document.getElementById('pkgTasksInput').value = '';
+          document.getElementById('pkgRewardInput').value = '';
           document.getElementById('pkgSpinInput').value = '';
           document.getElementById('pkgBonusInput').value = '';
           loadAdminPackages();
@@ -496,9 +500,9 @@
               <div class="request-card">
                 <h4 style="margin: 0 0 5px 0; color: #fff;">${pkg.name} (Doc ID: ${d.id} | Pkg ID: ${pkg.packageId})</h4>
                 <p>মূল্য: ৳ ${pkg.price} | লেভেল: ${pkg.level}</p>
-                <p>প্রতিদিন টাস্ক: ${pkg.tasksLimit} | স্পিন: ${pkg.luckySpin} | বোনাস: ৳ ${pkg.fixedCashBonus}</p>
-                <button class="btn-delete-notice" onclick="deletePackage('${d.id}')"><i class="fa-solid fa-trash"></i> প্যাকেজ ডিলিট করুন</button>
-              </div>
+                <p>প্রতি টাস্কে আয়: ৳ ${pkg.reward || 10} | প্রতিদিন টাস্ক: ${pkg.tasksLimit}</p>
+                <p>স্পিন: ${pkg.luckySpin} | বোনাস: ৳ ${pkg.fixedCashBonus}</p>
+                <button class="btn-delete-notice" onclick="deletePackage('${d.id}')"><i class="fa-solid fa-trash"></i> প্যাকেজ ডিলিট করুন</button>              </div>
             `;
           });
         } catch (error) { listEl.innerHTML = "প্যাকেজ লোড করতে সমস্যা হয়েছে।"; }
@@ -610,79 +614,68 @@
         } catch (error) { alert("সমস্যা হয়েছে!"); }
       }
 
-
-
       // --- উত্তোলন রিকোয়েস্ট ---
-async function loadWithdrawRequests() {
-  const listEl = document.getElementById('withdrawList');
-  if (!listEl) return;
-  listEl.innerHTML = "লোড হচ্ছে...";
-  try {
-    const querySnap = await getDocs(collection(db, "withdrawals"));
-    if (querySnap.empty) { listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।"; return; }
-    listEl.innerHTML = "";
-    let count = 0;
-    querySnap.forEach((d) => {
-      const data = d.data();
-      if (!data.status || data.status === 'waiting' || data.status === 'processing') {
-        count++;
-        // এখানে deductedAmount বা amount দুটোই পাস করার ব্যবস্থা রাখা হলো, যাতে সঠিক টাকা রিফান্ড করা যায়
-        const amountToRefund = data.deductedAmount || data.amount; 
-        
-        listEl.innerHTML += `
-          <div class="request-card">
-            <p>ইউজার: <strong>${data.userEmail || data.userName || 'N/A'}</strong></p>
-            <p>রিকোয়েস্ট পরিমাণ (ভ্যাট বাদে): <strong>৳ ${data.amount}</strong></p>
-            <p>কাটা হয়েছিল: <strong>৳ ${amountToRefund}</strong></p>
-            <p>মেথড: ${data.method || ''} (${data.account || ''})</p>
-            <p>স্ট্যাটাস: <em>${data.status || 'waiting'}</em></p>
-            <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'approve')">এপ্রুভ</button>
-            <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'reject')">রিজেক্ট</button>
-          </div>
-        `;
-      }
-    });
-    if(count === 0) { listEl.innerHTML = "কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।"; }
-  } catch (error) { listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।"; }
-}
+      async function loadWithdrawRequests() {
+        const listEl = document.getElementById('withdrawList');
+        if (!listEl) return;
+        listEl.innerHTML = "লোড হচ্ছে...";
+        try {
+          const querySnap = await getDocs(collection(db, "withdrawals"));
+          if (querySnap.empty) { listEl.innerHTML = "কোনো উত্তোলন রিকোয়েস্ট নেই।"; return; }
+          listEl.innerHTML = "";
+          let count = 0;
+          querySnap.forEach((d) => {
+            const data = d.data();
+            if (!data.status || data.status === 'waiting' || data.status === 'processing') {
+              count++;
+              const amountToRefund = data.deductedAmount || data.amount; 
 
-window.handleWithdraw = async function(withdrawId, userId, amount, action) {
-  try {
-    const withdrawRef = doc(db, "withdrawals", withdrawId);
-    const userDocRef = doc(db, "users", userId);
-
-    if (action === 'approve') {
-      // এপ্রুভ করলে শুধু স্ট্যাটাস আপডেট হবে
-      await updateDoc(withdrawRef, { status: 'approved' });
-      alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
-    } else {
-      // রিজেক্ট করলে ইউজারের ব্যালেন্সে টাকা ফেরত দেওয়ার সহজ পদ্ধতি
-      const userDocSnap = await getDoc(userDocRef);
-      if (!userDocSnap.exists()) {
-        alert("ইউজার ডাটা পাওয়া যায়নি!");
-        return;
+              listEl.innerHTML += `
+                <div class="request-card">
+                  <p>ইউজার: <strong>${data.userEmail || data.userName || 'N/A'}</strong></p>
+                  <p>রিকোয়েস্ট পরিমাণ (ভ্যাট বাদে): <strong>৳ ${data.amount}</strong></p>
+                  <p>কাটা হয়েছিল: <strong>৳ ${amountToRefund}</strong></p>
+                  <p>মেথড: ${data.method || ''} (${data.account || ''})</p>
+                  <p>স্ট্যাটাস: <em>${data.status || 'waiting'}</em></p>
+                  <button class="btn-approve" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'approve')">এপ্রুভ</button>
+                  <button class="btn-reject" onclick="handleWithdraw('${d.id}', '${data.userId}', ${amountToRefund}, 'reject')">রিজেক্ট</button>
+                </div>
+              `;
+            }
+          });
+          if(count === 0) { listEl.innerHTML = "কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।"; }
+        } catch (error) { listEl.innerHTML = "ডেটা লোড করতে সমস্যা হয়েছে।"; }
       }
 
-      const currentCash = userDocSnap.data().taskCash || 0;
+      window.handleWithdraw = async function(withdrawId, userId, amount, action) {
+        try {
+          const withdrawRef = doc(db, "withdrawals", withdrawId);
+          const userDocRef = doc(db, "users", userId);
 
-      // ১. উইথড্র স্ট্যাটাস 'rejected' করা
-      await updateDoc(withdrawRef, { status: 'rejected' });
+          if (action === 'approve') {
+            await updateDoc(withdrawRef, { status: 'approved' });
+            alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
+          } else {
+            const userDocSnap = await getDoc(userDocRef);
+            if (!userDocSnap.exists()) {
+              alert("ইউজার ডাটা পাওয়া যায়নি!");
+              return;
+            }
 
-      // ২. ইউজারের অ্যাকাউন্ট থেকে কেটে নেওয়া মূল টাকা আবার ফিরিয়ে দেওয়া
-      await updateDoc(userDocRef, {
-        taskCash: currentCash + Number(amount)
-      });
+            const currentCash = userDocSnap.data().taskCash || 0;
+            await updateDoc(withdrawRef, { status: 'rejected' });
+            await updateDoc(userDocRef, {
+              taskCash: currentCash + Number(amount)
+            });
 
-      alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে এবং টাকা ইউজারের অ্যাকাউন্টে ফেরত দেওয়া হয়েছে।");
-    }
-    loadWithdrawRequests();
-  } catch (error) { 
-    console.error("Withdraw Handle Error:", error);
-    alert("সমস্যা হয়েছে: " + (error.message || "আবার চেষ্টা করুন।")); 
-  }
-}
-
-
+            alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে এবং টাকা ইউজারের অ্যাকাউন্টে ফেরত দেওয়া হয়েছে।");
+          }
+          loadWithdrawRequests();
+        } catch (error) { 
+          console.error("Withdraw Handle Error:", error);
+          alert("সমস্যা হয়েছে: " + (error.message || "আবার চেষ্টা করুন।")); 
+        }
+      }
 
       // --- ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট ---
       let allWithdrawProfiles = [];
@@ -747,8 +740,8 @@ window.handleWithdraw = async function(withdrawId, userId, amount, action) {
           alert("উইথড্র প্রোফাইল সফলভাবে আপডেট করা হয়েছে!");
           loadWithdrawProfiles();
         } catch (error) { alert("আপডেট করতে সমস্যা হয়েছে: " + error.message); }
-      }
-
+      }      
+      
       window.deleteWithdrawProfile = async function(userId) {
         if (!confirm("সতর্কতা: আপনি কি সত্যিই এই উইথড্র প্রোফাইলটি ডিলিট করতে চান?")) return;
         try {
