@@ -31,7 +31,7 @@ function updateLiveDateTime() {
     const toBn = (val) => String(val).replace(/[0-9]/g, d => bnDigits[d]);
 
     let hours = now.getHours();
-    const ampm = hours >= 12 ? 'পিএম' : 'এএম';
+    const ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
     hours = hours ? hours : 12; // 0-কে 12 বানিয়ে নেওয়া
 
