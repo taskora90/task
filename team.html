@@ -9,7 +9,12 @@
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px 20px 80px 20px; }
         .team-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .team-header { text-align: center; margin-bottom: 20px; }
+        .team-header { text-align: center; margin-bottom: 15px; }
+
+        /* মোট রেফার আয় কার্ড স্টাইল */
+        .total-referral-card { background: #eef2f5; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
+        .total-referral-card h3 { margin: 0 0 5px 0; font-size: 15px; color: #333; }
+        .total-referral-card p { margin: 0; font-size: 20px; font-weight: bold; color: #28a745; }
 
         .stats-grid { display: flex; gap: 10px; margin-bottom: 20px; }
         .stat-card { flex: 1; background: #eef2f5; padding: 15px; border-radius: 8px; text-align: center; }
@@ -32,7 +37,13 @@
             <p style="font-size: 13px; color: #6c757d;">আপনার রেফারেল ও টিম কমিশন ওভারভিউ</p>
         </div>
 
-        <!-- সামারি কার্ড -->
+        <!-- মোট রেফার আয় বক্স (শুধুমাত্র প্যাকেজ ক্রয়ের ১০% কমিশন) -->
+        <div class="total-referral-card">
+            <h3>মোট রেফার আয় (প্যাকেজ কমিশন)</h3>
+            <p id="totalReferralIncome">৳ 0.00</p>
+        </div>
+
+        <!-- সামারি কার্ড (লেভেল ১ ও লেভেল ২ মেম্বার সংখ্যা) -->
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>লেভেল ১ মেম্বার</h3>
@@ -66,7 +77,7 @@
         <a href="task.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
         <a href="team.html" class="nav-item active"><i class="fa-solid fa-users"></i><span>টিম</span></a>
         <a href="package.html" class="nav-item"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
+        <a href="profile.html" class="nav-item"><i class="phase-user"></i><span>প্রোফাইল</span></a>
     </nav>
 
     <script type="module">
@@ -104,6 +115,24 @@
               return;
             }
 
+            // ১. ফায়ারবেস থেকে ইউজারের referralHistory সাব কালেকশন ফেচ করে শুধুমাত্র প্যাকেজ ক্রয়ের কমিশন যোগ করা
+            let totalPackageRefIncome = 0;
+            try {
+              const refHistoryRef = collection(db, "users", user.uid, "referralHistory");
+              const refHistorySnap = await getDocs(refHistoryRef);
+              refHistorySnap.forEach((hDoc) => {
+                const hData = hDoc.data();
+                // শুধুমাত্র প্যাকেজ ক্রয়ের ১০% কমিশনের হিস্ট্রি হিসাব করা হবে
+                if (hData.title && (hData.title.includes("প্যাকেজ") || hData.title === "রেফার কমিশন (প্যাকেজ ক্রয়)")) {
+                  totalPackageRefIncome += Number(hData.amount || 0);
+                }
+              });
+            } catch (histErr) {
+              console.error("রেফার হিস্ট্রি লোড করতে সমস্যা:", histErr);
+            }
+
+            document.getElementById('totalReferralIncome').innerText = `৳ ${totalPackageRefIncome.toFixed(2)}`;
+
             // লেভেল ১ কুয়েরি (যাদের `referredBy` আপনার রেফারেল কোডের সমান)
             const qLevel1 = query(collection(db, "users"), where("referredBy", "==", myReferralCode));
             const querySnapshot1 = await getDocs(qLevel1);
@@ -111,8 +140,8 @@
             let level1Users = [];
             let level1Codes = [];
 
-            querySnapshot1.forEach((doc) => {
-              const data = doc.data();
+            querySnapshot1.forEach((docSnap) => {
+              const data = docSnap.data();
               level1Users.push(data);
               if (data.referralCode) {
                 level1Codes.push(data.referralCode);
@@ -146,8 +175,8 @@
               for (let code of level1Codes) {
                 const qLevel2 = query(collection(db, "users"), where("referredBy", "==", code));
                 const querySnapshot2 = await getDocs(qLevel2);
-                querySnapshot2.forEach((doc) => {
-                  level2Users.push(doc.data());
+                querySnapshot2.forEach((docSnap) => {
+                  level2Users.push(docSnap.data());
                 });
               }
             }
@@ -170,7 +199,7 @@
                   </div>
                 `;
               });
-              level2ListEl.innerHTML = html2; // টাইপো ঠিক করা হয়েছে
+              level2ListEl.innerHTML = html2;
             }
 
           } catch (error) {
@@ -182,20 +211,14 @@
       });
     </script>
 
-
-
-
-<div class="ads-wrapper">
+    <div class="ads-wrapper">
       <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
         <script async="async" data-cfasync="false" src="https://bauval.org/21/e67235acb5b7230c8c2fdb2cd4915292"></script>
         <div id="container-e67235acb5b7230c8c2fdb2cd4915292"></div>
         <span style="font-size: 11px; color: #a0aec0;"></span>
       </div>
-</div>
-
-
-
+    </div>
 
 </body>
 </html>
