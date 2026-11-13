@@ -258,7 +258,7 @@
       const PKG_SECRET_PASSWORD = "Kawtha@36";
       const WITHDRAW_SECRET_PASSWORD = "NIRJONA@36";
 
-      // --- ২ মিনিট নিষ্ক্রিয় থাকলে অটো লগআউট সিস্টেম ---
+      // --- ৫ মিনিট নিষ্ক্রিয় থাকলে অটো লগআউট সিস্টেম ---
       let inactivityTimer;
       const INACTIVITY_LIMIT = 5 * 60 * 1000;
 
@@ -448,7 +448,7 @@
         }
       }
 
-      // --- প্যাকেজ ম্যানেজমেন্ট ---
+            // --- প্যাকেজ ম্যানেজমেন্ট ---
       window.addNewPackage = async function() {
         const docId = document.getElementById('pkgDocIdInput').value.trim();
         const pkgId = document.getElementById('pkgIdInput').value.trim();        
@@ -470,8 +470,9 @@
             packageId: pkgId, name: name, price: price, level: level,
             tasksLimit: tasksLimit || 10, reward: reward || 10, luckySpin: luckySpin || 1, fixedCashBonus: fixedCashBonus || 100
           });
-          alert("নতুন প্যাকেজ সফলভাবে যুক্ত করা হয়েছে!");
+          alert("প্যাকেজ সফলভাবে সেভ/আপডেট করা হয়েছে!");
           document.getElementById('pkgDocIdInput').value = '';
+          document.getElementById('pkgDocIdInput').disabled = false; // আনলক করে দেওয়া হলো
           document.getElementById('pkgIdInput').value = '';
           document.getElementById('pkgNameInput').value = '';
           document.getElementById('pkgPriceInput').value = '';
@@ -502,10 +503,30 @@
                 <p>মূল্য: ৳ ${pkg.price} | লেভেল: ${pkg.level}</p>
                 <p>প্রতি টাস্কে আয়: ৳ ${pkg.reward || 10} | প্রতিদিন টাস্ক: ${pkg.tasksLimit}</p>
                 <p>স্পিন: ${pkg.luckySpin} | বোনাস: ৳ ${pkg.fixedCashBonus}</p>
-                <button class="btn-delete-notice" onclick="deletePackage('${d.id}')"><i class="fa-solid fa-trash"></i> প্যাকেজ ডিলিট করুন</button>              </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                  <button class="btn-delete-notice" onclick="editPackage('${d.id}', '${pkg.packageId}', '${pkg.name}', ${pkg.price}, ${pkg.level}, ${pkg.tasksLimit}, ${pkg.reward || 10}, ${pkg.luckySpin || 1}, ${pkg.fixedCashBonus || 100})" style="background: #3b82f6;"><i class="fa-solid fa-pen-to-square"></i> এডিট করুন</button>
+                  <button class="btn-delete-notice" onclick="deletePackage('${d.id}')"><i class="fa-solid fa-trash"></i> ডিলিট করুন</button>
+                </div>
+              </div>
             `;
           });
         } catch (error) { listEl.innerHTML = "প্যাকেজ লোড করতে সমস্যা হয়েছে।"; }
+      }
+
+      // এডিট বাটনে ক্লিক করলে ফরমের মধ্যে ডাটাগুলো চলে আসবে
+      window.editPackage = function(docId, pkgId, name, price, level, tasksLimit, reward, luckySpin, fixedCashBonus) {
+        document.getElementById('pkgDocIdInput').value = docId;
+        document.getElementById('pkgDocIdInput').disabled = true; // এডিটের সময় ডক আইডি পরিবর্তন রোধ করতে লক করা হলো
+        document.getElementById('pkgIdInput').value = pkgId;
+        document.getElementById('pkgNameInput').value = name;
+        document.getElementById('pkgPriceInput').value = price;
+        document.getElementById('pkgLevelInput').value = level;
+        document.getElementById('pkgTasksInput').value = tasksLimit;
+        document.getElementById('pkgRewardInput').value = reward;
+        document.getElementById('pkgSpinInput').value = luckySpin;
+        document.getElementById('pkgBonusInput').value = fixedCashBonus;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
       window.deletePackage = async function(docId) {
@@ -517,6 +538,7 @@
           } catch (error) { alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message); }
         }
       }
+
       // --- নোটিশ ম্যানেজমেন্ট ---
       window.postNewNotice = async function() {
         const title = document.getElementById('noticeTitleInput').value.trim();
