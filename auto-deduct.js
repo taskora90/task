@@ -34,7 +34,8 @@ async function runAutoDeduct() {
       if (dueAmount <= 0) continue;
 
       // ১. পুরো লোনকে ১৫ ভাগে ভাগ করে প্রতি দিনের বা প্রতি ভাগের টার্গেট হিসাব করা (যেমন: ৪৫০ / ১৫ = ৩০ টাকা)
-      const dailyTarget = Math.round(totalLoanAmount / 15);
+      const dailyTarget = Math.ceil(totalLoanAmount / 15);
+
 
       // ২. ইউজার আজকে ম্যানুয়ালি মোট কত টাকা পরিশোধ করেছে তা চেক করা
       let paidToday = 0;
