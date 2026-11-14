@@ -110,7 +110,7 @@
       border: 4px dashed #64748b;
     }
 
-    /* চাকার আইটেম/কার্ডসমূহ (গোল শেপ করা হয়েছে) */
+    /* চাকার আইটেম/কার্ডসমূহ (গোল শেপ) */
     .item {
       position: absolute;
       width: 64px;
@@ -284,11 +284,56 @@
     let availableSpins = 0;
     let currentUserObj = null;
 
+    // পেন্ডিং প্রাইজ প্রসেস করার ফাংশন (localStorage ব্যবহার করে)
+    async function processPendingPrize() {
+      const savedPrize = localStorage.getItem('pendingSpinPrize');
+      if (!savedPrize || !userDocRef) return;
+
+      const prizeToProcess = JSON.parse(savedPrize);
+      localStorage.removeItem('pendingSpinPrize'); // প্রসেস হওয়ার পর রিমুভ করে দেওয়া হলো
+
+      try {
+        let updateData = {
+          luckySpinCount: increment(-1)
+        };
+
+        if (prizeToProcess.amount > 0) {
+          updateData.taskCash = increment(prizeToProcess.amount);
+          updateData.totalEarnings = increment(prizeToProcess.amount);
+        }
+
+        await updateDoc(userDocRef, updateData);
+
+        if (prizeToProcess.amount > 0 && currentUserObj) {
+          await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
+            title: "লাকি স্পিন",
+            desc: `স্পিন করে ${prizeToProcess.name} জিতেছেন`,
+            amount: Number(prizeToProcess.amount),
+            timestamp: serverTimestamp()
+          });
+        }
+
+        if (prizeToProcess.amount > 0) {
+          alert(`অভিনন্দন! আপনি জিতেছেন ${prizeToProcess.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
+        } else {
+          alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
+        }
+
+        location.reload(); 
+      } catch (error) {
+        console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
+        alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
+      }
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUserObj = user;
         userDocRef = doc(db, "users", user.uid);
         try {
+          // পেজ লোড হওয়ার সাথে সাথেই চেক করবে কোনো পেন্ডিং স্পিন আছে কিনা
+          await processPendingPrize();
+
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
             const userData = userDoc.data();
@@ -320,8 +365,6 @@
       }
     });
 
-    let pendingPrize = null;
-
     window.spinWheel = async function() {
       if (isSpinning) return;
 
@@ -332,7 +375,10 @@
 
       isSpinning = true;
       const selectedIndex = Math.floor(Math.random() * items.length);
-      pendingPrize = items[selectedIndex];
+      const prize = items[selectedIndex];
+
+      // localStorage এ সেভ করে রাখা হলো যাতে পেজ রিফ্রেশ বা নেভিগেট হলেও হারিয়ে না যায়
+      localStorage.setItem('pendingSpinPrize', JSON.stringify(prize));
 
       const degreesPerItem = 360 / items.length;
       const extraRounds = 360 * 5; 
@@ -344,51 +390,15 @@
 
       setTimeout(async () => {
         isSpinning = false;
-
         // Adsterra Smart Link ওপেন হবে
         window.open("https://araplhn.org/4/79054fb4b54830da5e0866e988a90081", "_blank");
-
       }, 4000);
     }
 
-    // ইউজার অ্যাড দেখে ট্যাব কেটে সাইটে ফিরে আসার পর বোনাস যুক্ত হবে
+    // ইউজার ট্যাব বা ব্রাউজার থেকে ফিরে আসলে কাজ করবে
     document.addEventListener("visibilitychange", async () => {
-      if (document.visibilityState === "visible" && pendingPrize !== null) {
-        const prizeToProcess = pendingPrize;
-        pendingPrize = null;
-
-        try {
-          let updateData = {
-            luckySpinCount: increment(-1)
-          };
-
-          if (prizeToProcess.amount > 0) {
-            updateData.taskCash = increment(prizeToProcess.amount);
-            updateData.totalEarnings = increment(prizeToProcess.amount);
-          }
-
-          await updateDoc(userDocRef, updateData);
-
-          if (prizeToProcess.amount > 0 && currentUserObj) {
-            await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
-              title: "লাকি স্পিন",
-              desc: `স্পিন করে ${prizeToProcess.name} জিতেছেন`,
-              amount: Number(prizeToProcess.amount),
-              timestamp: serverTimestamp()
-            });
-          }
-
-          if (prizeToProcess.amount > 0) {
-            alert(`অভিনন্দন! আপনি জিতেছেন ${prizeToProcess.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
-          } else {
-            alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
-          }
-
-          location.reload(); 
-        } catch (error) {
-          console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
-          alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
-        }
+      if (document.visibilityState === "visible") {
+        await processPendingPrize();
       }
     });
   </script>
