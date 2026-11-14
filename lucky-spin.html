@@ -99,7 +99,7 @@
     .light-6 { top: 50%; left: 10px; transform: translateY(-50%); animation-delay: 0.6s; }
     .light-7 { top: 50px; left: 50px; animation-delay: 0.8s; }
 
-    /* ভেতরের চাকা (অ্যাশ কালার ব্যাকগ্রাউন্ড) */
+    /* ভেতরের চাকা (অ্যাশ ব্যাকগ্রাউন্ড) */
     .wheel {
       width: 275px;
       height: 275px;
@@ -284,13 +284,46 @@
     let availableSpins = 0;
     let currentUserObj = null;
 
-    // পেন্ডিং প্রাইজ প্রসেস করার ফাংশন (localStorage ব্যবহার করে)
+    // ইউজার ডেটা ও হিস্ট্রি লোড করে সরাসরি স্ক্রিন আপডেট করার ফাংশন (পেজ রিলোড ছাড়াই)
+    async function loadUserData() {
+      if (!userDocRef || !currentUserObj) return;
+      try {
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          availableSpins = userData.luckySpinCount !== undefined ? Number(userData.luckySpinCount) : 0;
+          document.getElementById('spinCountDisplay').innerText = availableSpins;
+
+          if (availableSpins <= 0) {
+            document.getElementById('spinBtn').style.opacity = "0.5";
+          } else {
+            document.getElementById('spinBtn').style.opacity = "1";
+          }
+        }
+
+        const historySnap = await getDocs(collection(db, "users", currentUserObj.uid, "spinHistory"));
+        let totalSpinEarnings = 0;
+        historySnap.forEach((docSnap) => {
+          const historyData = docSnap.data();
+          if (historyData.amount) {
+            totalSpinEarnings += Number(historyData.amount);
+          }
+        });
+
+        document.getElementById('reward-display').innerText = totalSpinEarnings.toFixed(2);
+
+      } catch (error) {
+        console.error("স্পিন ডাটা আনতে সমস্যা:", error);
+      }
+    }
+
+    // পেন্ডিং প্রাইজ প্রসেস করার ফাংশন
     async function processPendingPrize() {
       const savedPrize = localStorage.getItem('pendingSpinPrize');
       if (!savedPrize || !userDocRef) return;
 
       const prizeToProcess = JSON.parse(savedPrize);
-      localStorage.removeItem('pendingSpinPrize'); // একবার প্রসেস হওয়ার পর রিমুভ হবে
+      localStorage.removeItem('pendingSpinPrize'); // প্রসেস হওয়ার পর রিমুভ করা হলো
 
       try {
         let updateData = {
@@ -319,7 +352,9 @@
           alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
         }
 
-        location.reload(); 
+        // পেজ রিলোড না করে ইনস্ট্যান্ট ডেটা রিফ্রেশ করা হলো
+        await loadUserData(); 
+
       } catch (error) {
         console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
         alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
@@ -330,36 +365,11 @@
       if (user) {
         currentUserObj = user;
         userDocRef = doc(db, "users", user.uid);
-        try {
-          // পেজ লোড বা ব্যাক করার সময় পেন্ডিং স্পিন চেক করবে
-          await processPendingPrize();
+        
+        // প্রথমে পেন্ডিং প্রাইজ থাকলে তা প্রসেস করবে, তারপর ডেটা লোড করবে
+        await processPendingPrize();
+        await loadUserData();
 
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-
-            availableSpins = userData.luckySpinCount !== undefined ? Number(userData.luckySpinCount) : 0;
-            document.getElementById('spinCountDisplay').innerText = availableSpins;
-
-            if (availableSpins <= 0) {
-              document.getElementById('spinBtn').style.opacity = "0.5";
-            }
-          }
-
-          const historySnap = await getDocs(collection(db, "users", user.uid, "spinHistory"));
-          let totalSpinEarnings = 0;
-          historySnap.forEach((docSnap) => {
-            const historyData = docSnap.data();
-            if (historyData.amount) {
-              totalSpinEarnings += Number(historyData.amount);
-            }
-          });
-
-          document.getElementById('reward-display').innerText = totalSpinEarnings.toFixed(2);
-
-        } catch (error) {
-          console.error("স্পিন ডাটা আনতে সমস্যা:", error);
-        }
       } else {
         window.location.href = "login.html";
       }
@@ -377,7 +387,7 @@
       const selectedIndex = Math.floor(Math.random() * items.length);
       const prize = items[selectedIndex];
 
-      // localStorage এ প্রাইজ সেভ করা হলো
+      // localStorage এ সেভ করা হলো
       localStorage.setItem('pendingSpinPrize', JSON.stringify(prize));
 
       const degreesPerItem = 360 / items.length;
@@ -390,13 +400,13 @@
 
       setTimeout(async () => {
         isSpinning = false;
-        // window.open এর বদলে সরাসরি লিংকে রিডাইরেক্ট করা হলো যা WebView-এ নিখুঁতভাবে কাজ করে
+        // Adsterra Smart Link ওপেন হবে
         window.location.href = "https://araplhn.org/4/79054fb4b54830da5e0866e988a90081";
       }, 4000);
     }
 
-    // মোবাইল WebView বা ব্রাউজারের ব্যাক বা ফোকাস ইভেন্ট হ্যান্ডেল করার জন্য
-    window.addEventListener("pageshow", async (event) => {
+    // ইউজার অ্যাড দেখে ফিরে আসলে তাৎক্ষণিক আপডেট হবে
+    window.addEventListener("pageshow", async () => {
       await processPendingPrize();
     });
 
