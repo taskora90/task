@@ -162,7 +162,8 @@
 
           if (userDoc.exists()) {
             currentTaskCash = userDoc.data().taskCash || 0;
-            document.getElementById('availableTaskCash').innerText = `৳ ${currentTaskCash}`;
+            // দশমিক সমস্যা সমাধান করে সুন্দর ফিগার দেখানোর জন্য .toFixed(2) দেওয়া হয়েছে
+            document.getElementById('availableTaskCash').innerText = `৳ ${Number(currentTaskCash).toFixed(2)}`;
           }
 
           const profileDocRef = doc(db, "withdrawProfiles", user.uid);
