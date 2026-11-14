@@ -18,9 +18,10 @@
 </header>
 
 
-<!-- অতি সরু ও চিকন লাইভ সময় ও তারিখ বার -->
+<<!-- অতি সরু ও চিকন লাইভ সময়, বার ও তারিখ বার -->
 <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; color: #2e3440; padding: 4px 12px; margin-bottom: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.03); border: 1px solid #e5e9f0;">
     <span id="tickerTime"><i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ০২:১৫:৪৫ এএম</span>
+    <span id="tickerDay" style="color: #2e3440;">শনিবার</span>
     <span id="tickerDate"><i class="fa-solid fa-calendar-days" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> ১৭ নভেম্বর, ২০২৬</span>
 </div>
 
@@ -42,10 +43,13 @@ function updateLiveDateTime() {
     let day = now.getDate();
     let monthIndex = now.getMonth();
     let year = now.getFullYear();
+    let dayIndex = now.getDay();
 
     const bnMonths = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+    const bnDays = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
 
     document.getElementById('tickerTime').innerHTML = `<i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ${toBn(hoursStr)}:${toBn(mins)}:${toBn(secs)} ${ampm}`;
+    document.getElementById('tickerDay').innerText = bnDays[dayIndex];
     document.getElementById('tickerDate').innerHTML = `<i class="fa-solid fa-calendar-days" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> ${toBn(day)} ${bnMonths[monthIndex]}, ${toBn(year)}`;
 }
 setInterval(updateLiveDateTime, 1000);
