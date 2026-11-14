@@ -294,7 +294,7 @@
 
           // ১. ওয়েটিং বা পেন্ডিং থাকলে নতুন রিকোয়েস্ট দেওয়া যাবে না
           if (latestReq && (latestReq.status === "waiting" || latestReq.status === "pending")) {
-            throw new Error("⚠️ আপনার একটি উইথড্র রিকোয়েস্ট বর্তমানে ওয়েটিং বা পেন্ডিং অবস্থায় আছে। নতুন করে উইথড্র করা যাবে না।");
+            throw new Error("⚠️ আপনার একটি উইথড্র রিকোয়েস্ট বর্তমানে পেন্ডিং অবস্থায় আছে। নতুন করে উইথড্র করা যাবে না।");
           }
 
           // ২. আজকের দিনে সর্বোচ্চ ২ বার রিকোয়েস্ট করার নিয়ম (প্রথমবার রিজেক্ট হলে দ্বিতীয়বার সুযোগ)
@@ -324,7 +324,7 @@
             const latestTaskCash = userData.taskCash || 0;
 
             if (fullAmountToDeduct > latestTaskCash) {
-              throw new Error("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
+              throw new Error("আপনার মাই ক্যাশে পর্যাপ্ত ব্যালেন্স নেই!");
             }
 
             transaction.update(userDocRef, {
