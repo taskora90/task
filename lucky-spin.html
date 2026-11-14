@@ -290,7 +290,7 @@
       if (!savedPrize || !userDocRef) return;
 
       const prizeToProcess = JSON.parse(savedPrize);
-      localStorage.removeItem('pendingSpinPrize'); // প্রসেস হওয়ার পর রিমুভ করে দেওয়া হলো
+      localStorage.removeItem('pendingSpinPrize'); // একবার প্রসেস হওয়ার পর রিমুভ হবে
 
       try {
         let updateData = {
@@ -304,10 +304,10 @@
 
         await updateDoc(userDocRef, updateData);
 
-        if (prizeToProcess.amount > 0 && currentUserObj) {
+        if (currentUserObj) {
           await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
             title: "লাকি স্পিন",
-            desc: `স্পিন করে ${prizeToProcess.name} জিতেছেন`,
+            desc: prizeToProcess.amount > 0 ? `স্পিন করে ${prizeToProcess.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
             amount: Number(prizeToProcess.amount),
             timestamp: serverTimestamp()
           });
@@ -331,7 +331,7 @@
         currentUserObj = user;
         userDocRef = doc(db, "users", user.uid);
         try {
-          // পেজ লোড হওয়ার সাথে সাথেই চেক করবে কোনো পেন্ডিং স্পিন আছে কিনা
+          // পেজ লোড বা ব্যাক করার সময় পেন্ডিং স্পিন চেক করবে
           await processPendingPrize();
 
           const userDoc = await getDoc(userDocRef);
@@ -377,7 +377,7 @@
       const selectedIndex = Math.floor(Math.random() * items.length);
       const prize = items[selectedIndex];
 
-      // localStorage এ সেভ করে রাখা হলো যাতে পেজ রিফ্রেশ বা নেভিগেট হলেও হারিয়ে না যায়
+      // localStorage এ প্রাইজ সেভ করা হলো
       localStorage.setItem('pendingSpinPrize', JSON.stringify(prize));
 
       const degreesPerItem = 360 / items.length;
@@ -390,16 +390,18 @@
 
       setTimeout(async () => {
         isSpinning = false;
-        // Adsterra Smart Link ওপেন হবে
-        window.open("https://araplhn.org/4/79054fb4b54830da5e0866e988a90081", "_blank");
+        // window.open এর বদলে সরাসরি লিংকে রিডাইরেক্ট করা হলো যা WebView-এ নিখুঁতভাবে কাজ করে
+        window.location.href = "https://araplhn.org/4/79054fb4b54830da5e0866e988a90081";
       }, 4000);
     }
 
-    // ইউজার ট্যাব বা ব্রাউজার থেকে ফিরে আসলে কাজ করবে
-    document.addEventListener("visibilitychange", async () => {
-      if (document.visibilityState === "visible") {
-        await processPendingPrize();
-      }
+    // মোবাইল WebView বা ব্রাউজারের ব্যাক বা ফোকাস ইভেন্ট হ্যান্ডেল করার জন্য
+    window.addEventListener("pageshow", async (event) => {
+      await processPendingPrize();
+    });
+
+    window.addEventListener("focus", async () => {
+      await processPendingPrize();
     });
   </script>
 
