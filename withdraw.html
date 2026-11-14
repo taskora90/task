@@ -83,7 +83,6 @@
             <div class="form-group" style="position: relative;">
                 <label>নির্বাচিত পরিমাণ (৳)</label>
                 <input type="number" id="withdrawAmount" placeholder="উপরের বাটন থেকে সিলেক্ট করুন" readonly>
-                <!-- ভ্যাট নোটিশ (শুরুতে হাইড থাকবে, পরিমাণ সিলেক্ট করলে শো করবে) -->
                 <small id="vatNotice" style="display: none; color: red; font-size: 12px; margin-top: 4px; display: block; font-weight: bold;">VAT -১০%</small>
             </div>
             <div class="form-group">
@@ -142,9 +141,7 @@
       let userWithdrawAccount = "";
 
       window.selectAmount = function(amount) {
-        selectedAmount = amount; // মূল অ্যামাউন্ট (যেমন: 500) ব্যালেন্স থেকে কাটার জন্য সেভ থাকবে
-
-        // ১০% ভ্যাট বাদ দিয়ে ইনপুটে দেখানোর অ্যামাউন্ট (যেমন: 500 - 10% = 450)
+        selectedAmount = amount; 
         let amountAfterVat = amount - (amount * 0.10);
 
         document.querySelectorAll('.amount-grid .amount-btn').forEach(btn => btn.classList.remove('active'));
@@ -152,10 +149,7 @@
             event.currentTarget.classList.add('active');
         }
 
-        // ইনপুট বক্সে ভ্যাট বাদে বাকি টাকা দেখাবে
         document.getElementById('withdrawAmount').value = amountAfterVat;
-
-        // টাকার পরিমাণের নিচে লাল কালিতে VAT -১০% লেখা শো করবে
         document.getElementById('vatNotice').style.display = 'block';
       };
 
@@ -236,15 +230,16 @@
       };
 
       document.getElementById('withdrawBtn').onclick = async () => {
-        const fullAmountToDeduct = selectedAmount; // মূল সিলেক্ট করা টাকা (যেমন: 500) ব্যালেন্স থেকে কাটবে
-        const finalRequestAmount = selectedAmount - (selectedAmount * 0.10); // ভ্যাট বাদে রিকোয়েস্ট অ্যামাউন্ট (যেমন: 450)
+        const fullAmountToDeduct = selectedAmount; 
+        const finalRequestAmount = selectedAmount - (selectedAmount * 0.10); 
 
         const now = new Date();
         const day = now.getDay(); 
         const hour = now.getHours();
+        const todayStr = now.toISOString().split('T')[0]; // আজকের তারিখ (YYYY-MM-DD)
 
         if (day === 5 || day === 0) {
-          alert("আজ ছুটির দিন (শুক্রবার ও রবিবার)। এই দুই দিন উইথড্র করা যাবে না!");
+          alert("আজ ছুটির দিন (শুক্রবার ও রবিবার)। এই দিন উইথড্র করা যাবে না!");
           return;
         }
 
@@ -268,40 +263,50 @@
         submitBtn.innerText = "প্রসেসিং...";
 
         try {
-          // ইউজারের আগের সমস্ত উইথড্র রিকোয়েস্ট চেক করা
           const q = query(collection(db, "withdrawals"), where("userId", "==", currentUser.uid));
           const querySnapshot = await getDocs(q);
           
-          let latestStatus = "";
-          let rejectCount = 0;
-          let maxTime = 0;
+          let todayRequests = [];
 
           querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
-            const timeVal = data.timestamp?.toMillis() || data.createdAt?.toMillis() || 0;
-            
-            if (data.status === "rejected") {
-              rejectCount++;
+            let reqDateStr = "";
+            if (data.timestamp && data.timestamp.toDate) {
+              reqDateStr = data.timestamp.toDate().toISOString().split('T')[0];
+            } else if (data.createdAt && data.createdAt.toDate) {
+              reqDateStr = data.createdAt.toDate().toISOString().split('T')[0];
             }
 
-            if (timeVal >= maxTime) {
-              maxTime = timeVal;
-              latestStatus = data.status; // waiting, pending, approved, rejected
+            if (reqDateStr === todayStr) {
+              todayRequests.push(data);
             }
           });
 
-          // ১. ওয়েটিং, পেন্ডিং বা এপ্রুভড থাকলে নতুন উইথড্র করতে দেওয়া যাবে না
-          if (latestStatus === "waiting" || latestStatus === "pending" || latestStatus === "approved") {
-            throw new Error("⚠️ আপনার একটি উইথড্র রিকোয়েস্ট বর্তমানে ওয়েটিং, পেন্ডিং বা এপ্রুভড অবস্থায় আছে। এই অবস্থায় নতুন করে উইথড্র করা যাবে না।");
+          todayRequests.sort((a, b) => {
+            let timeA = a.timestamp?.toMillis() || a.createdAt?.toMillis() || 0;
+            let timeB = b.timestamp?.toMillis() || b.createdAt?.toMillis() || 0;
+            return timeB - timeA;
+          });
+
+          let todayCount = todayRequests.length;
+          let latestReq = todayCount > 0 ? todayRequests[0] : null;
+
+          // ১. ওয়েটিং বা পেন্ডিং থাকলে নতুন রিকোয়েস্ট দেওয়া যাবে না
+          if (latestReq && (latestReq.status === "waiting" || latestReq.status === "pending")) {
+            throw new Error("⚠️ আপনার একটি উইথড্র রিকোয়েস্ট বর্তমানে ওয়েটিং বা পেন্ডিং অবস্থায় আছে। নতুন করে উইথড্র করা যাবে না।");
           }
 
-          // ২. রিজেক্ট কাউন্ট ১ বা তার বেশি হলে (অর্থাৎ একবার রিজেক্ট হওয়ার পর দ্বিতীয়বারও রিজেক্ট হলে) আর নতুন উইথড্র করতে দেওয়া যাবে না
-          if (rejectCount >= 1) {
-            throw new Error("⚠️ আপনার পূর্বের উইথড্র রিকোয়েস্টটি রিজেক্ট হওয়ায় আপনি ইতিমধ্যেই একবার রিকোয়েস্ট পাঠানোর সুযোগ ব্যবহার করেছেন। নিয়মানুযায়ী দ্বিতীয়বার আর উইথড্র করা সম্ভব নয়।");
+          // ২. আজকের দিনে সর্বোচ্চ ২ বার রিকোয়েস্ট করার নিয়ম (প্রথমবার রিজেক্ট হলে দ্বিতীয়বার সুযোগ)
+          if (todayCount >= 2) {
+            throw new Error("⚠️ আজকের দিনে আপনার উইথড্র কোটা শেষ। আগামী কাল নতুন করে চেষ্টা করুন।");
+          }
+
+          // ৩. যদি আজকের দিনে ১ বার রিকোয়েস্ট করা হয়ে থাকে এবং সেটি রিজেক্ট না হয়ে অন্য কিছু (যেমন approved বা waiting) হয়
+          if (todayCount === 1 && latestReq.status !== "rejected") {
+            throw new Error("আজকের উইথড্র লিমিট শেষ! দিনে একবারের বেশি উইথড্র করা যাবে না।");
           }
 
           const userDocRef = doc(db, "users", currentUser.uid);
-          const todayStr = now.toISOString().split('T')[0];
 
           await runTransaction(db, async (transaction) => {
             const userDocSnap = await transaction.get(userDocRef);
@@ -316,12 +321,6 @@
             }
 
             const latestTaskCash = userData.taskCash || 0;
-            const lastWithdrawDate = userData.lastWithdrawDate || "";
-
-            // যদি আগের স্ট্যাটাস 'rejected' না হয়, তবেই দৈনিক একবারের লিমিট চেক করবে
-            if (latestStatus !== "rejected" && lastWithdrawDate === todayStr) {
-              throw new Error("আজকের উইথড্র লিমিট শেষ! দিনে একবারের বেশি উইথড্র করা যাবে না।");
-            }
 
             if (fullAmountToDeduct > latestTaskCash) {
               throw new Error("আপনার ক্যাশে পর্যাপ্ত টাকা নেই!");
@@ -338,8 +337,8 @@
           await addDoc(collection(db, "withdrawals"), {
             userId: currentUser.uid,
             userEmail: userIdentifier,
-            amount: finalRequestAmount, // ভ্যাট বাদে রিকোয়েস্ট অ্যামাউন্ট (যেমন: 450)
-            deductedAmount: fullAmountToDeduct, // মূল কাটা যাওয়া টাকা (যেমন: 500)
+            amount: finalRequestAmount, 
+            deductedAmount: fullAmountToDeduct, 
             method: userWithdrawMethod,
             account: userWithdrawAccount,
             status: "waiting",
