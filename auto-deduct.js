@@ -33,11 +33,10 @@ async function runAutoDeduct() {
 
       if (dueAmount <= 0) continue;
 
-      // ১. মূল লোনের ১৫% হিসাব করা (দশমিক এড়াতে Math.round বা পূর্ণসংখ্যা রাখা ভালো)
-      const dailyTarget = Math.round(totalLoanAmount * 0.15);
+      // ১. পুরো লোনকে ১৫ ভাগে ভাগ করে প্রতি দিনের বা প্রতি ভাগের টার্গেট হিসাব করা (যেমন: ৪৫০ / ১৫ = ৩০ টাকা)
+      const dailyTarget = Math.round(totalLoanAmount / 15);
 
-      // ২. ইউজার আজকে ম্যানুয়ালি কত টাকা পরিশোধ করেছে তা চেক করা
-      // (যেহেতু loan.html-এ ম্যানুয়াল পেমেন্টে todayPaidAmount যোগ হয়, তাই আজকের হিস্ট্রি থেকেও চেক করে নেওয়া নিরাপদ)
+      // ২. ইউজার আজকে ম্যানুয়ালি মোট কত টাকা পরিশোধ করেছে তা চেক করা
       let paidToday = 0;
       if (loanData.history && Array.isArray(loanData.history)) {
         loanData.history.forEach(item => {
@@ -47,19 +46,17 @@ async function runAutoDeduct() {
         });
       }
 
-      // ৩. যদি আজকে ইতিমধ্যে ১৫% বা তার বেশি পরিশোধ হয়ে যায়, তবে আর কাটবে না
+      // ৩. যদি ইউজার আজকে ম্যানুয়ালি ১৫ ভাগের সমান বা তার বেশি পরিশোধ করে দেয়, তবে আর অটো কাটবে না
       if (paidToday >= dailyTarget) {
-        console.log(`User ${userId} আজকে ইতিমধ্যে ৳${paidToday} পরিশোধ করেছেন (টার্গেট: ৳${dailyTarget})। তাই অটো কাটা হলো না।`);
-        
-        // পরবর্তী দিনের জন্য todayPaidAmount রিসেট করে রাখা
+        console.log(`User ${userId} আজকে ইতিমধ্যে ৳${paidToday} পরিশোধ করেছেন (টার্গেট ছিল: ৳${dailyTarget})। তাই অটো কাটা হলো না।`);
         await docSnap.ref.update({ todayPaidAmount: 0 });
         continue;
       }
 
-      // ৪. ১৫% পূর্ণ হতে আর কত টাকা বাকি আছে তা বের করা
+      // ৪. ১৫ ভাগের এক ভাগ পূর্ণ হতে আর কত টাকা বাকি আছে তা বের করা (যেমন: ৩০ - ২০ = ১০ টাকা)
       let remainingTarget = dailyTarget - paidToday;
       
-      // যদি মোট বকেয়া (dueAmount) এই বাকি টার্গেটের চেয়ে কম হয়, তবে শুধু বকেয়াটুকুই কাটবে
+      // বকেয়া টাকার চেয়ে বেশি যেন না কাটে, তাই দুটোর মধ্যে যেটা কম সেটাই কাটবে
       let deductAmount = Math.min(dueAmount, remainingTarget);
 
       if (deductAmount <= 0) continue;
@@ -73,7 +70,7 @@ async function runAutoDeduct() {
       const taskCashField = userData.taskCash !== undefined ? "taskCash" : "taskcash";
       const taskCashBalance = Number(userData[taskCashField] || 0);
 
-      // ৫. ইউজারের টাস্ক ক্যাশে পর্যাপ্ত ব্যালেন্স থাকলে টাকা কাটা
+      // ৫. ইউজারের টাস্ক ক্যাশে পর্যাপ্ত ব্যালেন্স থাকলে বাকি অংশটুকু কাটা
       if (taskCashBalance >= deductAmount) {
         await db.runTransaction(async (transaction) => {
           const freshUserSnap = await transaction.get(userRef);
@@ -94,7 +91,7 @@ async function runAutoDeduct() {
 
             let updateData = {
               dueAmount: newDue,
-              todayPaidAmount: 0, // রাত ১০টার পর আজকের কাউন্ট রিসেট হবে
+              todayPaidAmount: 0,
               history: history
             };
 
@@ -105,13 +102,12 @@ async function runAutoDeduct() {
             transaction.update(userRef, {
               [taskCashField]: admin.firestore.FieldValue.increment(-deductAmount)
             });
-            transaction.update(docSnap.ref, updateData);
+            transaction.update(docSnap.ref, updateData); // এখানে docSnap.ref ব্যবহার করা হয়েছে
           }
         });
-        console.log(`User ${userId} এর লোন থেকে ৳${deductAmount} অটো কাটা হয়েছে।`);
+        console.log(`User ${userId} এর লোন থেকে বাকি ৳${deductAmount} অটো কাটা হয়েছে।`);
       } else {
-        console.log(`User ${userId} এর টাস্ক ক্যাশে পর্যাপ্ত ব্যালেন্স নেই (আছে: ৳${taskCashBalance}, প্রয়োজন: ৳${deductAmount})।`);
-        // ব্যালেন্স না থাকলেও পরবর্তী দিনের হিসাবের জন্য todayPaidAmount রিসেট করে দেওয়া
+        console.log(`User ${userId} এর টাস্ক ক্যাশে পর্যাপ্ত ব্যালেন্স নেই।`);
         await docSnap.ref.update({ todayPaidAmount: 0 });
       }
     }
