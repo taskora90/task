@@ -89,7 +89,7 @@
       z-index: 25;
       animation: redLightBlink 0.8s infinite alternate;
     }
-    
+
     .light-0 { top: 10px; left: 50%; transform: translateX(-50%); animation-delay: 0.1s; }
     .light-1 { top: 50px; right: 50px; animation-delay: 0.3s; }
     .light-2 { top: 50%; right: 10px; transform: translateY(-50%); animation-delay: 0.5s; }
@@ -99,7 +99,7 @@
     .light-6 { top: 50%; left: 10px; transform: translateY(-50%); animation-delay: 0.6s; }
     .light-7 { top: 50px; left: 50px; animation-delay: 0.8s; }
 
-    /* ভেতরের চাকা (অ্যাশ কালার ব্যাকগ্রাউন্ড)[span_1](start_span)[span_1](end_span) */
+    /* ভেতরের চাকা (অ্যাশ কালার ব্যাকগ্রাউন্ড) */
     .wheel {
       width: 275px;
       height: 275px;
@@ -110,35 +110,35 @@
       border: 4px dashed #64748b;
     }
 
-    /* চাকার আইটেম/কার্ডসমূহ */
+    /* চাকার আইটেম/কার্ডসমূহ (গোল শেপ করা হয়েছে) */
     .item {
       position: absolute;
-      width: 75px;
-      height: 55px;
+      width: 64px;
+      height: 64px;
       background: #ffffff;
       border: 2px solid #94a3b8;
-      border-radius: 10px;
+      border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 13px;
       color: #333;
       box-shadow: 0 3px 6px rgba(0,0,0,0.15);
     }
 
     /* ৬টি পজিশন */
-    .item-0 { top: 10px; left: 50%; transform: translateX(-50%); }
-    .item-1 { top: 55px; right: 12px; }
-    .item-2 { bottom: 55px; right: 12px; }
-    .item-3 { bottom: 10px; left: 50%; transform: translateX(-50%); }
-    .item-4 { bottom: 55px; left: 12px; }
-    .item-5 { top: 55px; left: 12px; }
+    .item-0 { top: 12px; left: 50%; transform: translateX(-50%); }
+    .item-1 { top: 52px; right: 15px; }
+    .item-2 { bottom: 52px; right: 15px; }
+    .item-3 { bottom: 12px; left: 50%; transform: translateX(-50%); }
+    .item-4 { bottom: 52px; left: 15px; }
+    .item-5 { top: 52px; left: 15px; }
 
-    .try-again-text { color: #dc3545; font-size: 12px; }
-    .money-text { color: #28a745; font-size: 15px; }
+    .try-again-text { color: #dc3545; font-size: 11px; text-align: center; }
+    .money-text { color: #28a745; font-size: 14px; }
 
-    /* মাঝের শুরু বাটন (গোল্ডেন স্টাইল)[span_2](start_span)[span_2](end_span) */
+    /* মাঝের শুরু বাটন (গোল্ডেন স্টাইল) */
     .spin-btn {
       position: absolute;
       width: 85px;
@@ -216,9 +216,9 @@
       <div class="wheel-light light-6"></div>
       <div class="wheel-light light-7"></div>
 
-      <!-- ঘুরার চাকা (অ্যাশ ব্যাকগ্রাউন্ড ও আপডেট করা অ্যামাউন্ট) -->
+      <!-- ঘুরার চাকা (অ্যাশ ব্যাকগ্রাউন্ড ও গোল আইটেমসমূহ) -->
       <div class="wheel" id="wheel">
-        <div class="item item-0 try-again-text">Try Again</div>
+        <div class="item item-0 try-again-text">Try<br>Again</div>
         <div class="item item-1 money-text">৳ 50</div>
         <div class="item item-2 money-text">৳ 100</div>
         <div class="item item-3 money-text">৳ 10</div>
@@ -320,6 +320,8 @@
       }
     });
 
+    let pendingPrize = null;
+
     window.spinWheel = async function() {
       if (isSpinning) return;
 
@@ -330,6 +332,8 @@
 
       isSpinning = true;
       const selectedIndex = Math.floor(Math.random() * items.length);
+      pendingPrize = items[selectedIndex];
+
       const degreesPerItem = 360 / items.length;
       const extraRounds = 360 * 5; 
       const targetDegree = extraRounds + (360 - (selectedIndex * degreesPerItem));
@@ -340,31 +344,42 @@
 
       setTimeout(async () => {
         isSpinning = false;
-        const prize = items[selectedIndex];
+
+        // Adsterra Smart Link ওপেন হবে
+        window.open("https://araplhn.org/4/79054fb4b54830da5e0866e988a90081", "_blank");
+
+      }, 4000);
+    }
+
+    // ইউজার অ্যাড দেখে ট্যাব কেটে সাইটে ফিরে আসার পর বোনাস যুক্ত হবে
+    document.addEventListener("visibilitychange", async () => {
+      if (document.visibilityState === "visible" && pendingPrize !== null) {
+        const prizeToProcess = pendingPrize;
+        pendingPrize = null;
 
         try {
           let updateData = {
             luckySpinCount: increment(-1)
           };
 
-          if (prize.amount > 0) {
-            updateData.taskCash = increment(prize.amount);
-            updateData.totalEarnings = increment(prize.amount);
+          if (prizeToProcess.amount > 0) {
+            updateData.taskCash = increment(prizeToProcess.amount);
+            updateData.totalEarnings = increment(prizeToProcess.amount);
           }
 
           await updateDoc(userDocRef, updateData);
 
-          if (prize.amount > 0 && currentUserObj) {
+          if (prizeToProcess.amount > 0 && currentUserObj) {
             await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
               title: "লাকি স্পিন",
-              desc: `স্পিন করে ${prize.name} জিতেছেন`,
-              amount: Number(prize.amount),
+              desc: `স্পিন করে ${prizeToProcess.name} জিতেছেন`,
+              amount: Number(prizeToProcess.amount),
               timestamp: serverTimestamp()
             });
           }
 
-          if (prize.amount > 0) {
-            alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
+          if (prizeToProcess.amount > 0) {
+            alert(`অভিনন্দন! আপনি জিতেছেন ${prizeToProcess.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
           } else {
             alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
           }
@@ -373,10 +388,9 @@
         } catch (error) {
           console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
           alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
-          isSpinning = false;
         }
-      }, 4000);
-    }
+      }
+    });
   </script>
 
 </body>
