@@ -14,8 +14,8 @@
         .loan-card h3 { margin-top: 0; color: #333; font-size: 18px; }
         .loan-amount-badge { font-size: 26px; font-weight: bold; color: #28a745; margin: 15px 0; display: block; }
         .loan-desc { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 20px; }
-        
-        /* মূল লোন রিকোয়েস্ট বাটন (হলুদ কালার অপরিবর্তিত) */
+
+        /* মূল লোন রিকোয়েস্ট বাটন */
         .loan-btn { width: 100%; background: #ffc107; color: #000; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
         .loan-btn:hover { background: #e0a800; }
 
@@ -69,7 +69,8 @@
         }
     </style>
 </head>
-<body>   <div class="main-container">
+<body>
+    <div class="main-container">
 
         <div class="page-header">
             <h2>জরুরি লোন সুবিধা</h2>
@@ -86,7 +87,7 @@
 
         <div class="info-note">
             💡 <strong>নোট:</strong> লোন অনুমোদিত হলে টাকা সরাসরি আপনার <b>রিচার্জ ক্যাশ</b> ব্যালেন্সে জমা হবে এবং অটো/ম্যানুয়ালি <b>মাই ক্যাশ</b> থেকে পর্যাপ্ত ব্যালেন্স সাপেক্ষে পরিশোধ হবে。<br>
-            • প্রতিদিন রাত ১০:০০ টায় অটো টাকা কাটবে।<br>
+            • প্রতিদিন রাত ১০:০০ টায় অটো টাকা কাটবে (যদি অপরিশোধিত থাকে)।<br>
             • ম্যানুয়ালি লোন পরিশোধ করার সুযোগ আছে।
         </div>
 
@@ -171,24 +172,43 @@
                         const userData = userSnap.data();
                         const userPkgId = userData.package || "none";
 
+                        // এডমিন সেটিংস থেকে লোন কনফিগারেশন ফেচ করা
                         const settingsRef = doc(db, "admin_settings", "loan_config");
                         const settingsSnap = await getDoc(settingsRef);
                         const loanConfig = settingsSnap.exists() ? settingsSnap.data() : {};
 
+                        // প্যাকেজের নাম বের করার চেষ্টা
                         if (userPkgId !== "none" && userPkgId !== "") {
                             const pkgRef = doc(db, "packages", userPkgId);
                             const pkgSnap = await getDoc(pkgRef);
-                            userPackageName = pkgSnap.exists() ? (pkgSnap.data().name || userPkgId) : userPkgId;
-                            userLoanAmount = loanConfig[userPkgId] !== undefined ? loanConfig[userPkgId] : 0;
+                            
+                            if (pkgSnap.exists()) {
+                                userPackageName = pkgSnap.data().name || userPkgId;
+                            } else {
+                                userPackageName = userPkgId;
+                            }
+
+                            // নিখুঁতভাবে লোন অ্যামাউন্ট ম্যাচ করার লজিক (আইডি বা নাম দিয়ে চেক করবে)
+                            if (loanConfig[userPkgId] !== undefined) {
+                                userLoanAmount = Number(loanConfig[userPkgId]);
+                            } else if (loanConfig[userPkgId.toLowerCase()] !== undefined) {
+                                userLoanAmount = Number(loanConfig[userPkgId.toLowerCase()]);
+                            } else if (loanConfig[userPackageName] !== undefined) {
+                                userLoanAmount = Number(loanConfig[userPackageName]);
+                            } else if (loanConfig[userPackageName.toLowerCase()] !== undefined) {
+                                userLoanAmount = Number(loanConfig[userPackageName.toLowerCase()]);
+                            } else {
+                                userLoanAmount = 0;
+                            }
                         } else {
                             userPackageName = "কোনো প্যাকেজ নেই (Free)";
-                            userLoanAmount = loanConfig['none'] !== undefined ? loanConfig['none'] : 0;
+                            userLoanAmount = loanConfig['none'] !== undefined ? Number(loanConfig['none']) : (loanConfig['Free'] !== undefined ? Number(loanConfig['Free']) : 0);
                         }
 
                         document.getElementById('loanAmountText').innerText = `৳ ${userLoanAmount.toLocaleString()}`;
                         document.getElementById('loanDescText').innerText = `আপনার বর্তমান প্যাকেজ: (${userPackageName})`;
 
-                        await loadLoanHistoryAndCheckAutoPay(user.uid, userData);
+                        await loadLoanHistory(user.uid, userData);
                     }
                 } catch (error) {
                     console.error("Error loading loan data:", error);
@@ -205,7 +225,7 @@
             return Number(userData.taskCash !== undefined ? userData.taskCash : (userData.taskcash !== undefined ? userData.taskcash : 0));
         }
 
-        async function loadLoanHistoryAndCheckAutoPay(userId, userData) {
+        async function loadLoanHistory(userId, userData) {
             const q = query(collection(db, "loan_requests"), where("userId", "==", userId));
             const querySnapshot = await getDocs(q);
 
@@ -242,11 +262,6 @@
                         }
                     }
 
-                    const taskCashBalance = getTaskCashBalance(userData);
-                    if ((loan.status === "approved" || loan.status === "active") && dueAmount > 0) {
-                        await checkAndApplyNightTenDeduction(loanId, loan, userId, taskCashBalance, userData);
-                    }
-
                     let statusBadge = "";
                     let isPaid = (dueAmount <= 0 || loan.status === "paid");
 
@@ -257,7 +272,9 @@
                     } else {
                         statusBadge = `<span class="status-badge" onclick="openPayModal('${loanId}', ${dueAmount})">চলমান (পরিশোধ করুন)</span>`;
                     }
-                    loanListHTML += `                        <div class="loan-item ${isPaid ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}">
+
+                    loanListHTML += `
+                        <div class="loan-item ${isPaid ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}">
                             <div class="loan-row-content">
                                 <div class="loan-info">
                                     <p><strong>মূল লোন:</strong> ৳${loan.amount}</p>
@@ -272,9 +289,11 @@
                         </div>
                     `;
                 }
-            }document.getElementById('loanList').innerHTML = loanListHTML;
+            }
+            
+            document.getElementById('loanList').innerHTML = loanListHTML;
 
-            // এখানে পেন্ডিং এবং চলমান লোনের জন্য আলাদা বাটন ও কালার সেট করা হয়েছে
+            // অ্যাকশন এরিয়ার বাটন স্ট্যাটাস সেট করা
             if (isPendingLoan) {
                 document.getElementById('actionArea').innerHTML = `
                     <button class="loan-btn-pending" disabled>আপনার লোনটি পেন্ডিং আছে</button>
@@ -291,63 +310,6 @@
                 `;
             } else {
                 document.getElementById('actionArea').innerHTML = `<p style="color:red; font-weight:bold;">এই প্যাকেজের জন্য লোন বরাদ্দ নেই।</p>`;
-            }
-        }
-
-        async function checkAndApplyNightTenDeduction(loanId, loanData, userId, taskCashBalance, userData) {
-            const now = new Date();
-            const currentHour = now.getHours();
-            const todayStr = now.toISOString().split('T')[0];
-
-            const lastDeductionDate = loanData.lastAutoDeductionDate || "";
-
-            if (currentHour >= 22 && lastDeductionDate !== todayStr) {
-                const dailyTarget = Math.ceil(loanData.amount / 15);
-                const todayPaid = loanData.todayPaidAmount || 0;
-
-                let neededDeduct = 0;
-                if (todayPaid < dailyTarget) {
-                    neededDeduct = dailyTarget - todayPaid;
-                }
-
-                const currentDue = loanData.dueAmount !== undefined ? Number(loanData.dueAmount) : Number(loanData.amount);
-                let actualDeduct = Math.min(neededDeduct, currentDue);
-
-                if (actualDeduct > 0 && taskCashBalance >= actualDeduct) {
-                    const taskCashField = userData.taskCash !== undefined ? "taskCash" : "taskcash";
-                    const userRef = doc(db, "users", userId);
-
-                    await updateDoc(userRef, { [taskCashField]: increment(-actualDeduct) });
-
-                    const newDue = currentDue - actualDeduct;
-                    const loanRef = doc(db, "loan_requests", loanId);
-
-                    let history = loanData.history || [];
-                    history.push({
-                        date: todayStr,
-                        amount: actualDeduct,
-                        type: "অটো ডেডিকেশন (রাত ১০:০০)"
-                    });
-
-                    let updateObject = {
-                        dueAmount: newDue,
-                        lastAutoDeductionDate: todayStr,
-                        todayPaidAmount: 0,
-                        history: history
-                    };
-
-                    if (newDue <= 0) {
-                        updateObject.status = "paid";
-                    }
-
-                    await updateDoc(loanRef, updateObject);
-                } else if (todayPaid >= dailyTarget) {
-                    const loanRef = doc(db, "loan_requests", loanId);
-                    await updateDoc(loanRef, {
-                        lastAutoDeductionDate: todayStr,
-                        todayPaidAmount: 0
-                    });
-                }
             }
         }
 
