@@ -170,7 +170,9 @@
 
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
-                        const userPkgId = userData.package || "none";
+                        
+                        // package অথবা packageId দুটোই চেক করবে
+                        const userPkgId = userData.package || userData.packageId || "none";
 
                         // এডমিন সেটিংস থেকে লোন কনফিগারেশন ফেচ করা
                         const settingsRef = doc(db, "admin_settings", "loan_config");
@@ -188,7 +190,7 @@
                                 userPackageName = userPkgId;
                             }
 
-                            // নিখুঁতভাবে লোন অ্যামাউন্ট ম্যাচ করার লজিক (আইডি বা নাম দিয়ে চেক করবে)
+                            // নিখুঁতভাবে লোন অ্যামাউন্ট ম্যাচ করার লজিক
                             if (loanConfig[userPkgId] !== undefined) {
                                 userLoanAmount = Number(loanConfig[userPkgId]);
                             } else if (loanConfig[userPkgId.toLowerCase()] !== undefined) {
@@ -314,9 +316,28 @@
         }
 
         window.sendLoanRequest = async function(userId, userName, userPhone, userPackage) {
-            if (!confirm(`আপনি কি ৳ ${userLoanAmount} টাকার জন্য লোন রিকোয়েস্ট পাঠাতে চান?`)) return;
-
+            // ডুপ্লিকেট রিকোয়েস্ট প্রিভেন্ট করার জন্য পুনরায় চেক করা
             try {
+                const q = query(collection(db, "loan_requests"), where("userId", "==", userId));
+                const querySnapshot = await getDocs(q);
+                let hasActiveOrPending = false;
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const due = data.dueAmount !== undefined ? Number(data.dueAmount) : Number(data.amount);
+                    if ((data.status === "pending" || data.status === "approved" || data.status === "active") && due > 0) {
+                        hasActiveOrPending = true;
+                    }
+                });
+
+                if (hasActiveOrPending) {
+                    alert("আপনার ইতিমধ্যে একটি লোন পেন্ডিং অথবা চলমান রয়েছে!");
+                    location.reload();
+                    return;
+                }
+
+                if (!confirm(`আপনি কি ৳ ${userLoanAmount} টাকার জন্য লোন রিকোয়েস্ট পাঠাতে চান?`)) return;
+
                 await addDoc(collection(db, "loan_requests"), {
                     userId: userId,
                     userName: userName,
