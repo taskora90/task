@@ -268,25 +268,36 @@
         submitBtn.innerText = "প্রসেসিং...";
 
         try {
-          // ইউজারের শেষ উইথড্র রিকোয়েস্টের স্ট্যাটাস বের করার জন্য চেক
+          // ইউজারের আগের সমস্ত উইথড্র রিকোয়েস্ট চেক করা
           const q = query(collection(db, "withdrawals"), where("userId", "==", currentUser.uid));
           const querySnapshot = await getDocs(q);
           
           let latestStatus = "";
+          let rejectCount = 0;
           let maxTime = 0;
 
           querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const timeVal = data.timestamp?.toMillis() || data.createdAt?.toMillis() || 0;
+            
+            if (data.status === "rejected") {
+              rejectCount++;
+            }
+
             if (timeVal >= maxTime) {
               maxTime = timeVal;
               latestStatus = data.status; // waiting, pending, approved, rejected
             }
           });
 
-          // ওয়েটিং, পেন্ডিং বা এপ্রুভড থাকলে নতুন উইথড্র করতে দেওয়া যাবে না
+          // ১. ওয়েটিং, পেন্ডিং বা এপ্রুভড থাকলে নতুন উইথড্র করতে দেওয়া যাবে না
           if (latestStatus === "waiting" || latestStatus === "pending" || latestStatus === "approved") {
             throw new Error("⚠️ আপনার একটি উইথড্র রিকোয়েস্ট বর্তমানে ওয়েটিং, পেন্ডিং বা এপ্রুভড অবস্থায় আছে। এই অবস্থায় নতুন করে উইথড্র করা যাবে না।");
+          }
+
+          // ২. রিজেক্ট কাউন্ট ১ বা তার বেশি হলে (অর্থাৎ একবার রিজেক্ট হওয়ার পর দ্বিতীয়বারও রিজেক্ট হলে) আর নতুন উইথড্র করতে দেওয়া যাবে না
+          if (rejectCount >= 1) {
+            throw new Error("⚠️ আপনার পূর্বের উইথড্র রিকোয়েস্টটি রিজেক্ট হওয়ায় আপনি ইতিমধ্যেই একবার পুনరায় রিকোয়েস্ট পাঠানোর সুযোগ ব্যবহার করেছেন। নিয়মানুযায়ী দ্বিতীয়বার আর উইথড্র করা সম্ভব নয়।");
           }
 
           const userDocRef = doc(db, "users", currentUser.uid);
