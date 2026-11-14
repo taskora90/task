@@ -119,7 +119,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, runTransaction, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -143,7 +143,7 @@
 
       window.selectAmount = function(amount) {
         selectedAmount = amount; // মূল অ্যামাউন্ট (যেমন: 500) ব্যালেন্স থেকে কাটার জন্য সেভ থাকবে
-        
+
         // ১০% ভ্যাট বাদ দিয়ে ইনপুটে দেখানোর অ্যামাউন্ট (যেমন: 500 - 10% = 450)
         let amountAfterVat = amount - (amount * 0.10);
 
@@ -151,10 +151,10 @@
         if (event && event.currentTarget) {
             event.currentTarget.classList.add('active');
         }
-        
+
         // ইনপুট বক্সে ভ্যাট বাদে বাকি টাকা দেখাবে
         document.getElementById('withdrawAmount').value = amountAfterVat;
-        
+
         // টাকার পরিমাণের নিচে লাল কালিতে VAT -১০% লেখা শো করবে
         document.getElementById('vatNotice').style.display = 'block';
       };
@@ -268,6 +268,27 @@
         submitBtn.innerText = "প্রসেসিং...";
 
         try {
+          // ইউজারের শেষ উইথড্র রিকোয়েস্টের স্ট্যাটাস বের করার জন্য চেক
+          const q = query(collection(db, "withdrawals"), where("userId", "==", currentUser.uid));
+          const querySnapshot = await getDocs(q);
+          
+          let latestStatus = "";
+          let maxTime = 0;
+
+          querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const timeVal = data.timestamp?.toMillis() || data.createdAt?.toMillis() || 0;
+            if (timeVal >= maxTime) {
+              maxTime = timeVal;
+              latestStatus = data.status; // waiting, pending, approved, rejected
+            }
+          });
+
+          // ওয়েটিং, পেন্ডিং বা এপ্রুভড থাকলে নতুন উইথড্র করতে দেওয়া যাবে না
+          if (latestStatus === "waiting" || latestStatus === "pending" || latestStatus === "approved") {
+            throw new Error("⚠️ আপনার একটি উইথড্র রিকোয়েস্ট বর্তমানে ওয়েটিং, পেন্ডিং বা এপ্রুভড অবস্থায় আছে। এই অবস্থায় নতুন করে উইথড্র করা যাবে না।");
+          }
+
           const userDocRef = doc(db, "users", currentUser.uid);
           const todayStr = now.toISOString().split('T')[0];
 
@@ -286,7 +307,8 @@
             const latestTaskCash = userData.taskCash || 0;
             const lastWithdrawDate = userData.lastWithdrawDate || "";
 
-            if (lastWithdrawDate === todayStr) {
+            // যদি আগের স্ট্যাটাস 'rejected' না হয়, তবেই দৈনিক একবারের লিমিট চেক করবে
+            if (latestStatus !== "rejected" && lastWithdrawDate === todayStr) {
               throw new Error("আজকের উইথড্র লিমিট শেষ! দিনে একবারের বেশি উইথড্র করা যাবে না।");
             }
 
@@ -310,7 +332,8 @@
             method: userWithdrawMethod,
             account: userWithdrawAccount,
             status: "waiting",
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
+            createdAt: serverTimestamp()
           });
 
           alert("উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
