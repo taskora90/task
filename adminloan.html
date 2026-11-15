@@ -20,6 +20,12 @@
         .setting-row label { flex: 1; font-weight: 500; font-size: 14px; }
         .setting-row input { flex: 2; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
         .save-settings-btn { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* লোন কন্ট্রোল প্রোফাইল বাটন স্টাইল */
+        .admin-profile-btn-wrapper { margin-bottom: 15px; }
+        .btn-admin-profile { background: #0284c7; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; transition: background 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: 100%; text-align: center; }
+        .btn-admin-profile:hover { background: #0369a1; }
+
         .request-card { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
         .request-info h4 { margin: 0 0 5px 0; color: #333; }
         .request-info p { margin: 3px 0; font-size: 14px; color: #666; }
@@ -28,6 +34,20 @@
         .btn-reject { background-color: #dc3545; color: white; }
         .logout-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
         .no-data { text-align: center; color: #777; background: #fff; padding: 20px; border-radius: 8px; }
+
+        /* মোডাল ও কন্ট্রোল কার্ড স্টাইল */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #fff; padding: 20px; border-radius: 10px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal-content input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 15px; text-align: center; }
+        .modal-btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+        .btn-close { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        
+        .admin-modal-content { background: #fff; padding: 20px; border-radius: 10px; width: 95%; max-width: 550px; max-height: 85vh; overflow-y: auto; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .admin-loan-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 13px; }
+        .admin-loan-card p { margin: 4px 0; }
+        .admin-action-btn-group { margin-top: 8px; display: flex; gap: 6px; }
+        .btn-edit-loan { background: #2563eb; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        .btn-delete-loan { background: #ef4444; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -56,6 +76,11 @@
                 <button class="save-settings-btn" onclick="saveLoanSettings()">সেটিংস সেভ করুন</button>
             </div>
 
+            <!-- লোন রিকোয়েস্টের উপরে নতুন লোন কন্ট্রোল প্রোফাইল বাটন -->
+            <div class="admin-profile-btn-wrapper">
+                <button class="btn-admin-profile" onclick="openAdminLoanProfileModal()">👤 ইউজার লোন প্রোফাইল ও কন্ট্রোল প্যানেল</button>
+            </div>
+
             <h3 style="color: #2b2d42; margin-bottom: 10px;">পেন্ডিং লোন রিকোয়েস্টসমূহ</h3>
             <div id="requestsList">
                 <p style="text-align:center;">ডাটা লোড হচ্ছে...</p>
@@ -63,9 +88,35 @@
         </div>
     </div>
 
+    <!-- ইউজার লোন প্রোফাইল মোডাল (Admin Panel) -->
+    <div id="adminLoanProfileModal" class="modal">
+        <div class="admin-modal-content">
+            <h3 style="margin-top:0; font-size:18px; color:#1e293b; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">সকল ইউজারের লোন কন্ট্রোল ও হিস্ট্রি প্যানেল</h3>
+            <div id="adminLoanListContainer" style="margin: 15px 0;">
+                <p>লোড হচ্ছে...</p>
+            </div>
+            <button class="btn-close" onclick="closeAdminLoanProfileModal()" style="width:100%;">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <!-- লোন এডিট মোডাল (Admin Edit) -->
+    <div id="adminEditModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; font-size:16px;">ইউজারের লোন তথ্য এডিট করুন</h3>
+            <input type="hidden" id="editLoanId">
+            <label style="font-size:13px; font-weight:bold; display:block; text-align:left;">মূল লোন (Amount):</label>
+            <input type="number" id="editAmountInput" placeholder="মূল লোন">
+            <label style="font-size:13px; font-weight:bold; display:block; text-align:left;">বকেয়া পরিমাণ (Due Amount):</label>
+            <input type="number" id="editDueInput" placeholder="বকেয়া পরিমাণ">
+            <div class="modal-btn-group">
+                <button class="save-settings-btn" style="margin-top:0;" onclick="saveEditedLoan()">সংরক্ষণ করুন</button>
+                <button class="btn-close" onclick="closeAdminEditModal()">বাতিল</button>
+            </div>
+        </div>
+    </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, increment, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -216,7 +267,10 @@
                         loan_status: "active"
                     });
 
-                    await updateDoc(requestRef, { status: "approved" });
+                    await updateDoc(requestRef, { 
+                        status: "approved",
+                        dueAmount: amount // অ্যাপ্রুভ করার সময় ডিউ অ্যামাউন্ট সেট করে দেওয়া
+                    });
                     alert("লোন অ্যাপ্রুভ করা হয়েছে এবং ইউজারের My Cash-এ যোগ হয়েছে!");
                 } else {
                     await updateDoc(requestRef, { status: "rejected" });
@@ -227,6 +281,135 @@
             } catch (error) {
                 console.error("Error updating loan: ", error);
                 alert("অপারেশন সম্পন্ন করতে সমস্যা হয়েছে: " + error.message);
+            }
+        };
+
+        // ==========================================
+        // লোন কন্ট্রোল প্রোফাইল (এডমিন ফিচার) ফাংশনসমূহ
+        // ==========================================
+        window.openAdminLoanProfileModal = async function() {
+            document.getElementById('adminLoanListContainer').innerHTML = "<p>ডেটা লোড হচ্ছে...</p>";
+            document.getElementById('adminLoanProfileModal').style.display = 'flex';
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "loan_requests"));
+                let html = "";
+
+                if (querySnapshot.empty) {
+                    html = "<p style='color:#777;'>কোনো লোন রেকর্ড পাওয়া যায়নি।</p>";
+                } else {
+                    let allLoans = [];
+                    querySnapshot.forEach(docSnap => {
+                        allLoans.push({ id: docSnap.id, data: docSnap.data() });
+                    });
+
+                    // লেটেস্টগুলো উপরে দেখানোর জন্য সর্টিং
+                    allLoans.sort((a, b) => {
+                        let timeA = a.data.requestTime ? a.data.requestTime.toMillis() : 0;
+                        let timeB = b.data.requestTime ? b.data.requestTime.toMillis() : 0;
+                        return timeB - timeA;
+                    });
+
+                    allLoans.forEach(item => {
+                        const loan = item.data;
+                        const loanId = item.id;
+                        const originalAmount = Number(loan.amount || 0);
+                        const dueAmount = loan.dueAmount !== undefined ? Number(loan.dueAmount) : originalAmount;
+                        const paidAmount = originalAmount - dueAmount;
+
+                        // পেমেন্ট কাটার হিস্ট্রি সাজানো
+                        let historyText = "";
+                        if (loan.history && loan.history.length > 0) {
+                            loan.history.forEach(h => {
+                                historyText += `• ${h.date}: ৳${h.amount} (${h.type})<br>`;
+                            });
+                        } else {
+                            historyText = "কোনো পেমেন্ট কাটার হিস্ট্রি নেই";
+                        }
+
+                        let statusBadge = loan.status === 'approved' || loan.status === 'active' ? '<span style="color:green; font-weight:bold;">চলমান (Active)</span>' : (loan.status === 'pending' ? '<span style="color:orange; font-weight:bold;">পেন্ডিং</span>' : (loan.status === 'paid' ? '<span style="color:blue; font-weight:bold;">পরিশোধিত (Paid)</span>' : `<span style="color:red;">${loan.status}</span>`));
+
+                        html += `
+                            <div class="admin-loan-card">
+                                <p><strong>ইউজার নাম:</strong> ${loan.userName || "N/A"} (${loan.userPhone || "N/A"})</p>
+                                <p><strong>প্যাকেজ:</strong> ${loan.userPackage || "N/A"}</p>
+                                <p><strong>মূল লোন নিয়েছিল:</strong> ৳${originalAmount} | <strong>বর্তমান বকেয়া (Due):</strong> <span style="color:red; font-weight:bold;">৳${dueAmount}</span></p>
+                                <p><strong>মোট পরিশোধিত:</strong> ৳${paidAmount >= 0 ? paidAmount : 0} | <strong>স্ট্যাটাস:</strong> ${statusBadge}</p>
+                                <div style="background:#fff; padding:6px 8px; border-radius:4px; margin-top:6px; border:1px solid #e2e8f0; font-size:12px;">
+                                    <strong>হিস্ট্রি ও কাটার বিবরণ:<br></strong> ${historyText}
+                                </div>
+                                <div class="admin-action-btn-group">
+                                    <button class="btn-edit-loan" onclick="openAdminEditModal('${loanId}', ${originalAmount}, ${dueAmount})">এডিট</button>
+                                    <button class="btn-delete-loan" onclick="deleteLoanRecord('${loanId}')">ডিলিট</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                document.getElementById('adminLoanListContainer').innerHTML = html;
+            } catch (err) {
+                console.error("Error loading admin loan profiles:", err);
+                document.getElementById('adminLoanListContainer').innerHTML = "<p style='color:red;'>লোড করতে সমস্যা হয়েছে।</p>";
+            }
+        };
+
+        window.closeAdminLoanProfileModal = function() {
+            document.getElementById('adminLoanProfileModal').style.display = 'none';
+        };
+
+        window.openAdminEditModal = function(loanId, amount, due) {
+            document.getElementById('editLoanId').value = loanId;
+            document.getElementById('editAmountInput').value = amount;
+            document.getElementById('editDueInput').value = due;
+            document.getElementById('adminEditModal').style.display = 'flex';
+        };
+
+        window.closeAdminEditModal = function() {
+            document.getElementById('adminEditModal').style.display = 'none';
+        };
+
+        window.saveEditedLoan = async function() {
+            const loanId = document.getElementById('editLoanId').value;
+            const newAmount = parseFloat(document.getElementById('editAmountInput').value);
+            const newDue = parseFloat(document.getElementById('editDueInput').value);
+
+            if (isNaN(newAmount) || isNaN(newDue)) {
+                alert("দয়া করে সঠিক সংখ্যা লিখুন!");
+                return;
+            }
+
+            try {
+                const loanRef = doc(db, "loan_requests", loanId);
+                let updatePayload = {
+                    amount: newAmount,
+                    dueAmount: newDue
+                };
+                if (newDue <= 0) {
+                    updatePayload.status = "paid";
+                } else {
+                    updatePayload.status = "approved";
+                }
+
+                await updateDoc(loanRef, updatePayload);
+                alert("লোন তথ্য সফলভাবে আপডেট করা হয়েছে!");
+                closeAdminEditModal();
+                openAdminLoanProfileModal(); // লিস্ট রিফ্রেশ করবে
+            } catch (err) {
+                console.error("Error updating loan:", err);
+                alert("আপডেট করতে সমস্যা হয়েছে।");
+            }
+        };
+
+        window.deleteLoanRecord = async function(loanId) {
+            if (!confirm("আপনি কি নিশ্চিতভাবে এই লোন রেকর্ডটি ডিলিট করতে চান?")) return;
+
+            try {
+                await deleteDoc(doc(db, "loan_requests", loanId));
+                alert("লোন রেকর্ড সফলভাবে ডিলিট করা হয়েছে!");
+                openAdminLoanProfileModal(); // লিস্ট রিফ্রেশ করবে
+            } catch (err) {
+                console.error("Error deleting loan:", err);
+                alert("ডিলিট করতে সমস্যা হয়েছে।");
             }
         };
     </script>
