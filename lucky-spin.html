@@ -407,18 +407,18 @@
       // ১. চাকা ঘোরা শেষ হবে ৪ সেকেন্ড পর
       setTimeout(() => {
         isSpinning = false;
-        waitingForAdReturn = true; // এখন ইউজার অ্যাড দেখতে যাবে এবং ফিরে আসার জন্য অপেক্ষা করা হবে
+        waitingForAdReturn = true; // অ্যাড থেকে ফিরে আসার জন্য ফ্ল্যাগ অন করা হলো
 
-        // ২. চাকা থামা মাত্রই ডাইরেক্ট লিংকের অ্যাড ওপেন হবে
+        // ২. চাকা থামা মাত্রই অ্যাড ওপেন হবে
         window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
 
       }, 4000);
     }
 
-    // ৩. ইউজার অ্যাড দেখে ট্যাব কেটে বা ব্রাউজারে ব্যাক করে এই পেজে ফিরলেই পপআপ দেখানোর ফাংশন
+    // ৩. ইনস্ট্যান্ট পপআপ ট্রিগার ফাংশন (অ্যাড ট্যাব কেটে ফিরলেই সাথে সাথে কাজ করবে)
     function checkAndShowPopup() {
       if (!waitingForAdReturn || !pendingPrize) return;
-      waitingForAdReturn = false; // একবার ট্রিগার হওয়ার পর লক করে দেওয়া হলো
+      waitingForAdReturn = false; // একবার ট্রিগার হওয়ার পর লক করা হলো
 
       const overlay = document.getElementById('popupOverlay');
       const titleElem = document.getElementById('resultTitle');
@@ -435,7 +435,7 @@
       overlay.style.display = 'flex';
     }
 
-    // বিভিন্ন ইভেন্টের মাধ্যমে ইউজার ফিরে আসা ট্র্যাক করা
+    // বিভিন্ন মাল্টি-ইভেন্ট হ্যান্ডেলার যাতে কোনো ডিলে না করেই পপআপ চলে আসে
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         checkAndShowPopup();
@@ -447,12 +447,10 @@
     });
 
     window.addEventListener('pageshow', (event) => {
-      if (event.persisted) {
-        checkAndShowPopup();
-      }
+      checkAndShowPopup();
     });
 
-    // ৪. পপআপের "ঠিক আছে" বাটনে ক্লিক করলে তবেই ফায়ারবেসে স্পিন মাইনাস ও ব্যালেন্স আপডেট হবে
+    // ৪. পপআপের "ঠিক আছে" বাটনে ক্লিক করলে স্পিন মাইনাস ও ব্যালেন্স রিয়েলটাইমে আপডেট হবে
     window.closePopup = async function() {
       document.getElementById('popupOverlay').style.display = 'none';
       
