@@ -9,6 +9,7 @@
     <!-- Video.js ও IMA Plugin লাইব্রেরি -->
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/7.0.0/videojs.ads.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/2.0.0/videojs.ima.css" rel="stylesheet" />
     <style>
         body { font-family: Arial, sans-serif; background-color: #f6f8fa; margin: 0; padding: 20px 20px 90px 20px; }
         .task-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -90,17 +91,17 @@
             <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
         </div>
 
-        <!-- Adcash Video VAST মডাল -->
+        <!-- TaskOra ভিডিও অ্যাড মডাল -->
         <div class="video-modal" id="videoModal">
             <div class="modal-content">
-                <h3 style="color: #ffffff; margin-bottom: 15px; font-size: 16px;">Adcash ভিডিও বিজ্ঞাপন</h3>
+                <h3 style="color: #ffffff; margin-bottom: 15px; font-size: 16px;">TaskOra ভিডিও বিজ্ঞাপন</h3>
                 <div class="video-container" style="position: relative; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 15px;">
-                    <!-- কোনো ডেমো সোর্স ছাড়া সরাসরি Adcash VAST প্লেয়ার -->
-                    <video id="my-video" class="video-js vjs-default-skin" controls preload="auto" width="100%" height="200px">
+                    <!-- Adcash VAST ভিডিও প্লেয়ার কনটেইনার -->
+                    <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" width="100%" height="220px">
                     </video>
                 </div>
-                <button id="modalStartBtn" class="btn" style="background-color: #28a745; color: white; padding: 12px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; width: 100%;">ক্লিক করুন ও রিওয়ার্ড নিন</button>
-                <div id="modalTimerText" style="color: #ff4d4d; font-weight: bold; font-size: 14px; margin-top: 10px; display: none;">অপেক্ষা করুন: <span id="timeLeftNum">11</span> সেকেন্ড</div>
+                <button id="modalStartBtn" class="btn" style="background-color: #28a745; color: white; padding: 12px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; width: 100%;">বিজ্ঞাপন প্লে করুন</button>
+                <div id="modalTimerText" style="color: #ff4d4d; font-weight: bold; font-size: 14px; margin-top: 10px; display: none;">বিজ্ঞাপন চলছে... অপেক্ষা করুন</div>
             </div>
         </div>
 
@@ -114,8 +115,8 @@
                 <p style="margin: 0; font-size: 12px; color: #cccccc; line-height: 1.5;">
                     কাজের নিয়মাবলী বা সতর্কতা বক্স:<br>
                     *সম্পূর্ণ নিয়ম মেনে কাজ করুন।<br>
-                    *সঠিক নিয়মে ভিডিও দেখে এবং টাস্ক সম্পন্ন করুন⚠️<br>
-                    *video কোনো প্রকার স্কিপ না করে সম্পূর্ণ দেখুন⚠️<br>
+                    *সঠিক নিয়মে বিজ্ঞাপন দেখে এবং টাস্ক সম্পন্ন করুন⚠️<br>
+                    *বিজ্ঞাপনে কোনো প্রকার স্কিপ না করে সম্পূর্ণ দেখুন⚠️<br>
                     নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে পেমেন্ট বাতিল হতে পারে🚫
                 </p>
             </div>
@@ -197,7 +198,20 @@
             id: 'my-video',
             adTagUrl: 'https://youradexchange.com/video/select.php?r=12462626'
           };
-          playerInstance.ima(options);
+          
+          try {
+            playerInstance.ima(options);
+            // IMA SDK ইনিশিয়ালাইজ করার জন্য রিকোয়েস্ট অ্যাডস
+            playerInstance.ima.initializeAdDisplayContainer();
+          } catch (e) {
+            console.log("IMA init error:", e);
+          }
+
+          // ভিডিও বিজ্ঞাপন শেষ হলে অটো রিওয়ার্ড ও রেফারেল কমিশন যোগ হবে
+          playerInstance.on('ended', async () => {
+            document.getElementById('videoModal').style.display = 'none';
+            await executeClaimAndCommission();
+          });
         }
       }
 
@@ -326,7 +340,7 @@
                     finishedBox.style.display = 'block';
                     finishedBox.innerHTML = `
                         <div style="font-size: 22px; margin-bottom: 5px;">🏖️</div>
-                        <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #dc3545; font-weight: bold;"> ছুটির দিন</h4>
+                        <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #dc3545; font-weight: bold;">আজকে (রবিবার) ছুটির দিন</h4>
                         <p style="margin: 0; font-size: 11px; color: #aaaaaa; line-height: 1.4;">
                             আজ রবিবার সাপ্তাহিক ছুটির কারণে কাজ বন্ধ রয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
                         </p>
@@ -366,6 +380,7 @@
         modal.style.display = 'flex';
         modalStartBtn.style.display = 'block';
         modalTimerText.style.display = 'none';
+        
         initPlayer();
 
         modalStartBtn.onclick = () => {
@@ -373,24 +388,13 @@
           modalTimerText.style.display = 'block';
 
           if (playerInstance) {
-            playerInstance.play();
-          }
-
-          let timeLeft = 10;
-          document.getElementById('timeLeftNum').innerText = timeLeft;
-
-          const countdown = setInterval(async () => {
-            timeLeft--;
-            if (timeLeft <= 0) {
-              clearInterval(countdown);
-              modal.style.display = 'none'; 
-
-              await executeClaimAndCommission();
-
-            } else {
-              document.getElementById('timeLeftNum').innerText = timeLeft;
+            try {
+              playerInstance.ima.requestAds();
+              playerInstance.play();
+            } catch (e) {
+              console.log("Play error:", e);
             }
-          }, 1000);
+          }
         };
       }
 
