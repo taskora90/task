@@ -230,10 +230,10 @@
       অবশিষ্ট লাকি স্পিন: <span id="spinCountDisplay">0</span> টি
     </div>
 
-    <!-- জেতার পর ফলাফল দেখানোর বক্স -->
+    <!-- ফলাফল দেখানোর বক্স (অ্যাড কেটে আসার পর শো করবে) -->
     <div class="result-popup" id="resultPopup">
       <h3 id="resultTitle">অভিনন্দন! 🎉</h3>
-      <p id="resultDesc">আপনি স্পিন করে ৳ ৫০ জিতেছেন। এটি আপনার অ্যাকাউন্টে সফলভাবে জমা হয়েছে!</p>
+      <p id="resultDesc">স্পিন সম্পন্ন হয়েছে! পুরস্কার অ্যাকাউন্টে যোগ হয়েছে।</p>
       <button onclick="closePopup()">ঠিক আছে</button>
     </div>
 
@@ -351,7 +351,7 @@
       }
     }
 
-    // পুরস্কার প্রসেস করার ফাংশন এবং স্ক্রিনে পপআপ দেখানোর লজিক
+    // পুরস্কার প্রসেস করার ফাংশন (ফায়ারবেসে আপডেট করা)
     async function processAndAwardPrize(prize) {
       if (!userDocRef || !prize) return;
 
@@ -376,7 +376,7 @@
           });
         }
 
-        // স্ক্রিনে পপআপ বক্সে দেখানোর ব্যবস্থা
+        // পপআপ বক্সে জেতার পরিমাণ সেট করা
         const popup = document.getElementById('resultPopup');
         const titleElem = document.getElementById('resultTitle');
         const descElem = document.getElementById('resultDesc');
@@ -386,12 +386,11 @@
           descElem.innerHTML = `স্পিন সম্পন্ন হয়েছে! আপনি জিতেছেন <strong style="color: #28a745;">${prize.name}</strong>। এই টাকা আপনার মূল অ্যাকাউন্টে সফলভাবে যোগ হয়েছে।`;
         } else {
           titleElem.innerText = "ধন্যবাদ! 🔄";
-          descElem.innerHTML = `এবার ট্রাই এগেইন এসেছে! পরবর্তীতে ভাগ্য পরীক্ষা করুন।`;
+          descElem.innerHTML = `এবার ট্রাই এগেইন এসেছে! পরবর্তী স্পিনে ভাগ্য পরীক্ষা করুন।`;
         }
 
+        // পপআপ শো করবে
         popup.style.display = 'block';
-
-        await loadUserData(); 
 
       } catch (error) {
         console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
@@ -399,8 +398,10 @@
       }
     }
 
-    window.closePopup = function() {
+    // পপআপের "ঠিক আছে" বাটনে ক্লিক করলে স্ক্রিনের ব্যালেন্স ও স্পিন সংখ্যা আপডেট হবে
+    window.closePopup = async function() {
       document.getElementById('resultPopup').style.display = 'none';
+      await loadUserData(); // রিয়েলটাইমে মোট টাকা ও স্পিন সংখ্যা রিফ্রেশ করবে
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -422,10 +423,6 @@
       }
 
       isSpinning = true;
-
-      // ১. ইউজার "শুরু" বাটনে ক্লিক করলেই স্মার্ট লিংক ওপেন হবে (অ্যাড শো করবে)
-      window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
-
       const selectedIndex = Math.floor(Math.random() * items.length);
       const prize = items[selectedIndex];
 
@@ -437,15 +434,21 @@
       const wheel = document.getElementById('wheel');
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-      // ২. চাকা ঘোরা শেষ হলে (৪ সেকেন্ড পর) পুরস্কার ফায়ারবেসে জমা হবে এবং পপআপ শো করবে
+      // চাকা ঘোরা শেষ হলে (৪ সেকেন্ড পর) ডাইরেক্ট লিংক অ্যাড ওপেন হবে এবং ফায়ারবেসে জমা হবে
       setTimeout(async () => {
         isSpinning = false;
+
+        // ১. অটো ডাইরেক্ট লিংকের অ্যাড ওপেন হবে
+        window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
+
+        // ২. ফায়ারবেসে পুরস্কার ও স্পিন কাউন্ট আপডেট করে পপআপ রেডি করা হবে
         await processAndAwardPrize(prize);
+
       }, 4000);
     }
   </script>
 
-  <!-- Adsterra Popunder Script -->
+  <!-- Adsterra Popunder Script (ব্যাকগ্রাউন্ডে কাজ করবে) -->
   <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
 </body>
 </html>
