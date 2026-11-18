@@ -18,7 +18,6 @@
         .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .btn-start { background-color: #2d3748; color: white; }
         .btn-start:disabled { background-color: #cbd5e1; cursor: not-allowed; }
-        .btn-claim { background-color: #28a745; color: white; }
         .no-package-box { text-align: center; padding: 30px 15px; }
 
         /* পপ-আপ মডাল ডিজাইন */
@@ -91,16 +90,17 @@
             <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
         </div>
 
-        <!-- ভিডিও পপ-আপ মডাল -->
+        <!-- Adcash Video VAST মডাল -->
         <div class="video-modal" id="videoModal">
             <div class="modal-content">
-                <h3 style="color: #ffffff; margin-bottom: 15px; font-size: 16px;">বিজ্ঞাপন সম্পূর্ণ দেখুন</h3>
+                <h3 style="color: #ffffff; margin-bottom: 15px; font-size: 16px;">Adcash ভিডিও বিজ্ঞাপন</h3>
                 <div class="video-container" style="position: relative; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 15px;">
+                    <!-- কোনো ডেমো সোর্স ছাড়া সরাসরি Adcash VAST প্লেয়ার -->
                     <video id="my-video" class="video-js vjs-default-skin" controls preload="auto" width="100%" height="200px">
                     </video>
                 </div>
-                <button id="modalStartBtn" class="btn" style="background-color: #28a745; color: white; padding: 12px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; width: 100%;">ক্লিক করুন ও রিওয়ার্ড নিন</button>
-                <div id="modalTimerText" style="color: #ff4d4d; font-weight: bold; font-size: 14px; margin-top: 10px; display: none;">অপেক্ষা করুন: <span id="timeLeftNum">11</span> সেকেন্ড</div>
+                <button id="modalStartBtn" class="btn" style="background-color: #28a745; color: white; padding: 12px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; width: 100%;">বিজ্ঞাপন দেখুন ও রিওয়ার্ড নিন</button>
+                <div id="modalTimerText" style="color: #ff4d4d; font-weight: bold; font-size: 14px; margin-top: 10px; display: none;">অপেক্ষা করুন: <span id="timeLeftNum">10</span> সেকেন্ড</div>
             </div>
         </div>
 
@@ -114,8 +114,8 @@
                 <p style="margin: 0; font-size: 12px; color: #cccccc; line-height: 1.5;">
                     কাজের নিয়মাবলী বা সতর্কতা বক্স:<br>
                     *সম্পূর্ণ নিয়ম মেনে কাজ করুন।<br>
-                    *সঠিক নিয়মে ভিডিও দেখে এবং টাস্ক সম্পন্ন করুন⚠️<br>
-                    *ভিডিও কোনো প্রকার স্কিপ না করে সম্পূর্ণ দেখুন⚠️<br>
+                    *সঠিক নিয়মে বিজ্ঞাপন দেখে এবং টাস্ক সম্পন্ন করুন⚠️<br>
+                    *বিজ্ঞাপনে কোনো প্রকার স্কিপ না করে সম্পূর্ণ দেখুন⚠️<br>
                     নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে পেমেন্ট বাতিল হতে পারে🚫
                 </p>
             </div>
@@ -164,7 +164,7 @@
     <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/2.0.0/videojs.ima.min.js"></script>
 
-       <script type="module">
+    <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
       import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -184,14 +184,27 @@
       const db = getFirestore(app);
 
       let userDocRef = null;
-      let activePackageRule = { maxTasks: 5, reward: 10 };
+      let activePackageRule = null;
       let currentTaskCount = 0;
       let currentUser = null;
       let currentUserData = null;
+      let playerInstance = null;
+
+      function initPlayer() {
+        if (!playerInstance) {
+          playerInstance = videojs('my-video');
+          const options = {
+            id: 'my-video',
+            adTagUrl: 'https://youradexchange.com/video/select.php?r=12462626'
+          };
+          playerInstance.ima(options);
+        }
+      }
 
       function updateTaskStatusBox(completedTasks, totalPackageTasks) {
         const ongoingBox = document.getElementById('task-ongoing-box');
         const finishedBox = document.getElementById('task-finished-box');
+
         if (!ongoingBox || !finishedBox) return;
 
         if (completedTasks >= totalPackageTasks && totalPackageTasks > 0) {
@@ -207,13 +220,12 @@
         if (user) {
           currentUser = user;
           userDocRef = doc(db, "users", user.uid);
-          
           try {
             const userDoc = await getDoc(userDocRef);
 
             if (userDoc.exists()) {
               currentUserData = userDoc.data();
-              let userPackage = currentUserData.package || "free_trial";
+              let userPackage = currentUserData.package;
 
               const todayStr = new Date().toDateString();
               if (currentUserData.lastTaskDate !== todayStr) {
@@ -228,20 +240,76 @@
 
               currentTaskCount = currentUserData.dailyTaskCount || 0;
 
-              let displayName = "ফ্রি ট্রায়াল";
-              if (userPackage === "free_trial" || !userPackage || userPackage === "none") {
-                activePackageRule = { maxTasks: 5, reward: 10 };
-                displayName = "ফ্রি ট্রায়াল";
-              } else {
-                activePackageRule = { maxTasks: 10, reward: 10 };
-                displayName = userPackage;
+              let pkgRule = null;
+              let displayName = userPackage;
+
+              if (userPackage && userPackage !== "free_trial" && userPackage !== "none") {
+                let pkgDocRef = doc(db, "packages", userPackage);                
+                let pkgSnap = await getDoc(pkgDocRef);
+
+                if (pkgSnap.exists()) {
+                  let data = pkgSnap.data();
+                  pkgRule = { 
+                    maxTasks: Number(data.tasksLimit || 10), 
+                    reward: Number(data.reward || 10) 
+                  };
+                  displayName = data.name || userPackage;
+                } else {
+                  const q = query(collection(db, "packages"), where("packageId", "==", userPackage));
+                  const querySnap = await getDocs(q);
+                  if (!querySnap.empty) {
+                    let data = querySnap.docs[0].data();
+                    pkgRule = { 
+                      maxTasks: Number(data.tasksLimit || 10), 
+                      reward: Number(data.reward || 10) 
+                    };
+                    displayName = data.name || userPackage;
+                  }
+                }
               }
 
-              document.getElementById('userPackageText').innerText = displayName;
+              let hasActivePaidPackage = pkgRule !== null;
+              let trialTextDisplay = "ফ্রি ট্রায়াল";
+
+              if (!hasActivePaidPackage) {
+                let createdAt = currentUserData.createdAt;
+                let regDate = new Date();
+
+                if (createdAt && typeof createdAt.toDate === 'function') {
+                  regDate = createdAt.toDate();
+                } else if (createdAt) {
+                  regDate = new Date(createdAt);
+                } else {
+                  regDate = new Date(user.metadata.creationTime);
+                }
+
+                const regDateOnly = new Date(regDate.getFullYear(), regDate.getMonth(), regDate.getDate());
+                const todayDateOnly = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+
+                const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                if (diffDays > 3) {
+                  document.getElementById('taskCard').style.display = 'none';                  
+                  document.getElementById('userInfoBox').style.display = 'none';
+                  document.getElementById('dynamic-status-box').style.display = 'none';
+                  document.getElementById('noPackageMsg').style.display = 'block';
+                  document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।";
+                  return;
+                } else {
+                  userPackage = "free_trial";
+                  pkgRule = { maxTasks: 2, reward: 10 }; 
+                  let remainingDays = 4 - diffDays;
+                  if (remainingDays < 1) remainingDays = 1;
+                  trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
+                }
+              }
+
+              activePackageRule = pkgRule;
+              document.getElementById('userPackageText').innerText = (userPackage === "free_trial") ? trialTextDisplay : displayName;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
               document.getElementById('rewardText').innerText = activePackageRule.reward; 
 
-              // রবিবার ছুটির দিন চেক
               if (new Date().getDay() === 0) {
                 document.getElementById('userInfoBox').style.display = 'block';
                 document.getElementById('taskCard').style.display = 'block';
@@ -269,7 +337,6 @@
 
               updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
 
-              // সফলভাবে লোড হওয়ার পর বক্সগুলো শো করানো হচ্ছে
               document.getElementById('userInfoBox').style.display = 'block';
               document.getElementById('taskCard').style.display = 'block';
               document.getElementById('noPackageMsg').style.display = 'none';
@@ -281,26 +348,16 @@
                 document.getElementById('actionBtn').innerText = `টাস্ক নম্বর ${currentTaskCount + 1} শুরু করুন`;
                 document.getElementById('actionBtn').onclick = openTaskModal;
               }
-            } else {
-              // ইউজার ডকুমেন্ট না থাকলে ডিফল্ট ফ্রি ট্রায়াল দেখাবে
-              document.getElementById('userInfoBox').style.display = 'block';
-              document.getElementById('taskCard').style.display = 'block';
-              document.getElementById('userPackageText').innerText = "ফ্রি ট্রায়াল";
-              document.getElementById('taskProgress').innerText = `0 / 5`;
-              document.getElementById('actionBtn').onclick = openTaskModal;
             }
           } catch (error) {
-            console.error("ডাটা লোড এরর:", error);
-            // কোনো এরর হলেও যেন পেজ ফাঁকা না থাকে
-            document.getElementById('userInfoBox').style.display = 'block';
-            document.getElementById('taskCard').style.display = 'block';
-            document.getElementById('actionBtn').onclick = openTaskModal;
+            console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
           }
         } else {
           window.location.href = "login.html";
         }
       });
 
+      // পপ-আপ খোলার ফাংশন
       function openTaskModal() {
         const modal = document.getElementById('videoModal');
         const modalStartBtn = document.getElementById('modalStartBtn');
@@ -309,28 +366,35 @@
         modal.style.display = 'flex';
         modalStartBtn.style.display = 'block';
         modalTimerText.style.display = 'none';
+        initPlayer();
 
         modalStartBtn.onclick = () => {
           modalStartBtn.style.display = 'none';
           modalTimerText.style.display = 'block';
-          
-          // ১০ সেকেন্ডের বিশ্বস্ত এবং স্মুথ টাইমার যা কখনো আটকে থাকে না
+
+          if (playerInstance) {
+            playerInstance.play();
+          }
+
           let timeLeft = 10;
           document.getElementById('timeLeftNum').innerText = timeLeft;
 
-          const timerInterval = setInterval(() => {
+          const countdown = setInterval(async () => {
             timeLeft--;
-            document.getElementById('timeLeftNum').innerText = timeLeft;
-
             if (timeLeft <= 0) {
-              clearInterval(timerInterval);
-              modal.style.display = 'none';
-              executeClaimAndCommission();
+              clearInterval(countdown);
+              modal.style.display = 'none'; 
+
+              await executeClaimAndCommission();
+
+            } else {
+              document.getElementById('timeLeftNum').innerText = timeLeft;
             }
           }, 1000);
         };
       }
 
+      // অটো রিওয়ার্ড ও রেফার কমিশন জমা দেওয়ার লজিক
       async function executeClaimAndCommission() {
         try {
           const rewardAmount = activePackageRule.reward;
@@ -432,7 +496,6 @@
       }
     </script>
 
-   
     <!-- Adcash Banner Ad Slot -->
     <div class="ads-wrapper" style="margin-top: 20px; display: flex; justify-content: center; width: 100%;">
       <div style="width: 100%; max-width: 320px; height: 50px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
@@ -447,5 +510,11 @@
     <!-- Adcash Library Script -->
     <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 
+    <!-- Adcash Autotag -->
+    <script type="text/javascript">
+        aclib.runAutoTag({
+            zoneId: 'hmyvdbm6kx',
+        });
+    </script>
 </body>
 </html>
