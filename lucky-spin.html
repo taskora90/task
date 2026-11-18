@@ -338,7 +338,7 @@
     let availableSpins = 0;
     let currentUserObj = null;
     let pendingPrize = null; 
-    let spinFinishedAndWaitingForReturn = false;
+    let waitingForAdReturn = false;
 
     async function loadUserData() {
       if (!userDocRef || !currentUserObj) return;
@@ -391,8 +391,8 @@
       }
 
       isSpinning = true;
-      spinFinishedAndWaitingForReturn = false;
-      
+      waitingForAdReturn = false;
+
       const selectedIndex = Math.floor(Math.random() * items.length);
       pendingPrize = items[selectedIndex];
 
@@ -404,21 +404,21 @@
       const wheel = document.getElementById('wheel');
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-      // চাকা ঘোরা শেষ হলে (৪ সেকেন্ড পর) ডাইরেক্ট লিংক অ্যাড ওপেন হবে
+      // ১. চাকা ঘোরা শেষ হবে ৪ সেকেন্ড পর
       setTimeout(() => {
         isSpinning = false;
-        spinFinishedAndWaitingForReturn = true;
+        waitingForAdReturn = true; // এখন ইউজার অ্যাড দেখতে যাবে এবং ফিরে আসার জন্য অপেক্ষা করা হবে
 
-        // ডাইরেক্ট লিংকের অ্যাড ওপেন করা
+        // ২. চাকা থামা মাত্রই ডাইরেক্ট লিংকের অ্যাড ওপেন হবে
         window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
 
       }, 4000);
     }
 
-    // ইউজার যখন অ্যাড ট্যাব থেকে আবার এই পেজে ফিরে আসবে
-    function triggerReturnPopup() {
-      if (!spinFinishedAndWaitingForReturn || !pendingPrize) return;
-      spinFinishedAndWaitingForReturn = false;
+    // ৩. ইউজার অ্যাড দেখে ট্যাব কেটে বা ব্রাউজারে ব্যাক করে এই পেজে ফিরলেই পপআপ দেখানোর ফাংশন
+    function checkAndShowPopup() {
+      if (!waitingForAdReturn || !pendingPrize) return;
+      waitingForAdReturn = false; // একবার ট্রিগার হওয়ার পর লক করে দেওয়া হলো
 
       const overlay = document.getElementById('popupOverlay');
       const titleElem = document.getElementById('resultTitle');
@@ -435,18 +435,24 @@
       overlay.style.display = 'flex';
     }
 
-    // ব্রাউজার ট্যাব বা ফোকাস ফিরে আসার ইভেন্টগুলো
+    // বিভিন্ন ইভেন্টের মাধ্যমে ইউজার ফিরে আসা ট্র্যাক করা
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        triggerReturnPopup();
+        checkAndShowPopup();
       }
     });
 
     window.addEventListener('focus', () => {
-      triggerReturnPopup();
+      checkAndShowPopup();
     });
 
-    // পপআপের "ঠিক আছে" বাটনে ক্লিক করলে ওভারলে বন্ধ হবে এবং ফায়ারবেসে স্পিন মাইনাস ও ব্যালেন্স আপডেট হবে
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) {
+        checkAndShowPopup();
+      }
+    });
+
+    // ৪. পপআপের "ঠিক আছে" বাটনে ক্লিক করলে তবেই ফায়ারবেসে স্পিন মাইনাস ও ব্যালেন্স আপডেট হবে
     window.closePopup = async function() {
       document.getElementById('popupOverlay').style.display = 'none';
       
@@ -474,7 +480,7 @@
         }
 
         pendingPrize = null;
-        await loadUserData(); // ব্যালেন্স ও স্পিন সংখ্যা রিফ্রেশ করবে
+        await loadUserData(); // মোট ইনকাম এবং স্পিন সংখ্যা রিয়েলটাইমে আপডেট করবে
 
       } catch (error) {
         console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
