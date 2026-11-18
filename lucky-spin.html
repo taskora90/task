@@ -59,15 +59,15 @@
       border: 2px solid #ffd700;
     }
 
-    /* পপআপ ওভারলে (পুরো স্ক্রিনের ওপর ভেসে ওঠার জন্য) */
+    /* পপআপ ওভারলে (স্ক্রিনের ওপর ভেসে ওঠার জন্য) */
     .popup-overlay {
-      display: none; /* ডিফল্টভাবে লুকিয়ে থাকবে */
+      display: none; 
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.6); /* ব্যাকগ্রাউন্ড একটু অন্ধকার/ঝাপসা করবে */
+      background: rgba(0, 0, 0, 0.6); 
       z-index: 1000;
       justify-content: center;
       align-items: center;
@@ -338,6 +338,7 @@
     let availableSpins = 0;
     let currentUserObj = null;
     let pendingPrize = null; 
+    let spinFinishedAndWaitingForReturn = false;
 
     async function loadUserData() {
       if (!userDocRef || !currentUserObj) return;
@@ -390,6 +391,8 @@
       }
 
       isSpinning = true;
+      spinFinishedAndWaitingForReturn = false;
+      
       const selectedIndex = Math.floor(Math.random() * items.length);
       pendingPrize = items[selectedIndex];
 
@@ -404,38 +407,44 @@
       // চাকা ঘোরা শেষ হলে (৪ সেকেন্ড পর) ডাইরেক্ট লিংক অ্যাড ওপেন হবে
       setTimeout(() => {
         isSpinning = false;
+        spinFinishedAndWaitingForReturn = true;
 
-        // ১. ডাইরেক্ট লিংকের অ্যাড নতুন ট্যাবে ওপেন হবে
-        const adWindow = window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
-        if (adWindow) {
-          try { adWindow.focus(); } catch (e) {}
-        }
-
-        // ২. ইউজার যখন অ্যাড ট্যাব থেকে সাইডে বা মূল পেজে ব্যাক করবে, তখন স্ক্রিনের ওপর ভেসে ওঠা পপআপ (Modal) শো করবে
-        const handleVisibilityChange = async () => {
-          if (document.visibilityState === 'visible') {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-
-            const overlay = document.getElementById('popupOverlay');
-            const titleElem = document.getElementById('resultTitle');
-            const descElem = document.getElementById('resultDesc');
-
-            if (pendingPrize.amount > 0) {
-              titleElem.innerText = "অভিনন্দন! 🎉";
-              descElem.innerHTML = `স্পিন সম্পন্ন হয়েছে! আপনি জিতেছেন <strong style="color: #28a745;">${pendingPrize.name}</strong>। 'ঠিক আছে' বাটনে ক্লিক করলে টাকা অ্যাকাউন্টে জমা হবে।`;
-            } else {
-              titleElem.innerText = "ধন্যবাদ! 🔄";
-              descElem.innerHTML = `এবার ট্রাই এগেইন এসেছে! 'ঠিক আছে' বাটনে ক্লিক করুন।`;
-            }
-
-            overlay.style.display = 'flex'; // ফ্লেক্স ব্যবহার করে সেন্টারে ভাসিয়ে রাখবে
-          }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
+        // ডাইরেক্ট লিংকের অ্যাড ওপেন করা
+        window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
 
       }, 4000);
     }
+
+    // ইউজার যখন অ্যাড ট্যাব থেকে আবার এই পেজে ফিরে আসবে
+    function triggerReturnPopup() {
+      if (!spinFinishedAndWaitingForReturn || !pendingPrize) return;
+      spinFinishedAndWaitingForReturn = false;
+
+      const overlay = document.getElementById('popupOverlay');
+      const titleElem = document.getElementById('resultTitle');
+      const descElem = document.getElementById('resultDesc');
+
+      if (pendingPrize.amount > 0) {
+        titleElem.innerText = "অভিনন্দন! 🎉";
+        descElem.innerHTML = `স্পিন সম্পন্ন হয়েছে! আপনি জিতেছেন <strong style="color: #28a745;">${pendingPrize.name}</strong>। 'ঠিক আছে' বাটনে ক্লিক করলে টাকা অ্যাকাউন্টে জমা হবে।`;
+      } else {
+        titleElem.innerText = "ধন্যবাদ! 🔄";
+        descElem.innerHTML = `এবার ট্রাই এগেইন এসেছে! 'ঠিক আছে' বাটনে ক্লিক করুন।`;
+      }
+
+      overlay.style.display = 'flex';
+    }
+
+    // ব্রাউজার ট্যাব বা ফোকাস ফিরে আসার ইভেন্টগুলো
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        triggerReturnPopup();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      triggerReturnPopup();
+    });
 
     // পপআপের "ঠিক আছে" বাটনে ক্লিক করলে ওভারলে বন্ধ হবে এবং ফায়ারবেসে স্পিন মাইনাস ও ব্যালেন্স আপডেট হবে
     window.closePopup = async function() {
