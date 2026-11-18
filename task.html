@@ -359,7 +359,7 @@
         }
       });
 
-      // পপ-আপ খোলার ফাংশন
+            // পপ-আপ খোলার ফাংশন
       function openTaskModal() {
         const modal = document.getElementById('videoModal');
         const modalStartBtn = document.getElementById('modalStartBtn');
@@ -370,33 +370,39 @@
         modalTimerText.style.display = 'none';
         initPlayer();
 
-        // পপ-আপের ভেতরের বাটনে ক্লিক করলে ভিডিও ও টাইমার একসাথে শুরু হবে
+        // পপ-আপের ভেতরের বাটনে ক্লিক করলে ভিডিও প্লে শুরু হবে
         modalStartBtn.onclick = () => {
           modalStartBtn.style.display = 'none';
           modalTimerText.style.display = 'block';
+          modalTimerText.innerHTML = "বিজ্ঞাপন চলছে, সম্পূর্ণ দেখুন...";
 
           if (playerInstance) {
             playerInstance.play();
           }
-
-          let timeLeft = 10;
-          document.getElementById('timeLeftNum').innerText = timeLeft;
-
-          const countdown = setInterval(async () => {
-            timeLeft--;
-            if (timeLeft <= 0) {
-              clearInterval(countdown);
-              modal.style.display = 'none'; // পপ-আপ অটো বন্ধ
-
-              // ব্যাকগ্রাউন্ডে রিওয়ার্ড এবং রেফার কমিশন জমা হওয়ার ফাংশন কল হবে
-              await executeClaimAndCommission();
-
-            } else {
-              document.getElementById('timeLeftNum').innerText = timeLeft;
-            }
-          }, 1000);
         };
       }
+
+      // ভিডিও প্লেয়ার ইনিশিয়ালাইজ ও ভিডিও শেষ হওয়ার ইভেন্ট হ্যান্ডেলিং
+      function initPlayer() {
+        if (!playerInstance) {
+          playerInstance = videojs('my-video');
+          const options = {
+            id: 'my-video',
+            adTagUrl: 'https://youradexchange.com/video/select.php?r=12462626'
+          };
+          playerInstance.ima(options);
+
+          // অ্যাড বা ভিডিও পুরোপুরি শেষ (ended) হওয়া মাত্র এই ট্রিগার কাজ করবে
+          playerInstance.on('ended', async () => {
+            const modal = document.getElementById('videoModal');
+            modal.style.display = 'none'; // পপ-আপ অটো বন্ধ
+
+            // ব্যাকগ্রাউন্ডে রিওয়ার্ড এবং রেফার কমিশন জমা হওয়ার ফাংশন কল হবে
+            await executeClaimAndCommission();
+          });
+        }
+      }
+
 
       // অটো রিওয়ার্ড ও রেফার কমিশন জমা দেওয়ার লজিক
       async function executeClaimAndCommission() {
