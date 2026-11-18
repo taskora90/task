@@ -59,6 +59,34 @@
       border: 2px solid #ffd700;
     }
 
+    /* ফলাফল দেখানোর ডায়নামিক বক্স (মডাল স্টাইল) */
+    .result-popup {
+      display: none;
+      background: #ffffff;
+      border: 2px solid #28a745;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .result-popup h3 { color: #28a745; margin-bottom: 8px; font-size: 18px; }
+    .result-popup p { font-size: 14px; color: #444; margin-bottom: 12px; }
+    .result-popup button {
+      background: #2d3748;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     /* বাইরের প্রিমিয়াম গোল্ডেন রিং হুইল কনটেইনার */
     .wheel-container {
       position: relative;
@@ -202,6 +230,13 @@
       অবশিষ্ট লাকি স্পিন: <span id="spinCountDisplay">0</span> টি
     </div>
 
+    <!-- জেতার পর ফলাফল দেখানোর বক্স -->
+    <div class="result-popup" id="resultPopup">
+      <h3 id="resultTitle">অভিনন্দন! 🎉</h3>
+      <p id="resultDesc">আপনি স্পিন করে ৳ ৫০ জিতেছেন। এটি আপনার অ্যাকাউন্টে সফলভাবে জমা হয়েছে!</p>
+      <button onclick="closePopup()">ঠিক আছে</button>
+    </div>
+
     <!-- লাকি স্পিন হুইল -->
     <div class="wheel-container">
       <div class="pointer"></div>
@@ -316,7 +351,7 @@
       }
     }
 
-    // পুরস্কার প্রসেস করার ফাংশন
+    // পুরস্কার প্রসেস করার ফাংশন এবং স্ক্রিনে পপআপ দেখানোর লজিক
     async function processAndAwardPrize(prize) {
       if (!userDocRef || !prize) return;
 
@@ -341,11 +376,20 @@
           });
         }
 
+        // স্ক্রিনে পপআপ বক্সে দেখানোর ব্যবস্থা
+        const popup = document.getElementById('resultPopup');
+        const titleElem = document.getElementById('resultTitle');
+        const descElem = document.getElementById('resultDesc');
+
         if (prize.amount > 0) {
-          alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
+          titleElem.innerText = "অভিনন্দন! 🎉";
+          descElem.innerHTML = `স্পিন সম্পন্ন হয়েছে! আপনি জিতেছেন <strong style="color: #28a745;">${prize.name}</strong>। এই টাকা আপনার মূল অ্যাকাউন্টে সফলভাবে যোগ হয়েছে।`;
         } else {
-          alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
+          titleElem.innerText = "ধন্যবাদ! 🔄";
+          descElem.innerHTML = `এবার ট্রাই এগেইন এসেছে! পরবর্তীতে ভাগ্য পরীক্ষা করুন।`;
         }
+
+        popup.style.display = 'block';
 
         await loadUserData(); 
 
@@ -353,6 +397,10 @@
         console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
         alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
       }
+    }
+
+    window.closePopup = function() {
+      document.getElementById('resultPopup').style.display = 'none';
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -374,6 +422,10 @@
       }
 
       isSpinning = true;
+
+      // ১. ইউজার "শুরু" বাটনে ক্লিক করলেই স্মার্ট লিংক ওপেন হবে (অ্যাড শো করবে)
+      window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
+
       const selectedIndex = Math.floor(Math.random() * items.length);
       const prize = items[selectedIndex];
 
@@ -385,7 +437,7 @@
       const wheel = document.getElementById('wheel');
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-      // চাকা ঘোরা শেষ হলে পুরস্কার ফায়ারবেসে প্রসেস হবে
+      // ২. চাকা ঘোরা শেষ হলে (৪ সেকেন্ড পর) পুরস্কার ফায়ারবেসে জমা হবে এবং পপআপ শো করবে
       setTimeout(async () => {
         isSpinning = false;
         await processAndAwardPrize(prize);
