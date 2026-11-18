@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>লাকি স্পিন</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Video.js ও IMA Plugin লাইব্রেরি -->
+  <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/7.0.0/videojs.ads.css" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -175,10 +178,20 @@
     }
 
     .ads-wrapper {
-      margin-top: 30px;
+      margin-top: 20px;
       width: 100%;
       display: flex;
       justify-content: center;
+    }
+
+    /* ইন-পেজ ভিডিও প্লেয়ার স্টাইল */
+    .video-container {
+      margin-top: 20px;
+      position: relative;
+      border-radius: 8px;
+      background: #000;
+      overflow: hidden;
+      display: none; /* স্পিন শুরু হলে এটি দৃশ্যমান হবে */
     }
   </style>
 </head>
@@ -230,6 +243,13 @@
       <div class="spin-btn" id="spinBtn" onclick="spinWheel()">শুরু</div>
     </div>
 
+    <!-- ইন-পেজ ভিডিও প্লেয়ার (অ্যাডক্যাশ অ্যাড দেখানোর জন্য) -->
+    <div class="video-container" id="videoBox">
+      <video id="my-video" class="video-js vjs-default-skin" controls preload="auto" width="100%" height="180px">
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+      </video>
+    </div>
+
     <div class="ads-wrapper">
       <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
@@ -248,6 +268,11 @@
       </div>
     </div>
   </div>
+  <!-- Video.js ও IMA স্ক্রিপ্ট -->
+  <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/7.0.0/videojs.ads.min.js"></script>
+  <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/2.0.0/videojs.ima.min.js"></script>
 
   <!-- Firebase Script & Integration -->
   <script type="module">
@@ -283,8 +308,20 @@
     let userDocRef = null;
     let availableSpins = 0;
     let currentUserObj = null;
+    let playerInstance = null;
 
-    // ইউজার ডেটা ও হিস্ট্রি লোড করে সরাসরি স্ক্রিন আপডেট করার ফাংশন (পেজ রিলোড ছাড়াই)
+    function initPlayer() {
+      if (!playerInstance) {
+        playerInstance = videojs('my-video');
+        const options = {
+          id: 'my-video',
+          adTagUrl: 'https://youradexchange.com/video/select.php?r=12462626'
+        };
+        playerInstance.ima(options);
+      }
+    }
+
+    // ইউজার ডেটা ও হিস্ট্রি লোড করে স্ক্রিন আপডেট করার ফাংশন
     async function loadUserData() {
       if (!userDocRef || !currentUserObj) return;
       try {
@@ -317,22 +354,18 @@
       }
     }
 
-    // পেন্ডিং প্রাইজ প্রসেস করার ফাংশন
-    async function processPendingPrize() {
-      const savedPrize = localStorage.getItem('pendingSpinPrize');
-      if (!savedPrize || !userDocRef) return;
-
-      const prizeToProcess = JSON.parse(savedPrize);
-      localStorage.removeItem('pendingSpinPrize'); // প্রসেস হওয়ার পর রিমুভ করা হলো
+    // পুরস্কার প্রসেস করার ফাংশন (ভিডিও শেষ হওয়ার পর বা পেজ রিফ্রেশে)
+    async function processAndAwardPrize(prize) {
+      if (!userDocRef || !prize) return;
 
       try {
         let updateData = {
           luckySpinCount: increment(-1)
         };
 
-        if (prizeToProcess.amount > 0) {
-          updateData.taskCash = increment(prizeToProcess.amount);
-          updateData.totalEarnings = increment(prizeToProcess.amount);
+        if (prize.amount > 0) {
+          updateData.taskCash = increment(prize.amount);
+          updateData.totalEarnings = increment(prize.amount);
         }
 
         await updateDoc(userDocRef, updateData);
@@ -340,19 +373,19 @@
         if (currentUserObj) {
           await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
             title: "লাকি স্পিন",
-            desc: prizeToProcess.amount > 0 ? `স্পিন করে ${prizeToProcess.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
-            amount: Number(prizeToProcess.amount),
+            desc: prize.amount > 0 ? `স্পিন করে ${prize.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
+            amount: Number(prize.amount),
             timestamp: serverTimestamp()
           });
         }
 
-        if (prizeToProcess.amount > 0) {
-          alert(`অভিনন্দন! আপনি জিতেছেন ${prizeToProcess.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
+        if (prize.amount > 0) {
+          alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
         } else {
           alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
         }
 
-        // পেজ রিলোড না করে ইনস্ট্যান্ট ডেটা রিফ্রেশ করা হলো
+        document.getElementById('videoBox').style.display = 'none';
         await loadUserData(); 
 
       } catch (error) {
@@ -365,11 +398,7 @@
       if (user) {
         currentUserObj = user;
         userDocRef = doc(db, "users", user.uid);
-        
-        // প্রথমে পেন্ডিং প্রাইজ থাকলে তা প্রসেস করবে, তারপর ডেটা লোড করবে
-        await processPendingPrize();
         await loadUserData();
-
       } else {
         window.location.href = "login.html";
       }
@@ -387,9 +416,6 @@
       const selectedIndex = Math.floor(Math.random() * items.length);
       const prize = items[selectedIndex];
 
-      // localStorage এ সেভ করা হলো
-      localStorage.setItem('pendingSpinPrize', JSON.stringify(prize));
-
       const degreesPerItem = 360 / items.length;
       const extraRounds = 360 * 5; 
       const targetDegree = extraRounds + (360 - (selectedIndex * degreesPerItem));
@@ -398,21 +424,23 @@
       const wheel = document.getElementById('wheel');
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
+      // চাকা ঘোরা শেষ হলে ভিডিও প্লেয়ার শো হবে এবং অ্যাড চলবে
       setTimeout(async () => {
         isSpinning = false;
-        // Adsterra Smart Link ওপেন হবে
-        window.location.href = "https://araplhn.org/4/79054fb4b54830da5e0866e988a90081";
+        
+        document.getElementById('videoBox').style.display = 'block';
+        initPlayer();
+        if (playerInstance) {
+          playerInstance.play();
+        }
+
+        // ভিডিও চলার পর পুরস্কার স্বয়ংক্রিয়ভাবে একাউন্টে যোগ হয়ে যাবে
+        setTimeout(async () => {
+          await processAndAwardPrize(prize);
+        }, 12000); // ১২ সেকেন্ড পর বা অ্যাড শেষ হওয়ার আনুমানিক সময় পর রিওয়ার্ড প্রসেস হবে
+
       }, 4000);
     }
-
-    // ইউজার অ্যাড দেখে ফিরে আসলে তাৎক্ষণিক আপডেট হবে
-    window.addEventListener("pageshow", async () => {
-      await processPendingPrize();
-    });
-
-    window.addEventListener("focus", async () => {
-      await processPendingPrize();
-    });
   </script>
 
 </body>
