@@ -93,15 +93,13 @@
             <div class="modal-content">
                 <h3 style="color: #ffffff; margin-bottom: 15px; font-size: 16px;">TaskOra বিজ্ঞাপন</h3>
                 
-                <div style="background: #121417; padding: 25px 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #2a2d32;">
+                <div style="background: #121417; padding: 25px 15px; border-radius: 10px; border: 1px solid #2a2d32;">
                     <div style="font-size: 32px; margin-bottom: 8px;">⏳</div>
                     <div id="modalTimerText" style="color: #4cd137; font-weight: bold; font-size: 16px;">
                         অপেক্ষা করুন: <span id="timeLeftNum" style="font-size: 20px; color: #ff4d4d;">10</span> সেকেন্ড
                     </div>
                     <p style="color: #aaa; font-size: 11px; margin-top: 6px;">বিজ্ঞাপন লোড হচ্ছে ও সময় গণনা চলছে...</p>
                 </div>
-
-                <button id="modalStartBtn" class="btn" style="background-color: #28a745; color: white; padding: 12px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; width: 100%;">বিজ্ঞাপন দেখুন ও রিওয়ার্ড নিন</button>
             </div>
         </div>
 
@@ -329,7 +327,7 @@
                 document.getElementById('actionBtn').disabled = true;
               } else {
                 document.getElementById('actionBtn').innerText = `টাস্ক নম্বর ${currentTaskCount + 1} শুরু করুন`;
-                document.getElementById('actionBtn').onclick = openTaskModal;
+                document.getElementById('actionBtn').onclick = openTaskModalDirectly;
               }
             }
           } catch (error) {
@@ -340,44 +338,37 @@
         }
       });
 
-      // পপ-আপ খোলার ফাংশন এবং Adcash Interstitial ট্রিগার করার লজিক
-      function openTaskModal() {
+      // "টাস্ক শুরু করুন" এ ক্লিক করলেই সরাসরি অ্যাড ওপেন হবে এবং কাউন্টডাউন শুরু হবে
+      function openTaskModalDirectly() {
         const modal = document.getElementById('videoModal');
-        const modalStartBtn = document.getElementById('modalStartBtn');
-
         modal.style.display = 'flex';
-        modalStartBtn.style.display = 'block';
 
-        modalStartBtn.onclick = () => {
-          modalStartBtn.style.display = 'none';
-
-          // এখানে Adcash Interstitial অ্যাড ট্রিগার করা হচ্ছে[span_0](start_span)[span_0](end_span)
-          try {
-            if (typeof aclib !== 'undefined' && aclib.runInterstitial) {
-              aclib.runInterstitial({
-                zoneId: '12463174',
-              });
-            }
-          } catch (e) {
-            console.log("Interstitial ad error:", e);
+        // Adcash Interstitial অ্যাড ট্রিগার করা হচ্ছে[span_0](start_span)[span_0](end_span)
+        try {
+          if (typeof aclib !== 'undefined' && aclib.runInterstitial) {
+            aclib.runInterstitial({
+              zoneId: '12463174',
+            });
           }
-          
-          let timeLeft = 10;
-          document.getElementById('timeLeftNum').innerText = timeLeft;
+        } catch (e) {
+          console.log("Interstitial ad error:", e);
+        }
+        
+        let timeLeft = 10;
+        document.getElementById('timeLeftNum').innerText = timeLeft;
 
-          const countdown = setInterval(async () => {
-            timeLeft--;
-            if (timeLeft <= 0) {
-              clearInterval(countdown);
-              modal.style.display = 'none'; 
+        const countdown = setInterval(async () => {
+          timeLeft--;
+          if (timeLeft <= 0) {
+            clearInterval(countdown);
+            modal.style.display = 'none'; 
 
-              await executeClaimAndCommission();
+            await executeClaimAndCommission();
 
-            } else {
-              document.getElementById('timeLeftNum').innerText = timeLeft;
-            }
-          }, 1000);
-        };
+          } else {
+            document.getElementById('timeLeftNum').innerText = timeLeft;
+          }
+        }, 1000);
       }
 
       // অটো রিওয়ার্ড ও রেফার কমিশন জমা দেওয়ার লজিক
