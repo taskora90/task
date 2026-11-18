@@ -6,13 +6,16 @@
     <title>TaskOra টাস্ক</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <!-- Video.js ও IMA Plugin লাইব্রেরি -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/7.0.0/videojs.ads.css" rel="stylesheet" />
     <style>
         body { font-family: Arial, sans-serif; background-color: #f6f8fa; margin: 0; padding: 20px 20px 90px 20px; }
         .task-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .task-header { text-align: center; margin-bottom: 20px; }
         .user-info-box { background: #eef2f5; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: center; }
         .task-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
-        .video-container { position: relative; min-height: 150px; border-radius: 6px; margin-bottom: 12px; background: #eef2f5; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .video-container { position: relative; min-height: 180px; border-radius: 6px; margin-bottom: 12px; background: #000; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .btn-start { background-color: #2d3748; color: white; }
         .btn-start:disabled { background-color: #cbd5e1; cursor: not-allowed; }
@@ -70,12 +73,11 @@
             <div class="task-title" style="font-weight: bold; margin-bottom: 5px;">সঠিকভাবে কাজ করুন</div>
             <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 10px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: <span id="rewardText">10</span> টাকা</div>
 
+            <!-- ইন-পেজ ভিডিও প্লেয়ার -->
             <div class="video-container">
-                <div style="width: 100%; text-align: center; padding: 20px;">
-                    <div style="background: #3b82f6; color: #fff; padding: 15px; border-radius: 8px; font-weight: bold;">
-                        <i class="fa-solid fa-ad"></i> রিওয়ার্ড পেতে বিজ্ঞাপনটি দেখুন,বিজ্ঞাপনে ক্লিক করুন এবং ১০ সেকেন্ড অপেক্ষা করুন।
-                    </div>
-                </div>
+                <video id="my-video" class="video-js vjs-default-skin" controls preload="auto" width="100%" height="180px">
+                    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+                </video>
             </div>
 
             <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
@@ -84,8 +86,6 @@
 
         <!-- ডায়নামিক স্ট্যাটাস ও নোটিশ বক্স -->
         <div id="dynamic-status-box" style="background: #2a2d32; border: 1px solid #3d4148; border-radius: 12px; padding: 15px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); color: #ffffff;">
-
-            <!-- ১ নম্বর বক্স: কাজ চলমান থাকা অবস্থায় যা দেখাবে -->
             <div id="task-ongoing-box" style="display: block;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                     <span style="font-size: 16px;">💡</span>
@@ -94,13 +94,12 @@
                 <p style="margin: 0; font-size: 12px; color: #cccccc; line-height: 1.5;">
                     কাজের নিয়মাবলী বা সতর্কতা বক্স:<br>
                     *সম্পূর্ণ নিয়ম মেনে কাজ করুন।<br>
-                    *সঠিক নিয়মে বিজ্ঞাপন দেখে এবং ক্লিক করে টাস্ক সম্পন্ন করুন⚠️<br>
-                    *বিজ্ঞাপনে ক্লিক করার পর অবশ্যই ১০ সেকেন্ড অপেক্ষা করুন⚠️<br>
-                    নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে বা বিজ্ঞাপনে ১০ সেকেন্ড অপেক্ষা না করলে পেমেন্ট বাতিল হতে পারে🚫
+                    *সঠিক নিয়মে বিজ্ঞাপন দেখে এবং টাস্ক সম্পন্ন করুন⚠️<br>
+                    *বিজ্ঞাপনে কোনো প্রকার স্কিপ না করে সম্পূর্ণ দেখুন⚠️<br>
+                    নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে পেমেন্ট বাতিল হতে পারে🚫
                 </p>
             </div>
 
-            <!-- ২ নম্বর বক্স: প্যাকেজের সব কাজ শেষ হলে এটি স্বয়ংক্রিয়ভাবে আসবে -->
             <div id="task-finished-box" style="display: none; text-align: center;">
                 <div style="font-size: 22px; margin-bottom: 5px;">🎉</div>
                 <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #4cd137; font-weight: bold;">অভিনন্দন! আজকের সকল টাস্ক সম্পন্ন</h4>
@@ -139,6 +138,12 @@
             <span>প্রোফাইল</span>
         </a>
     </nav>
+    <!-- Video.js ও IMA স্ক্রিপ্ট -->
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/7.0.0/videojs.ads.min.js"></script>
+    <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/2.0.0/videojs.ima.min.js"></script>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -163,6 +168,18 @@
       let currentTaskCount = 0;
       let currentUser = null;
       let currentUserData = null;
+      let playerInstance = null;
+
+      function initPlayer() {
+        if (!playerInstance) {
+          playerInstance = videojs('my-video');
+          const options = {
+            id: 'my-video',
+            adTagUrl: 'https://youradexchange.com/video/select.php?r=12462626'
+          };
+          playerInstance.ima(options);
+        }
+      }
 
       function updateTaskStatusBox(completedTasks, totalPackageTasks) {
         const ongoingBox = document.getElementById('task-ongoing-box');
@@ -207,7 +224,7 @@
               let displayName = userPackage;
 
               if (userPackage && userPackage !== "free_trial" && userPackage !== "none") {
-                let pkgDocRef = doc(db, "packages", userPackage);
+                let pkgDocRef = doc(db, "packages", userPackage);                
                 let pkgSnap = await getDoc(pkgDocRef);
 
                 if (pkgSnap.exists()) {
@@ -253,7 +270,8 @@
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
                 if (diffDays > 3) {
-                  document.getElementById('taskCard').style.display = 'none';                  document.getElementById('userInfoBox').style.display = 'none';
+                  document.getElementById('taskCard').style.display = 'none';                  
+                  document.getElementById('userInfoBox').style.display = 'none';
                   document.getElementById('dynamic-status-box').style.display = 'none';
                   document.getElementById('noPackageMsg').style.display = 'block';
                   document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।";
@@ -320,7 +338,10 @@
       });
 
       function startTimer(duration) {
-        window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
+        initPlayer();
+        if (playerInstance) {
+          playerInstance.play();
+        }
 
         const actionBtn = document.getElementById('actionBtn');
         const timerText = document.getElementById('timerText');
@@ -340,7 +361,7 @@
             actionBtn.disabled = false;
             actionBtn.onclick = claimReward;
           } else {
-            timerText.innerText = 'অপেক্ষা করুন: ' + timeLeft + ' সেকেন্ড';
+            timerText.innerText = 'ভিডিও দেখা ও অপেক্ষা করুন: ' + timeLeft + ' সেকেন্ড';
             timeLeft--;
           }
         }, 1000);
@@ -455,7 +476,6 @@
 
     <!-- ব্যানার অ্যাড স্লট -->
     <div class="ads-wrapper">
-      <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
         <script>
           atOptions = {
@@ -468,18 +488,14 @@
         </script>
         <script type="text/javascript" src="//www.highperformanceformat.com/ef70bb41c6b9c54cf3d9448db4f94f11/invoke.js"></script>
         <script src="https://bauval.org/22/ef70bb41c6b9c54cf3d9448db4f94f11"></script>
-        <span style="font-size: 11px; color: #a0aec0;"></span>
       </div>
     </div>
 
-
-<script type="text/javascript">
-    aclib.runAutoTag({
-        zoneId: 'hmyvdbm6kx',
-    });
-</script>
-
-
-
+    <!-- Adcash Autotag -->
+    <script type="text/javascript">
+        aclib.runAutoTag({
+            zoneId: 'hmyvdbm6kx',
+        });
+    </script>
 </body>
 </html>
