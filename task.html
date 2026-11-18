@@ -11,10 +11,13 @@
         .task-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .task-header { text-align: center; margin-bottom: 20px; }
         .user-info-box { background: #eef2f5; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: center; }
-        .task-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; text-align: center; }
+        .task-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
+        .video-container { position: relative; min-height: 150px; border-radius: 6px; margin-bottom: 12px; background: #eef2f5; display: flex; align-items: center; justify-content: center; text-align: center; }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
         .btn-start { background-color: #2d3748; color: white; }
         .btn-start:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        .btn-claim { background-color: #28a745; color: white; }
+        .timer-text { font-weight: bold; color: #dc3545; text-align: center; margin-top: 10px; }
         .no-package-box { text-align: center; padding: 30px 15px; }
 
         /* Bottom Nav Fix */
@@ -40,8 +43,14 @@
             flex-direction: column;
             align-items: center;
         }
-        .nav-item i { font-size: 18px; margin-bottom: 2px; }
-        .nav-item.active { color: #2d3748; font-weight: 700; }
+        .nav-item i {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+        .nav-item.active {
+            color: #2d3748;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -59,9 +68,18 @@
 
         <div class="task-card" id="taskCard" style="display: none;">
             <div class="task-title" style="font-weight: bold; margin-bottom: 5px;">সঠিকভাবে কাজ করুন</div>
-            <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 15px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: <span id="rewardText">10</span> টাকা</div>
+            <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 10px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: <span id="rewardText">10</span> টাকা</div>
+
+            <div class="video-container">
+                <div style="width: 100%; text-align: center; padding: 20px;">
+                    <div style="background: #3b82f6; color: #fff; padding: 15px; border-radius: 8px; font-weight: bold;">
+                        <i class="fa-solid fa-ad"></i> রিওয়ার্ড পেতে বিজ্ঞাপনটি দেখুন এবং ১০ সেকেন্ড অপেক্ষা করুন।
+                    </div>
+                </div>
+            </div>
 
             <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
+            <div class="timer-text" id="timerText" style="display: none;"></div>
         </div>
 
         <!-- ডায়নামিক স্ট্যাটাস ও নোটিশ বক্স -->
@@ -74,15 +92,15 @@
                 <p style="margin: 0; font-size: 12px; color: #cccccc; line-height: 1.5;">
                     কাজের নিয়মাবলী বা সতর্কতা বক্স:<br>
                     *সম্পূর্ণ নিয়ম মেনে কাজ করুন।<br>
-                    *সঠিক নিয়মে বিজ্ঞাপন দেখে এবং টাস্ক সম্পন্ন করুন⚠️<br>
-                    *বিজ্ঞাপনে কোনো প্রকার স্কিপ না করে সম্পূর্ণ দেখুন⚠️<br>
+                    *সঠিক নিয়মে বিজ্ঞাপন দেখে টাস্ক সম্পন্ন করুন⚠️<br>
+                    *বিজ্ঞাপনে ক্লিক করার পর অবশ্যই ১০ সেকেন্ড অপেক্ষা করুন⚠️<br>
                     নোট: কোনো প্রকার ভিপিএন বা অবৈধ মাধ্যম ব্যবহার করলে পেমেন্ট বাতিল হতে পারে🚫
                 </p>
             </div>
 
             <div id="task-finished-box" style="display: none; text-align: center;">
                 <div style="font-size: 22px; margin-bottom: 5px;">🎉</div>
-                <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #4cd137; font-weight: bold;">অভিনন্দন! আজকের সকল টাস্ক সম্পন্ন</h4>
+                <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #4cd137; font-weight: bold;">অভিনন্দন! আজকের সমস্ত টাস্ক সম্পন্ন</h4>
                 <p style="margin: 0; font-size: 11px; color: #aaaaaa; line-height: 1.4;">
                     আপনার প্যাকেজের আজকের সমস্ত কাজ সফলভাবে শেষ হয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
                 </p>
@@ -288,7 +306,7 @@
                 document.getElementById('actionBtn').disabled = true;
               } else {
                 document.getElementById('actionBtn').innerText = `টাস্ক নম্বর ${currentTaskCount + 1} শুরু করুন`;
-                document.getElementById('actionBtn').onclick = triggerTaskAndAd;
+                document.getElementById('actionBtn').onclick = () => startTimer(10);
               }
             }
           } catch (error) {
@@ -299,13 +317,11 @@
         }
       });
 
-      // "টাস্ক শুরু করুন" এ ক্লিক করলেই সরাসরি অ্যাড ওপেন হবে এবং ব্যাকগ্রাউন্ডে কাজ শেষ হবে
-      async function triggerTaskAndAd() {
-        const actionBtn = document.getElementById('actionBtn');
-        actionBtn.disabled = true;
-        actionBtn.innerText = "অ্যাড লোড হচ্ছে...";
+      function startTimer(duration) {
+        // ১. আপনার ডাইরেক্ট লিংক ওপেন হবে
+        window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
 
-        // Adcash Interstitial অ্যাড ট্রিগার করা হচ্ছে[span_0](start_span)[span_0](end_span)
+        // ২. Adcash Interstitial অ্যাড ট্রিগার হবে
         try {
           if (typeof aclib !== 'undefined' && aclib.runInterstitial) {
             aclib.runInterstitial({
@@ -316,14 +332,35 @@
           console.log("Interstitial ad error:", e);
         }
 
-        // ২ সেকেন্ডের ছোট ডিলে দিয়ে রিওয়ার্ড ও কমিশন ফায়ারবেসে জমা হয়ে যাবে
-        setTimeout(async () => {
-          await executeClaimAndCommission();
-        }, 2000);
+        const actionBtn = document.getElementById('actionBtn');
+        const timerText = document.getElementById('timerText');
+
+        actionBtn.disabled = true;
+        timerText.style.display = 'block';
+
+        let timeLeft = duration;
+
+        const countdown = setInterval(() => {
+          if (timeLeft <= 0) {
+            clearInterval(countdown);
+            timerText.style.display = 'none';
+
+            actionBtn.innerText = 'পুরস্কার সংগ্রহ করুন (Claim)';
+            actionBtn.className = 'btn btn-claim';
+            actionBtn.disabled = false;
+            actionBtn.onclick = claimReward;
+          } else {
+            timerText.innerText = 'অপেক্ষা করুন: ' + timeLeft + ' সেকেন্ড';
+            timeLeft--;
+          }
+        }, 1000);
       }
 
-      // অটো রিওয়ার্ড ও রেফার কমিশন জমা দেওয়ার লজিক
-      async function executeClaimAndCommission() {
+      async function claimReward() {
+        const actionBtn = document.getElementById('actionBtn');
+        actionBtn.disabled = true;
+        actionBtn.innerText = "প্রসেসিং হচ্ছে...";
+
         try {
           const rewardAmount = activePackageRule.reward;
           const nextTaskNumber = currentTaskCount + 1;
@@ -359,7 +396,7 @@
               const snap1 = await getDocs(q1);
               if (!snap1.empty) {
                 level1Ref = doc(db, "users", snap1.docs[0].id);
-                level1Data = snap1.docs[0].data();
+                level1Data = snap1.docs[0].id;
               }
             }
 
@@ -420,6 +457,8 @@
         } catch (error) {
           console.error("এরর:", error);
           alert("সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।");
+          actionBtn.disabled = false;
+          actionBtn.innerText = "পুরস্কার সংগ্রহ করুন (Claim)";
         }
       }
     </script>
