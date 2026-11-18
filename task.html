@@ -91,16 +91,14 @@
             <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
         </div>
 
-        <!-- ভিডিও পপ-আপ মডাল (অভ্যন্তরীণ ক্লেইম বাটনসহ) -->
+        <!-- ভিডিও পপ-আপ মডাল -->
         <div class="video-modal" id="videoModal">
             <div class="modal-content">
                 <h3 style="color: #ffffff; margin-bottom: 15px; font-size: 16px;">বিজ্ঞাপন সম্পূর্ণ দেখুন</h3>
                 <div class="video-container" style="position: relative; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 15px;">
                     <video id="my-video" class="video-js vjs-default-skin" controls preload="auto" width="100%" height="200px">
-                     
                     </video>
                 </div>
-                <!-- পপ-আপের ভেতরের বাটন -->
                 <button id="modalStartBtn" class="btn" style="background-color: #28a745; color: white; padding: 12px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; width: 100%;">ক্লিক করুন ও রিওয়ার্ড নিন</button>
                 <div id="modalTimerText" style="color: #ff4d4d; font-weight: bold; font-size: 14px; margin-top: 10px; display: none;">অপেক্ষা করুন: <span id="timeLeftNum">11</span> সেকেন্ড</div>
             </div>
@@ -227,7 +225,7 @@
 
             if (userDoc.exists()) {
               currentUserData = userDoc.data();
-              let userPackage = currentUserData.package;
+              let userPackage = currentUserData.package || "free_trial";
 
               const todayStr = new Date().toDateString();
               if (currentUserData.lastTaskDate !== todayStr) {
@@ -246,65 +244,34 @@
               let displayName = userPackage;
 
               if (userPackage && userPackage !== "free_trial" && userPackage !== "none") {
-                let pkgDocRef = doc(db, "packages", userPackage);                
-                let pkgSnap = await getDoc(pkgDocRef);
+                try {
+                  let pkgDocRef = doc(db, "packages", userPackage);                
+                  let pkgSnap = await getDoc(pkgDocRef);
 
-                if (pkgSnap.exists()) {
-                  let data = pkgSnap.data();
-                  pkgRule = { 
-                    maxTasks: Number(data.tasksLimit || 10), 
-                    reward: Number(data.reward || 10) 
-                  };
-                  displayName = data.name || userPackage;
-                } else {
-                  const q = query(collection(db, "packages"), where("packageId", "==", userPackage));
-                  const querySnap = await getDocs(q);
-                  if (!querySnap.empty) {
-                    let data = querySnap.docs[0].data();
+                  if (pkgSnap.exists()) {
+                    let data = pkgSnap.data();
                     pkgRule = { 
                       maxTasks: Number(data.tasksLimit || 10), 
                       reward: Number(data.reward || 10) 
                     };
                     displayName = data.name || userPackage;
                   }
+                } catch (e) {
+                  console.log("Package fetch error, falling back");
                 }
               }
 
               let hasActivePaidPackage = pkgRule !== null;
               let trialTextDisplay = "ফ্রি ট্রায়াল";
 
-              if (!hasActivePaidPackage) {
-                let createdAt = currentUserData.createdAt;
-                let regDate = new Date();
+              if (!hasActivePaidPackage && userPackage !== "free_trial" && userPackage !== "none") {
+                userPackage = "free_trial";
+              }
 
-                if (createdAt && typeof createdAt.toDate === 'function') {
-                  regDate = createdAt.toDate();
-                } else if (createdAt) {
-                  regDate = new Date(createdAt);
-                } else {
-                  regDate = new Date(user.metadata.creationTime);
-                }
-
-                const regDateOnly = new Date(regDate.getFullYear(), regDate.getMonth(), regDate.getDate());
-                const todayDateOnly = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-
-                const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-                if (diffDays > 3) {
-                  document.getElementById('taskCard').style.display = 'none';                  
-                  document.getElementById('userInfoBox').style.display = 'none';
-                  document.getElementById('dynamic-status-box').style.display = 'none';
-                  document.getElementById('noPackageMsg').style.display = 'block';
-                  document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।";
-                  return;
-                } else {
-                  userPackage = "free_trial";
-                  pkgRule = { maxTasks: 2, reward: 10 }; 
-                  let remainingDays = 4 - diffDays;
-                  if (remainingDays < 1) remainingDays = 1;
-                  trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
-                }
+              if (userPackage === "free_trial" || !hasActivePaidPackage) {
+                userPackage = "free_trial";
+                pkgRule = { maxTasks: 5, reward: 10 }; 
+                trialTextDisplay = `ফ্রি ট্রায়াল`;
               }
 
               activePackageRule = pkgRule;
@@ -350,6 +317,13 @@
                 document.getElementById('actionBtn').innerText = `টাস্ক নম্বর ${currentTaskCount + 1} শুরু করুন`;
                 document.getElementById('actionBtn').onclick = openTaskModal;
               }
+            } else {
+              document.getElementById('userInfoBox').style.display = 'block';
+              document.getElementById('taskCard').style.display = 'block';
+              document.getElementById('userPackageText').innerText = "ফ্রি ট্রায়াল";
+              document.getElementById('taskProgress').innerText = `0 / 5`;
+              activePackageRule = { maxTasks: 5, reward: 10 };
+              document.getElementById('actionBtn').onclick = openTaskModal;
             }
           } catch (error) {
             console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
@@ -359,7 +333,6 @@
         }
       });
 
-            // পপ-আপ খোলার ফাংশন
       function openTaskModal() {
         const modal = document.getElementById('videoModal');
         const modalStartBtn = document.getElementById('modalStartBtn');
@@ -370,7 +343,6 @@
         modalTimerText.style.display = 'none';
         initPlayer();
 
-        // পপ-আপের ভেতরের বাটনে ক্লিক করলে ভিডিও প্লে শুরু হবে
         modalStartBtn.onclick = () => {
           modalStartBtn.style.display = 'none';
           modalTimerText.style.display = 'block';
@@ -382,7 +354,6 @@
         };
       }
 
-      // ভিডিও প্লেয়ার ইনিশিয়ালাইজ ও ভিডিও শেষ হওয়ার ইভেন্ট হ্যান্ডেলিং
       function initPlayer() {
         if (!playerInstance) {
           playerInstance = videojs('my-video');
@@ -392,19 +363,14 @@
           };
           playerInstance.ima(options);
 
-          // অ্যাড বা ভিডিও পুরোপুরি শেষ (ended) হওয়া মাত্র এই ট্রিগার কাজ করবে
           playerInstance.on('ended', async () => {
             const modal = document.getElementById('videoModal');
-            modal.style.display = 'none'; // পপ-আপ অটো বন্ধ
-
-            // ব্যাকগ্রাউন্ডে রিওয়ার্ড এবং রেফার কমিশন জমা হওয়ার ফাংশন কল হবে
+            modal.style.display = 'none';
             await executeClaimAndCommission();
           });
         }
       }
 
-
-      // অটো রিওয়ার্ড ও রেফার কমিশন জমা দেওয়ার লজিক
       async function executeClaimAndCommission() {
         try {
           const rewardAmount = activePackageRule.reward;
@@ -496,7 +462,6 @@
             }
           }
 
-          // যেমন নোটিফিকেশন আসত ঠিক তেমনই সফলতার বার্তা দেখাবে
           alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
           location.reload(); 
 
@@ -521,6 +486,5 @@
     <!-- Adcash Library Script -->
     <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 
- 
 </body>
 </html>
