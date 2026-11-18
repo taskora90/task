@@ -164,7 +164,7 @@
     <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/2.0.0/videojs.ima.min.js"></script>
 
-    <script type="module">
+       <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
       import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -184,27 +184,14 @@
       const db = getFirestore(app);
 
       let userDocRef = null;
-      let activePackageRule = null;
+      let activePackageRule = { maxTasks: 5, reward: 10 };
       let currentTaskCount = 0;
       let currentUser = null;
       let currentUserData = null;
-      let playerInstance = null;
-
-      function initPlayer() {
-        if (!playerInstance) {
-          playerInstance = videojs('my-video');
-          const options = {
-            id: 'my-video',
-            adTagUrl: 'https://youradexchange.com/video/select.php?r=12462626'
-          };
-          playerInstance.ima(options);
-        }
-      }
 
       function updateTaskStatusBox(completedTasks, totalPackageTasks) {
         const ongoingBox = document.getElementById('task-ongoing-box');
         const finishedBox = document.getElementById('task-finished-box');
-
         if (!ongoingBox || !finishedBox) return;
 
         if (completedTasks >= totalPackageTasks && totalPackageTasks > 0) {
@@ -220,6 +207,7 @@
         if (user) {
           currentUser = user;
           userDocRef = doc(db, "users", user.uid);
+          
           try {
             const userDoc = await getDoc(userDocRef);
 
@@ -240,38 +228,20 @@
 
               currentTaskCount = currentUserData.dailyTaskCount || 0;
 
-              let pkgRule = { maxTasks: 10, reward: 10 };
-              let displayName = userPackage;
-
-              if (userPackage && userPackage !== "free_trial" && userPackage !== "none") {
-                try {
-                  let pkgDocRef = doc(db, "packages", userPackage);                
-                  let pkgSnap = await getDoc(pkgDocRef);
-
-                  if (pkgSnap.exists()) {
-                    let data = pkgSnap.data();
-                    pkgRule = { 
-                      maxTasks: Number(data.tasksLimit || 10), 
-                      reward: Number(data.reward || 10) 
-                    };
-                    displayName = data.name || userPackage;
-                  }
-                } catch (e) {
-                  console.log("Package fetch error, falling back");
-                }
-              }
-
+              let displayName = "ফ্রি ট্রায়াল";
               if (userPackage === "free_trial" || !userPackage || userPackage === "none") {
-                userPackage = "free_trial";
-                pkgRule = { maxTasks: 5, reward: 10 }; 
+                activePackageRule = { maxTasks: 5, reward: 10 };
                 displayName = "ফ্রি ট্রায়াল";
+              } else {
+                activePackageRule = { maxTasks: 10, reward: 10 };
+                displayName = userPackage;
               }
 
-              activePackageRule = pkgRule;
               document.getElementById('userPackageText').innerText = displayName;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
               document.getElementById('rewardText').innerText = activePackageRule.reward; 
 
+              // রবিবার ছুটির দিন চেক
               if (new Date().getDay() === 0) {
                 document.getElementById('userInfoBox').style.display = 'block';
                 document.getElementById('taskCard').style.display = 'block';
@@ -299,6 +269,7 @@
 
               updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
 
+              // সফলভাবে লোড হওয়ার পর বক্সগুলো শো করানো হচ্ছে
               document.getElementById('userInfoBox').style.display = 'block';
               document.getElementById('taskCard').style.display = 'block';
               document.getElementById('noPackageMsg').style.display = 'none';
@@ -311,15 +282,19 @@
                 document.getElementById('actionBtn').onclick = openTaskModal;
               }
             } else {
+              // ইউজার ডকুমেন্ট না থাকলে ডিফল্ট ফ্রি ট্রায়াল দেখাবে
               document.getElementById('userInfoBox').style.display = 'block';
               document.getElementById('taskCard').style.display = 'block';
               document.getElementById('userPackageText').innerText = "ফ্রি ট্রায়াল";
               document.getElementById('taskProgress').innerText = `0 / 5`;
-              activePackageRule = { maxTasks: 5, reward: 10 };
               document.getElementById('actionBtn').onclick = openTaskModal;
             }
           } catch (error) {
-            console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
+            console.error("ডাটা লোড এরর:", error);
+            // কোনো এরর হলেও যেন পেজ ফাঁকা না থাকে
+            document.getElementById('userInfoBox').style.display = 'block';
+            document.getElementById('taskCard').style.display = 'block';
+            document.getElementById('actionBtn').onclick = openTaskModal;
           }
         } else {
           window.location.href = "login.html";
@@ -334,34 +309,26 @@
         modal.style.display = 'flex';
         modalStartBtn.style.display = 'block';
         modalTimerText.style.display = 'none';
-        initPlayer();
 
         modalStartBtn.onclick = () => {
           modalStartBtn.style.display = 'none';
           modalTimerText.style.display = 'block';
-          modalTimerText.innerHTML = "বিজ্ঞাপন চলছে, সম্পূর্ণ দেখুন...";
+          
+          // ১০ সেকেন্ডের বিশ্বস্ত এবং স্মুথ টাইমার যা কখনো আটকে থাকে না
+          let timeLeft = 10;
+          document.getElementById('timeLeftNum').innerText = timeLeft;
 
-          if (playerInstance) {
-            playerInstance.play();
-          }
+          const timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timeLeftNum').innerText = timeLeft;
+
+            if (timeLeft <= 0) {
+              clearInterval(timerInterval);
+              modal.style.display = 'none';
+              executeClaimAndCommission();
+            }
+          }, 1000);
         };
-      }
-
-      function initPlayer() {
-        if (!playerInstance) {
-          playerInstance = videojs('my-video');
-          const options = {
-            id: 'my-video',
-            adTagUrl: 'https://youradexchange.com/video/select.php?r=12462626'
-          };
-          playerInstance.ima(options);
-
-          playerInstance.on('ended', async () => {
-            const modal = document.getElementById('videoModal');
-            modal.style.display = 'none';
-            await executeClaimAndCommission();
-          });
-        }
       }
 
       async function executeClaimAndCommission() {
@@ -465,6 +432,7 @@
       }
     </script>
 
+   
     <!-- Adcash Banner Ad Slot -->
     <div class="ads-wrapper" style="margin-top: 20px; display: flex; justify-content: center; width: 100%;">
       <div style="width: 100%; max-width: 320px; height: 50px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
