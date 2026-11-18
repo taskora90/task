@@ -317,6 +317,7 @@
     let userDocRef = null;
     let availableSpins = 0;
     let currentUserObj = null;
+    let pendingPrize = null; // ইউজারের জেতা পুরস্কার সাময়িকভাবে ধরে রাখার জন্য
 
     // ইউজার ডেটা ও হিস্ট্রি লোড করে স্ক্রিন আপডেট করার ফাংশন
     async function loadUserData() {
@@ -351,59 +352,6 @@
       }
     }
 
-    // পুরস্কার প্রসেস করার ফাংশন (ফায়ারবেসে আপডেট করা)
-    async function processAndAwardPrize(prize) {
-      if (!userDocRef || !prize) return;
-
-      try {
-        let updateData = {
-          luckySpinCount: increment(-1)
-        };
-
-        if (prize.amount > 0) {
-          updateData.taskCash = increment(prize.amount);
-          updateData.totalEarnings = increment(prize.amount);
-        }
-
-        await updateDoc(userDocRef, updateData);
-
-        if (currentUserObj) {
-          await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
-            title: "লাকি স্পিন",
-            desc: prize.amount > 0 ? `স্পিন করে ${prize.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
-            amount: Number(prize.amount),
-            timestamp: serverTimestamp()
-          });
-        }
-
-        // পপআপ বক্সে জেতার পরিমাণ সেট করা
-        const popup = document.getElementById('resultPopup');
-        const titleElem = document.getElementById('resultTitle');
-        const descElem = document.getElementById('resultDesc');
-
-        if (prize.amount > 0) {
-          titleElem.innerText = "অভিনন্দন! 🎉";
-          descElem.innerHTML = `স্পিন সম্পন্ন হয়েছে! আপনি জিতেছেন <strong style="color: #28a745;">${prize.name}</strong>। এই টাকা আপনার মূল অ্যাকাউন্টে সফলভাবে যোগ হয়েছে।`;
-        } else {
-          titleElem.innerText = "ধন্যবাদ! 🔄";
-          descElem.innerHTML = `এবার ট্রাই এগেইন এসেছে! পরবর্তী স্পিনে ভাগ্য পরীক্ষা করুন।`;
-        }
-
-        // পপআপ শো করবে
-        popup.style.display = 'block';
-
-      } catch (error) {
-        console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
-        alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
-      }
-    }
-
-    // পপআপের "ঠিক আছে" বাটনে ক্লিক করলে স্ক্রিনের ব্যালেন্স ও স্পিন সংখ্যা আপডেট হবে
-    window.closePopup = async function() {
-      document.getElementById('resultPopup').style.display = 'none';
-      await loadUserData(); // রিয়েলটাইমে মোট টাকা ও স্পিন সংখ্যা রিফ্রেশ করবে
-    }
-
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUserObj = user;
@@ -417,6 +365,7 @@
     window.spinWheel = async function() {
       if (isSpinning) return;
 
+      // স্পিন জিরো বা মাইনাস থাকলে আটকে দিবে
       if (availableSpins <= 0) {
         alert("আপনার কোনো লাকি স্পিন বাকি নেই!");
         return;
@@ -424,7 +373,7 @@
 
       isSpinning = true;
       const selectedIndex = Math.floor(Math.random() * items.length);
-      const prize = items[selectedIndex];
+      pendingPrize = items[selectedIndex];
 
       const degreesPerItem = 360 / items.length;
       const extraRounds = 360 * 5; 
@@ -434,17 +383,65 @@
       const wheel = document.getElementById('wheel');
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-      // চাকা ঘোরা শেষ হলে (৪ সেকেন্ড পর) ডাইরেক্ট লিংক অ্যাড ওপেন হবে এবং ফায়ারবেসে জমা হবে
-      setTimeout(async () => {
+      // চাকা ঘোরা শেষ হলে (৪ সেকেন্ড পর) ডাইরেক্ট লিংক অ্যাড ওপেন হবে
+      setTimeout(() => {
         isSpinning = false;
 
-        // ১. অটো ডাইরেক্ট লিংকের অ্যাড ওপেন হবে
+        // ১. অটো ডাইরেক্ট লিংকের অ্যাড নতুন ট্যাবে ওপেন হবে
         window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
 
-        // ২. ফায়ারবেসে পুরস্কার ও স্পিন কাউন্ট আপডেট করে পপআপ রেডি করা হবে
-        await processAndAwardPrize(prize);
+        // ২. অ্যাড ওপেন হওয়ার পর ইউজার যখন পেজে ফিরে আসবে, তখন পপআপ শো করার জন্য প্রস্তুত করা হবে
+        const popup = document.getElementById('resultPopup');
+        const titleElem = document.getElementById('resultTitle');
+        const descElem = document.getElementById('resultDesc');
+
+        if (pendingPrize.amount > 0) {
+          titleElem.innerText = "অভিনন্দন! 🎉";
+          descElem.innerHTML = `স্পিন সম্পন্ন হয়েছে! আপনি জিতেছেন <strong style="color: #28a745;">${pendingPrize.name}</strong>। 'ঠিক আছে' বাটনে ক্লিক করলে টাকা অ্যাকাউন্টে জমা হবে।`;
+        } else {
+          titleElem.innerText = "ধন্যবাদ! 🔄";
+          descElem.innerHTML = `এবার ট্রাই এগেইন এসেছে! 'ঠিক আছে' বাটনে ক্লিক করুন।`;
+        }
+
+        popup.style.display = 'block';
 
       }, 4000);
+    }
+
+    // পপআপের "ঠিক আছে" বাটনে ক্লিক করার পরেই ফায়ারবেসে স্পিন মাইনাস ও টাকা যোগ হবে এবং স্ক্রিন আপডেট হবে
+    window.closePopup = async function() {
+      document.getElementById('resultPopup').style.display = 'none';
+      
+      if (!userDocRef || !pendingPrize) return;
+
+      try {
+        let updateData = {
+          luckySpinCount: increment(-1)
+        };
+
+        if (pendingPrize.amount > 0) {
+          updateData.taskCash = increment(pendingPrize.amount);
+          updateData.totalEarnings = increment(pendingPrize.amount);
+        }
+
+        await updateDoc(userDocRef, updateData);
+
+        if (currentUserObj) {
+          await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
+            title: "লাকি স্পিন",
+            desc: pendingPrize.amount > 0 ? `স্পিন করে ${pendingPrize.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
+            amount: Number(pendingPrize.amount),
+            timestamp: serverTimestamp()
+          });
+        }
+
+        pendingPrize = null;
+        await loadUserData(); // ব্যালেন্স ও স্পিন সংখ্যা রিফ্রেশ করবে
+
+      } catch (error) {
+        console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
+        alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
+      }
     }
   </script>
 
