@@ -19,7 +19,6 @@
         .btn-start { background-color: #2d3748; color: white; }
         .btn-start:disabled { background-color: #cbd5e1; cursor: not-allowed; }
         .btn-claim { background-color: #28a745; color: white; }
-        .timer-text { font-weight: bold; color: #dc3545; text-align: center; margin-top: 10px; }
         .no-package-box { text-align: center; padding: 30px 15px; }
 
         /* পপ-আপ মডাল ডিজাইন */
@@ -90,10 +89,9 @@
             <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 15px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: <span id="rewardText">10</span> টাকা</div>
 
             <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
-            <div class="timer-text" id="timerText" style="display: none;"></div>
         </div>
 
-        <!-- ভিডিও পপ-আপ মডাল -->
+        <!-- ভিডিও পপ-আপ মডাল (অভ্যন্তরীণ ক্লেইম বাটনসহ) -->
         <div class="video-modal" id="videoModal">
             <div class="modal-content">
                 <h3 style="color: #ffffff; margin-bottom: 15px; font-size: 16px;">বিজ্ঞাপন সম্পূর্ণ দেখুন</h3>
@@ -102,7 +100,9 @@
                         <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
                     </video>
                 </div>
-                <div id="modalTimerText" style="color: #ff4d4d; font-weight: bold; font-size: 14px;">অপেক্ষা করুন: ১০ সেকেন্ড</div>
+                <!-- পপ-আপের ভেতরের বাটন -->
+                <button id="modalStartBtn" class="btn" style="background-color: #28a745; color: white; padding: 12px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; width: 100%;">বিজ্ঞাপন দেখুন ও রিওয়ার্ড নিন</button>
+                <div id="modalTimerText" style="color: #ff4d4d; font-weight: bold; font-size: 14px; margin-top: 10px; display: none;">অপেক্ষা করুন: <span id="timeLeftNum">10</span> সেকেন্ড</div>
             </div>
         </div>
 
@@ -348,7 +348,7 @@
                 document.getElementById('actionBtn').disabled = true;
               } else {
                 document.getElementById('actionBtn').innerText = `টাস্ক নম্বর ${currentTaskCount + 1} শুরু করুন`;
-                document.getElementById('actionBtn').onclick = () => startTaskModal(10);
+                document.getElementById('actionBtn').onclick = openTaskModal;
               }
             }
           } catch (error) {
@@ -359,42 +359,47 @@
         }
       });
 
-      function startTaskModal(duration) {
+      // পপ-আপ খোলার ফাংশন
+      function openTaskModal() {
         const modal = document.getElementById('videoModal');
+        const modalStartBtn = document.getElementById('modalStartBtn');
         const modalTimerText = document.getElementById('modalTimerText');
-        
+
         modal.style.display = 'flex';
+        modalStartBtn.style.display = 'block';
+        modalTimerText.style.display = 'none';
         initPlayer();
-        
-        if (playerInstance) {
-          playerInstance.play();
-        }
 
-        let timeLeft = duration;
-        modalTimerText.innerText = 'অপেক্ষা করুন: ' + timeLeft + ' সেকেন্ড';
+        // পপ-আপের ভেতরের বাটনে ক্লিক করলে ভিডিও ও টাইমার একসাথে শুরু হবে
+        modalStartBtn.onclick = () => {
+          modalStartBtn.style.display = 'none';
+          modalTimerText.style.display = 'block';
 
-        const countdown = setInterval(() => {
-          timeLeft--;
-          if (timeLeft <= 0) {
-            clearInterval(countdown);
-            modal.style.display = 'none'; 
-
-            const actionBtn = document.getElementById('actionBtn');
-            actionBtn.innerText = 'পুরস্কার সংগ্রহ করুন (Claim)';
-            actionBtn.className = 'btn btn-claim';
-            actionBtn.disabled = false;
-            actionBtn.onclick = claimReward;
-          } else {
-            modalTimerText.innerText = 'অপেক্ষা করুন: ' + timeLeft + ' সেকেন্ড';
+          if (playerInstance) {
+            playerInstance.play();
           }
-        }, 1000);
+
+          let timeLeft = 10;
+          document.getElementById('timeLeftNum').innerText = timeLeft;
+
+          const countdown = setInterval(async () => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+              clearInterval(countdown);
+              modal.style.display = 'none'; // পপ-আপ অটো বন্ধ
+
+              // ব্যাকগ্রাউন্ডে রিওয়ার্ড এবং রেফার কমিশন জমা হওয়ার ফাংশন কল হবে
+              await executeClaimAndCommission();
+
+            } else {
+              document.getElementById('timeLeftNum').innerText = timeLeft;
+            }
+          }, 1000);
+        };
       }
 
-      async function claimReward() {
-        const actionBtn = document.getElementById('actionBtn');
-        actionBtn.disabled = true;
-        actionBtn.innerText = "প্রসেসিং হচ্ছে...";
-
+      // অটো রিওয়ার্ড ও রেফার কমিশন জমা দেওয়ার লজিক
+      async function executeClaimAndCommission() {
         try {
           const rewardAmount = activePackageRule.reward;
           const nextTaskNumber = currentTaskCount + 1;
@@ -485,14 +490,13 @@
             }
           }
 
+          // যেমন নোটিফিকেশন আসত ঠিক তেমনই সফলতার বার্তা দেখাবে
           alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
           location.reload(); 
 
         } catch (error) {
           console.error("এরর:", error);
           alert("সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।");
-          actionBtn.disabled = false;
-          actionBtn.innerText = "পুরস্কার সংগ্রহ করুন (Claim)";
         }
       }
     </script>
