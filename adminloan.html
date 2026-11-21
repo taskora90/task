@@ -14,6 +14,8 @@
         #loanProfilePage { display: none; }
         #teamAdminPage { display: none; }
         #salaryAdminPage { display: none; }
+        #salaryStatusPage { display: none; }
+        #salaryRecipientsPage { display: none; }
 
         .header { background: #3b4252; color: #fff; padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
         .header h2 { margin: 0; font-size: 19px; }
@@ -34,6 +36,12 @@
         .btn-team-nav:hover { background: #3b4252; }
         .btn-salary-nav { flex: 1; background: #3b4252; color: #fff; border: none; padding: 11px 14px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: 0.2s; }
         .btn-salary-nav:hover { background: #2e3440; }
+
+        .salary-room-grid { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+        .btn-salary-room { flex: 1; min-width: 180px; background: #3b4252; color: #fff; border: none; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: 0.2s; }
+        .btn-salary-room:hover { background: #2e3440; }
+        .btn-salary-room.alt-room { background: #4c566a; }
+        .btn-salary-room.alt-room:hover { background: #3b4252; }
 
         .request-card { background: #f8fafc; padding: 15px 18px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
         .request-info h4 { margin: 0 0 5px 0; color: #2e3440; }
@@ -155,11 +163,18 @@
                 </div>
             </div>
         </div>
+
         <!-- ৫. স্যালারি পেজ কন্ট্রোল ও উইথড্র রিকোয়েস্ট পেজ -->
         <div id="salaryAdminPage">
             <button class="back-btn" onclick="backToDashboard()">← ড্যাশবোর্ডে ফিরে যান</button>
             <div class="header" style="margin-top: 5px;">
                 <h2>💰 স্যালারি কন্ট্রোল ও উইথড্র রিকোয়েস্ট</h2>
+            </div>
+
+            <!-- আলাদা ঘরে যাওয়ার বাটনসমূহ -->
+            <div class="salary-room-grid">
+                <button type="button" class="btn-salary-room" onclick="openSalaryStatusRoom()">📋 স্ট্যাটাস ঘর দেখুন</button>
+                <button type="button" class="btn-salary-room alt-room" onclick="openSalaryRecipientsRoom()">✅ ভাতা প্রাপ্ত / প্রাপ্ত নয় ঘর</button>
             </div>
 
             <!-- salary.html নিয়ন্ত্রণ সেটিংস -->
@@ -190,16 +205,30 @@
                     <p style="text-align:center;">উইথড্র রিকোয়েস্ট লোড হচ্ছে...</p>
                 </div>
             </div>
+        </div>
 
-            <!-- অ্যাপ্রুভ ও রিজেক্ট করা রিকোয়েস্টের স্ট্যাটাস ঘর -->
+        <!-- ৬. আলাদা ঘর: স্ট্যাটাস -->
+        <div id="salaryStatusPage">
+            <button class="back-btn" onclick="backToSalaryAdminPage()">← স্যালারি পেজে ফিরে যান</button>
+            <div class="header" style="margin-top: 5px;">
+                <h2>📋 মাসিক ভাতা স্ট্যাটাস</h2>
+            </div>
+
             <div class="settings-card">
-                <h3>📋 স্ট্যাটাস</h3>
+                <h3>📋 অ্যাপ্রুভ ও রিজেক্ট করা রিকোয়েস্টের স্ট্যাটাস</h3>
                 <div id="salaryWithdrawStatusListContainer">
                     <p style="text-align:center;">স্ট্যাটাস লোড হচ্ছে...</p>
                 </div>
             </div>
+        </div>
 
-            <!-- মাসিক ভাতা প্রাপকদের ডিটেইলস + ভাতা প্রাপ্ত / ভাতা প্রাপ্ত নয় বাটন -->
+        <!-- ৭. আলাদা ঘর: মাসিক ভাতা প্রাপ্ত / ভাতা প্রাপ্ত নয় -->
+        <div id="salaryRecipientsPage">
+            <button class="back-btn" onclick="backToSalaryAdminPage()">← স্যালারি পেজে ফিরে যান</button>
+            <div class="header" style="margin-top: 5px;">
+                <h2>✅ মাসিক ভাতা প্রাপকদের ডিটেইলস</h2>
+            </div>
+
             <div class="settings-card">
                 <h3>✅ মাসিক ভাতা প্রাপকদের ডিটেইলস</h3>
 
@@ -279,6 +308,15 @@
             { minRef: 80, amount: 15000 },
             { minRef: 100, amount: 20000 }
         ];
+
+        function hideAllAdminViews() {
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('loanProfilePage').style.display = 'none';
+            document.getElementById('teamAdminPage').style.display = 'none';
+            document.getElementById('salaryAdminPage').style.display = 'none';
+            document.getElementById('salaryStatusPage').style.display = 'none';
+            document.getElementById('salaryRecipientsPage').style.display = 'none';
+        }
 
         function isActivePackage(member) {
             const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
@@ -444,9 +482,7 @@
             }
         };
         window.openAdminLoanProfilePage = async function() {
-            document.getElementById('adminDashboard').style.display = 'none';
-            document.getElementById('teamAdminPage').style.display = 'none';
-            document.getElementById('salaryAdminPage').style.display = 'none';
+            hideAllAdminViews();
             document.getElementById('loanProfilePage').style.display = 'block';
             document.getElementById('adminLoanListContainer').innerHTML = "<p style='text-align:center;'>ডেটা লোড হচ্ছে...</p>";
             document.getElementById('loanSearchInput').value = "";
@@ -467,11 +503,33 @@
         };
 
         window.backToDashboard = function() {
-            document.getElementById('loanProfilePage').style.display = 'none';
-            document.getElementById('teamAdminPage').style.display = 'none';
-            document.getElementById('salaryAdminPage').style.display = 'none';
+            hideAllAdminViews();
             document.getElementById('adminDashboard').style.display = 'block';
             loadLoanRequests();
+        };
+
+        window.openSalaryStatusRoom = async function() {
+            hideAllAdminViews();
+            document.getElementById('salaryStatusPage').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            await loadSalaryWithdrawRequests();
+        };
+
+        window.openSalaryRecipientsRoom = async function() {
+            hideAllAdminViews();
+            document.getElementById('salaryRecipientsPage').style.display = 'block';
+            document.getElementById('salaryRecipientSearchInput').value = "";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (teamUsersCache.length === 0) {
+                await fetchSalaryTiersAndUsers();
+            }
+            renderSalaryRecipientList();
+        };
+
+        window.backToSalaryAdminPage = function() {
+            hideAllAdminViews();
+            document.getElementById('salaryAdminPage').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         function renderLoanProfiles(loansArray) {
@@ -632,9 +690,7 @@
         }
 
         window.openTeamAdminPage = async function() {
-            document.getElementById('adminDashboard').style.display = 'none';
-            document.getElementById('loanProfilePage').style.display = 'none';
-            document.getElementById('salaryAdminPage').style.display = 'none';
+            hideAllAdminViews();
             document.getElementById('teamAdminPage').style.display = 'block';
 
             document.getElementById('salaryTiersTableContainer').innerHTML = "<p>টেবিল লোড হচ্ছে...</p>";
@@ -831,11 +887,8 @@
         };
 
         window.openSalaryAdminPage = async function() {
-            document.getElementById('adminDashboard').style.display = 'none';
-            document.getElementById('loanProfilePage').style.display = 'none';
-            document.getElementById('teamAdminPage').style.display = 'none';
+            hideAllAdminViews();
             document.getElementById('salaryAdminPage').style.display = 'block';
-            document.getElementById('salaryRecipientSearchInput').value = "";
 
             try {
                 const cfgSnap = await getDoc(doc(db, "admin_settings", "salary_page_config"));
@@ -845,7 +898,6 @@
                 document.getElementById('salaryNoticeMsg').value = cfg.noticeMessage || "";
 
                 await fetchSalaryTiersAndUsers();
-                renderSalaryRecipientList();
                 await loadSalaryWithdrawRequests();
             } catch (err) {
                 console.error("Error opening salary admin page:", err);
@@ -875,7 +927,9 @@
 
         window.renderSalaryRecipientList = function() {
             const container = document.getElementById('salaryEligibleUsersContainer');
-            const qText = (document.getElementById('salaryRecipientSearchInput').value || "").toLowerCase().trim();
+            const searchEl = document.getElementById('salaryRecipientSearchInput');
+            if (!container || !searchEl) return;
+            const qText = (searchEl.value || "").toLowerCase().trim();
 
             const filteredByTab = teamUsersCache.filter(u => {
                 const hasSalary = Number(u.effectiveSalary) > 0;
@@ -914,7 +968,9 @@
             const pendingContainer = document.getElementById('salaryWithdrawRequestsContainer');
             const statusContainer = document.getElementById('salaryWithdrawStatusListContainer');
 
-            pendingContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
+            if (pendingContainer) {
+                pendingContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
+            }
             if (statusContainer) {
                 statusContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
             }
@@ -965,9 +1021,11 @@
                     }
                 });
 
-                pendingContainer.innerHTML = pendingCount > 0
-                    ? pendingHtml
-                    : "<div class='no-data'>এই মুহূর্তে কোনো নতুন উইথড্র রিকোয়েস্ট নেই।</div>";
+                if (pendingContainer) {
+                    pendingContainer.innerHTML = pendingCount > 0
+                        ? pendingHtml
+                        : "<div class='no-data'>এই মুহূর্তে কোনো নতুন উইথড্র রিকোয়েস্ট নেই।</div>";
+                }
 
                 if (statusContainer) {
                     statusContainer.innerHTML = statusCount > 0
@@ -977,7 +1035,9 @@
 
             } catch (err) {
                 console.error("Error loading salary withdraw requests:", err);
-                pendingContainer.innerHTML = "<div class='no-data'>উইথড্র রিকোয়েস্ট লোড করতে সমস্যা হয়েছে।</div>";
+                if (pendingContainer) {
+                    pendingContainer.innerHTML = "<div class='no-data'>উইথড্র রিকোয়েস্ট লোড করতে সমস্যা হয়েছে।</div>";
+                }
                 if (statusContainer) {
                     statusContainer.innerHTML = "<div class='no-data'>স্ট্যাটাস লোড করতে সমস্যা হয়েছে।</div>";
                 }
