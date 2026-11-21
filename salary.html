@@ -240,6 +240,47 @@
         { minRef: 100, amount: 20000 }
       ];
 
+      const BN_MONTHS = [
+        "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+        "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
+      ];
+
+      function toBanglaDigits(str) {
+        const bnMap = { "0": "০", "1": "১", "2": "২", "3": "৩", "4": "৪", "5": "৫", "6": "৬", "7": "৭", "8": "৮", "9": "৯" };
+        return String(str).replace(/[0-9]/g, d => bnMap[d] || d);
+      }
+
+      function formatIsoDateBn(isoStr) {
+        if (!isoStr) return "";
+        const parts = String(isoStr).trim().split("-");
+        if (parts.length !== 3) return String(isoStr);
+        const year = toBanglaDigits(parts[0]);
+        const monthIdx = parseInt(parts[1], 10) - 1;
+        const day = toBanglaDigits(parseInt(parts[2], 10));
+        const monthBn = BN_MONTHS[monthIdx] || toBanglaDigits(parts[1]);
+        return `${day} ${monthBn}, ${year}`;
+      }
+
+      function buildScheduleSummary(cfg, monthlyLimit) {
+        if (cfg.scheduleNote && String(cfg.scheduleNote).trim()) {
+          return String(cfg.scheduleNote).trim();
+        }
+        const startBn = formatIsoDateBn(cfg.withdrawStartDate || cfg.startDate || "");
+        const endBn = formatIsoDateBn(cfg.withdrawEndDate || cfg.endDate || "");
+        const limitBn = toBanglaDigits(monthlyLimit);
+
+        let dateLine = "";
+        if (startBn && endBn) {
+          dateLine = `${startBn} থেকে ${endBn} পর্যন্ত টাকা তোলা যাবে।`;
+        } else if (startBn) {
+          dateLine = `${startBn} থেকে টাকা তোলা যাবে।`;
+        } else if (endBn) {
+          dateLine = `${endBn} পর্যন্ত টাকা তোলা যাবে।`;
+        }
+
+        return `${dateLine ? dateLine + " " : ""}মাসে সর্বোচ্চ ${limitBn} বার টাকা তোলা যাবে।`.trim();
+      }
+
       let currentAuthUser = null;
       let currentUserData = null;
       let withdrawProfileMethod = "";
@@ -296,7 +337,7 @@
         alreadyWithdrewThisMonth = currentMonthWithdrawCount >= monthlyWithdrawLimit;
 
         if (limitMsg) {
-          limitMsg.innerText = `এই মাসের ভাতা উত্তোলনের সীমা (${monthlyWithdrawLimit} বার) পূর্ণ হয়েছে। আপনি এই মাসে ${currentMonthWithdrawCount} বার উত্তোলন করেছেন।`;
+          limitMsg.innerText = `এই মাসের ভাতা উত্তোলনের সীমা (${toBanglaDigits(monthlyWithdrawLimit)} বার) পূর্ণ হয়েছে। আপনি এই মাসে ${toBanglaDigits(currentMonthWithdrawCount)} বার উত্তোলন করেছেন।`;
           limitMsg.style.display = (historyCheckCompleted && alreadyWithdrewThisMonth) ? "block" : "none";
         }
         if (btn) {
@@ -545,18 +586,16 @@
           const parsedLimit = parseInt(cfg.monthlyWithdrawLimit, 10);
           monthlyWithdrawLimit = (!Number.isNaN(parsedLimit) && parsedLimit >= 1) ? parsedLimit : 1;
 
-          const startDate = cfg.withdrawStartDate || cfg.startDate || "";
-          const endDate = cfg.withdrawEndDate || cfg.endDate || "";
-          if (cfg.scheduleNote) {
-            document.getElementById("withdrawDateRangeText").innerText = cfg.scheduleNote;
-          } else if (startDate && endDate) {
-            document.getElementById("withdrawDateRangeText").innerText = `তারিখ: ${startDate} থেকে ${endDate} | মাসে ${monthlyWithdrawLimit} বার`;
-          } else {
-            document.getElementById("withdrawDateRangeText").innerText = `মাসে সর্বোচ্চ ${monthlyWithdrawLimit} বার উত্তোলন`;
-          }
+          const scheduleSummary = buildScheduleSummary(cfg, monthlyWithdrawLimit);
+          document.getElementById("withdrawDateRangeText").innerText = scheduleSummary;
 
-          if (cfg.noticeMessage) {
-            document.getElementById("adminNoticeText").innerText = `🔔 নোটিশ: ${cfg.noticeMessage}`;
+          const customNotice = (cfg.noticeMessage || "").toString().trim();
+          if (customNotice && scheduleSummary) {
+            document.getElementById("adminNoticeText").innerHTML = `🔔 নোটিশ: ${customNotice}<br><span style="display:inline-block;margin-top:4px;font-weight:bold;color:#3b4252;">📅 পেমেন্ট তারিখ ও নিয়ম: ${scheduleSummary}</span>`;
+          } else if (customNotice) {
+            document.getElementById("adminNoticeText").innerText = `🔔 নোটিশ: ${customNotice}`;
+          } else {
+            document.getElementById("adminNoticeText").innerText = `🔔 নোটিশ: ${scheduleSummary}`;
           }
 
           const isOpenByFlag = cfg.claimEnabled !== false && cfg.withdrawEnabled !== false && cfg.pageStatus !== "paused";
