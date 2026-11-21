@@ -113,6 +113,16 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      const defaultTiers = [
+        { minRef: 100, amount: 20000 },
+        { minRef: 80,  amount: 15000 },
+        { minRef: 60,  amount: 10000 },
+        { minRef: 40,  amount: 8500 },
+        { minRef: 28,  amount: 6200 },
+        { minRef: 20,  amount: 4000 },
+        { minRef: 12,  amount: 2000 }
+      ];
+
       // ইউজার প্যাকেজ কিনেছে কি না তা যাচাই করার হেল্পার ফাংশন ("none" থাকলে নিষ্ক্রিয় ধরা হবে)
       function hasActivePackage(member) {
         const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
@@ -121,23 +131,19 @@
         return !inactiveValues.includes(pkgVal);
       }
 
-      function renderMonthlyAllowance(paidDirectReferCount) {
+      function renderMonthlyAllowance(paidDirectReferCount, tiersList = defaultTiers, adminSalary = 0) {
         const allowanceBox = document.getElementById('monthlyAllowanceBox');
         const allowanceText = document.getElementById('monthlyAllowanceText');
         if (!allowanceBox || !allowanceText) return;
 
-        const tiers = [
-          { minRef: 100, amount: 20000 },
-          { minRef: 80,  amount: 15000 },
-          { minRef: 60,  amount: 10000 },
-          { minRef: 40,  amount: 8500 },
-          { minRef: 28,  amount: 6200 },
-          { minRef: 20,  amount: 4000 },
-          { minRef: 12,  amount: 2000 }
-        ];
+        const tiers = [...(tiersList && tiersList.length > 0 ? tiersList : defaultTiers)]
+          .sort((a, b) => Number(b.minRef) - Number(a.minRef));
 
-        const matchedTier = tiers.find(t => paidDirectReferCount >= t.minRef);
-        const currentAmount = matchedTier ? matchedTier.amount : 0;
+        const matchedTier = tiers.find(t => paidDirectReferCount >= Number(t.minRef));
+        const tierAllowance = matchedTier ? Number(matchedTier.amount) : 0;
+        const customSalary = Number(adminSalary || 0);
+        const currentAmount = customSalary > 0 ? customSalary : tierAllowance;
+
         allowanceText.innerText = `মাসিক ভাতা = ৳ ${currentAmount}`;
         allowanceBox.style.display = 'block';
 
@@ -161,11 +167,23 @@
             if (!userDoc.exists()) return;
             const userData = userDoc.data();
             const myReferralCode = userData.referralCode;
+            const adminSalary = Number(userData.monthlySalary || 0);
+
+            // অ্যাডমিন প্যানেল থেকে সেভ করা মাসিক ভাতা ধাপসমূহ লোড করা
+            let configuredTiers = defaultTiers;
+            try {
+              const tierDocSnap = await getDoc(doc(db, "admin_settings", "monthly_salary_tiers"));
+              if (tierDocSnap.exists() && Array.isArray(tierDocSnap.data().tiers) && tierDocSnap.data().tiers.length > 0) {
+                configuredTiers = tierDocSnap.data().tiers;
+              }
+            } catch (tierErr) {
+              console.error("মাসিক ভাতা ধাপ লোড করতে সমস্যা:", tierErr);
+            }
 
             if (!myReferralCode) {
               document.getElementById('level1List').innerHTML = '<div class="no-member">রেফারেল কোড পাওয়া যায়নি।</div>';
               document.getElementById('level2List').innerHTML = '<div class="no-member">রেফারেল কোড পাওয়া যায়নি।</div>';
-              renderMonthlyAllowance(0);
+              renderMonthlyAllowance(0, configuredTiers, adminSalary);
               return;
             }
 
@@ -206,8 +224,8 @@
             });
 
             document.getElementById('level1Count').innerText = level1Users.length;
-            // শুধুমাত্র যেসব লেভেল ১ মেম্বার প্যাকেজ কিনেছে, তাদের সংখ্যা দিয়ে মাসিক ভাতা হিসাব হবে
-            renderMonthlyAllowance(paidLevel1Count);
+            // শুধুমাত্র যেসব লেভেল ১ মেম্বার প্যাকেজ কিনেছে ও অ্যাডমিন সেটিংস অনুযায়ী মাসিক ভাতা হিসাব হবে
+            renderMonthlyAllowance(paidLevel1Count, configuredTiers, adminSalary);
 
             const level1ListEl = document.getElementById('level1List');
             if (level1Users.length === 0) {
