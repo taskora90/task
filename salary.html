@@ -89,6 +89,8 @@
         .profile-warning { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
         .profile-warning a { color: #1d4ed8; font-weight: bold; text-decoration: underline; }
 
+        .monthly-limit-note { background: #e0f2fe; border: 1px solid #7dd3fc; color: #0c4a6e; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; font-weight: 600; }
+
         .submit-btn { width: 100%; background: #3b4252; color: #ffffff; border: none; padding: 13px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .submit-btn:hover { background: #2e3440; }
         .submit-btn:disabled { background: #9ca3af; cursor: not-allowed; }
@@ -171,6 +173,10 @@
                 আপনার উইথড্র প্রোফাইল এখনো সেট করা নেই। <a href="withdraw.html">উইথড্র পেজে গিয়ে প্রোফাইল তৈরি করুন</a>।
             </div>
 
+            <div id="monthlyLimitReachedMsg" class="monthly-limit-note">
+                এই মাসের ভাতা উত্তোলনের রিকোয়েস্ট ইতিমধ্যে সম্পন্ন হয়েছে। প্রতি মাসে শুধুমাত্র ১ বার উত্তোলন করা যাবে।
+            </div>
+
             <form id="salaryWithdrawForm">
                 <div class="form-group">
                     <label>পেমেন্ট মাধ্যম (উইথড্র প্রোফাইল থেকে)</label>
@@ -205,7 +211,6 @@
         <a href="package.html" class="nav-item"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
         <a href="profile.html" class="nav-item"><i class="phase-user"></i><span>প্রোফাইল</span></a>
     </nav>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -242,7 +247,46 @@
       let hasWithdrawProfile = false;
       let payableSalaryAmount = 0;
       let withdrawAllowedByAdmin = true;
+      let alreadyWithdrewThisMonth = false;
       let tierChartInstance = null;
+
+      function getCurrentMonthKeyDhaka() {
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Dhaka",
+          year: "numeric",
+          month: "2-digit"
+        }).formatToParts(new Date());
+        const year = parts.find(p => p.type === "year")?.value || "2026";
+        const month = parts.find(p => p.type === "month")?.value || "01";
+        return `${year}-${month}`;
+      }
+
+      function getDocMonthKeyDhaka(docData) {
+        if (docData.withdrawMonth) return String(docData.withdrawMonth);
+        if (docData.createdAt && typeof docData.createdAt.toDate === "function") {
+          const dt = docData.createdAt.toDate();
+          const parts = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Dhaka",
+            year: "numeric",
+            month: "2-digit"
+          }).formatToParts(dt);
+          const year = parts.find(p => p.type === "year")?.value || "";
+          const month = parts.find(p => p.type === "month")?.value || "";
+          if (year && month) return `${year}-${month}`;
+        }
+        return "";
+      }
+
+      function updateSubmitButtonState() {
+        const btn = document.getElementById("submitSalaryWithdrawBtn");
+        const limitMsg = document.getElementById("monthlyLimitReachedMsg");
+        if (limitMsg) {
+          limitMsg.style.display = alreadyWithdrewThisMonth ? "block" : "none";
+        }
+        if (btn) {
+          btn.disabled = !(withdrawAllowedByAdmin && hasWithdrawProfile && payableSalaryAmount > 0 && !alreadyWithdrewThisMonth);
+        }
+      }
 
       function hasActivePackage(member) {
         const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
@@ -307,18 +351,27 @@
 
       async function loadSalaryHistory(uid) {
         const listEl = document.getElementById("salaryHistoryList");
+        const currentMonthKey = getCurrentMonthKeyDhaka();
+        alreadyWithdrewThisMonth = false;
+
         try {
           const q = query(collection(db, "salary_withdraw_requests"), where("userId", "==", uid));
           const snap = await getDocs(q);
 
           if (snap.empty) {
             listEl.innerHTML = '<div class="empty-msg">এখনো কোনো ভাতা উত্তোলনের রিকোয়েস্ট করা হয়নি।</div>';
+            updateSubmitButtonState();
             return;
           }
 
           let html = "";
           snap.forEach((docSnap) => {
             const d = docSnap.data();
+            const reqMonthKey = getDocMonthKeyDhaka(d);
+            if (reqMonthKey === currentMonthKey && d.status !== "rejected") {
+              alreadyWithdrewThisMonth = true;
+            }
+
             const badge = d.status === "approved"
               ? '<strong style="color:#16a34a;">অ্যাপ্রুভড</strong>'
               : d.status === "rejected"
@@ -336,6 +389,7 @@
             `;
           });
           listEl.innerHTML = html;
+          updateSubmitButtonState();
         } catch (err) {
           console.error("Error loading salary history:", err);
           listEl.innerHTML = '<div class="empty-msg">হিস্ট্রি লোড করা যায়নি।</div>';
@@ -348,6 +402,12 @@
 
         if (!withdrawAllowedByAdmin) {
           alert("এই মুহূর্তে ভাতা উত্তোলন বন্ধ রয়েছে বা নির্ধারিত তারিখের বাইরে রয়েছে।");
+          return;
+        }
+
+        if (alreadyWithdrewThisMonth) {
+          alert("আপনি এই মাসে ইতিমধ্যে একবার মাসিক ভাতা উত্তোলনের রিকোয়েস্ট করেছেন। প্রতি মাসে শুধুমাত্র ১ বার উত্তোলন করা যাবে।");
+          updateSubmitButtonState();
           return;
         }
 
@@ -366,6 +426,22 @@
         btn.innerText = "রিকোয়েস্ট পাঠানো হচ্ছে...";
 
         try {
+          const monthKey = getCurrentMonthKeyDhaka();
+          const existingSnap = await getDocs(query(collection(db, "salary_withdraw_requests"), where("userId", "==", currentAuthUser.uid)));
+          let duplicateInMonth = false;
+          existingSnap.forEach((docSnap) => {
+            const d = docSnap.data();
+            if (getDocMonthKeyDhaka(d) === monthKey && d.status !== "rejected") {
+              duplicateInMonth = true;
+            }
+          });
+
+          if (duplicateInMonth) {
+            alreadyWithdrewThisMonth = true;
+            alert("আপনি এই মাসে ইতিমধ্যে একবার মাসিক ভাতা উত্তোলনের রিকোয়েস্ট করেছেন।");
+            return;
+          }
+
           await addDoc(collection(db, "salary_withdraw_requests"), {
             userId: currentAuthUser.uid,
             userName: currentUserData.name || "নামবিহীন",
@@ -373,17 +449,19 @@
             account: withdrawProfileAccount,
             accountNumber: withdrawProfileAccount,
             amount: payableSalaryAmount,
+            withdrawMonth: monthKey,
             status: "pending",
             createdAt: serverTimestamp()
           });
 
+          alreadyWithdrewThisMonth = true;
           alert("মাসিক ভাতা উত্তোলনের রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
           await loadSalaryHistory(currentAuthUser.uid);
         } catch (err) {
           console.error("Salary withdraw submit error:", err);
           alert("রিকোয়েস্ট পাঠাতে সমস্যা হয়েছে।");
         } finally {
-          btn.disabled = !(withdrawAllowedByAdmin && hasWithdrawProfile && payableSalaryAmount > 0);
+          updateSubmitButtonState();
           btn.innerText = "উইথড্র রিকোয়েস্ট পাঠান";
         }
       });
@@ -453,7 +531,7 @@
             : defaultTiers;
 
           const tiersAsc = [...rawTiers].sort((a, b) => Number(a.minRef) - Number(b.minRef));
-          const tiersDesc = [...rawTiers].sort((a, b) => Number(b.minRef) - Number(a.minRef));
+          const tiersDesc = [...rawTiers].sort((a, b) => Number(a.minRef) - Number(b.minRef));
 
           let totalRef = 0;
           let activePkgRef = 0;
@@ -499,9 +577,7 @@
           }
 
           renderChart(tiersAsc, activePkgRef, payableSalaryAmount);
-
-          const submitBtn = document.getElementById("submitSalaryWithdrawBtn");
-          submitBtn.disabled = !(withdrawAllowedByAdmin && hasWithdrawProfile && payableSalaryAmount > 0);
+          updateSubmitButtonState();
 
           await loadSalaryHistory(user.uid);
         } catch (err) {
