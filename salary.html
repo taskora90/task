@@ -172,7 +172,7 @@
             </div>
 
             <div id="monthlyLimitReachedMsg" class="monthly-limit-note">
-                এই মাসের ভাতা উত্তোলনের রিকোয়েস্ট ইতিমধ্যে সম্পন্ন হয়েছে। প্রতি মাসে শুধুমাত্র ১ বার উত্তোলন করা যাবে।
+                এই মাসের ভাতা উত্তোলনের নির্ধারিত সীমা পূর্ণ হয়েছে।
             </div>
 
             <form id="salaryWithdrawForm">
@@ -247,6 +247,8 @@
       let hasWithdrawProfile = false;
       let payableSalaryAmount = 0;
       let withdrawAllowedByAdmin = true;
+      let monthlyWithdrawLimit = 1;
+      let currentMonthWithdrawCount = 0;
       let alreadyWithdrewThisMonth = false;
       let isSubmittingWithdraw = false;
       let historyCheckCompleted = false;
@@ -261,6 +263,15 @@
         const year = parts.find(p => p.type === "year")?.value || "2026";
         const month = parts.find(p => p.type === "month")?.value || "01";
         return `${year}-${month}`;
+      }
+
+      function getTodayDhakaIsoDate() {
+        return new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Dhaka",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).format(new Date());
       }
 
       function getDocMonthKeyDhaka(docData) {
@@ -282,7 +293,10 @@
       function updateSubmitButtonState() {
         const btn = document.getElementById("submitSalaryWithdrawBtn");
         const limitMsg = document.getElementById("monthlyLimitReachedMsg");
+        alreadyWithdrewThisMonth = currentMonthWithdrawCount >= monthlyWithdrawLimit;
+
         if (limitMsg) {
+          limitMsg.innerText = `এই মাসের ভাতা উত্তোলনের সীমা (${monthlyWithdrawLimit} বার) পূর্ণ হয়েছে। আপনি এই মাসে ${currentMonthWithdrawCount} বার উত্তোলন করেছেন।`;
           limitMsg.style.display = (historyCheckCompleted && alreadyWithdrewThisMonth) ? "block" : "none";
         }
         if (btn) {
@@ -305,11 +319,11 @@
       }
 
       function isWithinDateWindow(cfg) {
-        const startDate = (cfg.startDate || cfg.withdrawStartDate || "").toString().trim();
-        const endDate = (cfg.endDate || cfg.withdrawEndDate || "").toString().trim();
+        const startDate = (cfg.withdrawStartDate || cfg.startDate || "").toString().trim();
+        const endDate = (cfg.withdrawEndDate || cfg.endDate || "").toString().trim();
         if (!startDate && !endDate) return true;
 
-        const today = new Date().toISOString().split("T")[0];
+        const today = getTodayDhakaIsoDate();
         if (startDate && today < startDate) return false;
         if (endDate && today > endDate) return false;
         return true;
@@ -361,6 +375,7 @@
       async function loadSalaryHistory(uid) {
         const listEl = document.getElementById("salaryHistoryList");
         const currentMonthKey = getCurrentMonthKeyDhaka();
+        currentMonthWithdrawCount = 0;
         alreadyWithdrewThisMonth = false;
         historyCheckCompleted = false;
         updateSubmitButtonState();
@@ -381,7 +396,7 @@
             const d = docSnap.data();
             const reqMonthKey = getDocMonthKeyDhaka(d);
             if (reqMonthKey === currentMonthKey && d.status !== "rejected") {
-              alreadyWithdrewThisMonth = true;
+              currentMonthWithdrawCount++;
             }
 
             const badge = d.status === "approved"
@@ -431,8 +446,8 @@
             return;
           }
 
-          if (alreadyWithdrewThisMonth) {
-            alert("আপনি এই মাসে ইতিমধ্যে একবার মাসিক ভাতা উত্তোলনের রিকোয়েস্ট করেছেন। প্রতি মাসে শুধুমাত্র ১ বার উত্তোলন করা যাবে।");
+          if (currentMonthWithdrawCount >= monthlyWithdrawLimit) {
+            alert(`আপনি এই মাসে ইতিমধ্যে ${monthlyWithdrawLimit} বার ভাতা উত্তোলনের রিকোয়েস্ট করেছেন।`);
             return;
           }
 
@@ -448,21 +463,22 @@
 
           const monthKey = getCurrentMonthKeyDhaka();
           const existingSnap = await getDocs(query(collection(db, "salary_withdraw_requests"), where("userId", "==", currentAuthUser.uid)));
-          let duplicateInMonth = false;
+          let monthCount = 0;
           existingSnap.forEach((docSnap) => {
             const d = docSnap.data();
             if (getDocMonthKeyDhaka(d) === monthKey && d.status !== "rejected") {
-              duplicateInMonth = true;
+              monthCount++;
             }
           });
 
-          if (duplicateInMonth) {
-            alreadyWithdrewThisMonth = true;
-            alert("আপনি এই মাসে ইতিমধ্যে একবার মাসিক ভাতা উত্তোলনের রিকোয়েস্ট করেছেন।");
+          if (monthCount >= monthlyWithdrawLimit) {
+            currentMonthWithdrawCount = monthCount;
+            updateSubmitButtonState();
+            alert(`আপনি এই মাসে ইতিমধ্যে ${monthlyWithdrawLimit} বার ভাতা উত্তোলনের রিকোয়েস্ট করেছেন।`);
             return;
           }
 
-          alreadyWithdrewThisMonth = true;
+          currentMonthWithdrawCount = monthCount + 1;
           updateSubmitButtonState();
 
           await addDoc(collection(db, "salary_withdraw_requests"), {
@@ -526,14 +542,17 @@
           const cfgSnap = await getDoc(doc(db, "admin_settings", "salary_page_config"));
           const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
 
-          const startDate = cfg.startDate || cfg.withdrawStartDate || "";
-          const endDate = cfg.endDate || cfg.withdrawEndDate || "";
-          if (startDate && endDate) {
-            document.getElementById("withdrawDateRangeText").innerText = `তারিখ: ${startDate} থেকে ${endDate}`;
-          } else if (cfg.scheduleNote) {
+          const parsedLimit = parseInt(cfg.monthlyWithdrawLimit, 10);
+          monthlyWithdrawLimit = (!Number.isNaN(parsedLimit) && parsedLimit >= 1) ? parsedLimit : 1;
+
+          const startDate = cfg.withdrawStartDate || cfg.startDate || "";
+          const endDate = cfg.withdrawEndDate || cfg.endDate || "";
+          if (cfg.scheduleNote) {
             document.getElementById("withdrawDateRangeText").innerText = cfg.scheduleNote;
+          } else if (startDate && endDate) {
+            document.getElementById("withdrawDateRangeText").innerText = `তারিখ: ${startDate} থেকে ${endDate} | মাসে ${monthlyWithdrawLimit} বার`;
           } else {
-            document.getElementById("withdrawDateRangeText").innerText = "তারিখ: অ্যাডমিন নির্ধারিত সময়";
+            document.getElementById("withdrawDateRangeText").innerText = `মাসে সর্বোচ্চ ${monthlyWithdrawLimit} বার উত্তোলন`;
           }
 
           if (cfg.noticeMessage) {
