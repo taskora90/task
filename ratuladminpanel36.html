@@ -2145,6 +2145,177 @@
     });
   </script>
 
+
+
+
+  <!-- ===== রেফার কমিশন কন্ট্রোল - স্বতন্ত্র ব্লক ===== -->
+  <style>
+    .tk-rc-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 14px;
+    }
+    .tk-rc-section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #141517;
+      margin: 0 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f0f1f3;
+    }
+    .tk-rc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .tk-rc-field {
+      margin-bottom: 12px;
+    }
+    .tk-rc-grid .tk-rc-field {
+      margin-bottom: 0;
+    }
+    .tk-rc-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+    .tk-rc-field input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 13px;
+      background: #fafafa;
+      box-sizing: border-box;
+    }
+    .tk-rc-save-btn {
+      width: 100%;
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-rc-save-btn:hover { background: #15803d; }
+  </style>
+
+  <script type="module">
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+    const REF_DOC_REF = doc(db, "admin_settings", "referral_commission");
+
+    const DEFAULT_RC = {
+      packagePercent: 10,
+      taskLevel1Percent: 10,
+      taskLevel2Percent: 4
+    };
+
+    async function loadReferralCommissionSettings() {
+      try {
+        const snap = await getDoc(REF_DOC_REF);
+        const data = snap.exists() ? snap.data() : {};
+
+        const pkgVal = (data.packagePercent !== undefined && !Number.isNaN(Number(data.packagePercent)))
+          ? Number(data.packagePercent)
+          : DEFAULT_RC.packagePercent;
+
+        const l1Val = (data.taskLevel1Percent !== undefined && !Number.isNaN(Number(data.taskLevel1Percent)))
+          ? Number(data.taskLevel1Percent)
+          : DEFAULT_RC.taskLevel1Percent;
+
+        const l2Val = (data.taskLevel2Percent !== undefined && !Number.isNaN(Number(data.taskLevel2Percent)))
+          ? Number(data.taskLevel2Percent)
+          : DEFAULT_RC.taskLevel2Percent;
+
+        const pkgInp = document.getElementById("tkRcPkgPercent");
+        const l1Inp = document.getElementById("tkRcTaskL1Percent");
+        const l2Inp = document.getElementById("tkRcTaskL2Percent");
+
+        if (pkgInp) pkgInp.value = pkgVal;
+        if (l1Inp) l1Inp.value = l1Val;
+        if (l2Inp) l2Inp.value = l2Val;
+      } catch (e) {
+        console.error("Referral commission settings load error:", e);
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "referralCommission",
+      title: "রেফার কমিশন সেটিংস",
+      icon: "fa-percent",
+      badgeText: "নতুন",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">রেফার কমিশন নিয়ন্ত্রণ (%)</h3>
+
+          <div class="tk-rc-card">
+            <div class="tk-rc-section-title">📦 প্যাকেজের উপর রেফার কমিশন</div>
+            <div class="tk-rc-field" style="margin-bottom:0;">
+              <label for="tkRcPkgPercent">প্যাকেজ রেফার কমিশন (%)</label>
+              <input type="number" id="tkRcPkgPercent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
+            </div>
+          </div>
+
+          <div class="tk-rc-card">
+            <div class="tk-rc-section-title">⚙️ ডেইলি কাজের উপর রেফার কমিশন</div>
+            <div class="tk-rc-grid">
+              <div class="tk-rc-field">
+                <label for="tkRcTaskL1Percent">লেভেল ১ কমিশন (%)</label>
+                <input type="number" id="tkRcTaskL1Percent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
+              </div>
+              <div class="tk-rc-field">
+                <label for="tkRcTaskL2Percent">লেভেল ২ কমিশন (%)</label>
+                <input type="number" id="tkRcTaskL2Percent" min="0" max="100" step="0.1" value="4" placeholder="যেমন: 4">
+              </div>
+            </div>
+            <button type="button" id="tkSaveReferralCommissionBtn" class="tk-rc-save-btn">
+              <i class="fa-solid fa-check"></i> কমিশন সেটিংস সেভ করুন
+            </button>
+          </div>
+        `;
+
+        document.getElementById("tkSaveReferralCommissionBtn").addEventListener("click", async () => {
+          const packagePercent = Number(document.getElementById("tkRcPkgPercent").value);
+          const taskLevel1Percent = Number(document.getElementById("tkRcTaskL1Percent").value);
+          const taskLevel2Percent = Number(document.getElementById("tkRcTaskL2Percent").value);
+
+          if (
+            Number.isNaN(packagePercent) || packagePercent < 0 || packagePercent > 100 ||
+            Number.isNaN(taskLevel1Percent) || taskLevel1Percent < 0 || taskLevel1Percent > 100 ||
+            Number.isNaN(taskLevel2Percent) || taskLevel2Percent < 0 || taskLevel2Percent > 100
+          ) {
+            alert("দয়া করে ০ থেকে ১০০-এর মধ্যে সঠিক শতাংশ সংখ্যা দিন!");
+            return;
+          }
+
+          try {
+            await setDoc(REF_DOC_REF, {
+              packagePercent,
+              taskLevel1Percent,
+              taskLevel2Percent
+            }, { merge: true });
+            alert("✅ প্যাকেজ ও কাজের রেফার কমিশন সেভ হয়েছে!");
+          } catch (e) {
+            alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
+          }
+        });
+      },
+      onOpen: loadReferralCommissionSettings
+    });
+  </script>
+
+
+
 </body>
 </html>
 
