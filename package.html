@@ -204,6 +204,25 @@
       let userData = null;
       let allPackages = {}; 
 
+      async function getPackageCommissionAndRefundConfig() {
+        const defaultConfig = { packagePercent: 10, packageRefundPercent: 80 };
+        try {
+          const snap = await getDoc(doc(db, "admin_settings", "referral_commission"));
+          if (snap.exists()) {
+            const data = snap.data();
+            const pkgPct = Number(data.packagePercent);
+            const refPct = Number(data.packageRefundPercent);
+            return {
+              packagePercent: (!Number.isNaN(pkgPct) && pkgPct >= 0) ? pkgPct : defaultConfig.packagePercent,
+              packageRefundPercent: (!Number.isNaN(refPct) && refPct >= 0) ? refPct : defaultConfig.packageRefundPercent
+            };
+          }
+        } catch (e) {
+          console.error("Package commission/refund settings load error:", e);
+        }
+        return defaultConfig;
+      }
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
@@ -250,9 +269,7 @@
                   break;
                 }
               }
-            }
-
-            packagesArray.forEach((pkg) => {
+            }            packagesArray.forEach((pkg) => {
               const pkgLevel = Number(pkg.level || 0);
               let btnText = "প্যাকেজ কিনুন";
               let btnClass = "btn-buy";
@@ -296,7 +313,6 @@
           window.location.href = "login.html";
         }
       });
-
       window.buyPackage = async function(packageId, price, targetLevel) {
         if (!currentUser || !userData) {
           alert("দয়া করে অপেক্ষা করুন, ইউজার ডাটা লোড হচ্ছে।");
@@ -340,6 +356,7 @@
 
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
+          const { packagePercent, packageRefundPercent } = await getPackageCommissionAndRefundConfig();
 
           const bonusSpins = Number(pkgDetails.LuckySpinCount || pkgDetails.luckySpin || 0);
           const fixedCashBonus = Number(pkgDetails.fixedCashBonus || 0);
@@ -349,7 +366,7 @@
             for (let key in allPackages) {
               let p = allPackages[key];
               if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
-                previousPackageRefund = Number(p.price || 0) * 0.80;
+                previousPackageRefund = Number(p.price || 0) * (packageRefundPercent / 100);
                 break;
               }
             }
@@ -387,7 +404,7 @@
                 type: "package_refund",
                 taskNumber: "রিফান্ড",
                 title: `পূর্বের প্যাকেজ রিফান্ড`,
-                desc: `প্যাকেজ আপগ্রেড করায় পূর্বের প্যাকেজের ৮০% রিফান্ড অর্জিত হয়েছে`,
+                desc: `প্যাকেজ আপগ্রেড করায় পূর্বের প্যাকেজের ${packageRefundPercent}% রিফান্ড অর্জিত হয়েছে`,
                 amount: previousPackageRefund,
                 timestamp: serverTimestamp()
               });
@@ -421,7 +438,7 @@
               const referrerPackage = referrerData.package || 'none';
 
               if (referrerPackage !== 'none') {
-                const commissionAmount = price * 0.10; 
+                const commissionAmount = price * (packagePercent / 100);
 
                 await updateDoc(referrerRef, {
                   teamCommission: increment(commissionAmount),     
@@ -432,7 +449,7 @@
 
                 await addDoc(collection(db, "users", referrerDocId, "referralHistory"), {
                   title: "রেফার কমিশন (প্যাকেজ ক্রয়)",
-                  desc: `টিম মেম্বার '${pkgDetails.name}' ক্রয় করায় ১০% কমিশন (${commissionAmount} টাকা) এবং ${bonusSpins}টি স্পিন অর্জিত হয়েছে`,
+                  desc: `টিম মেম্বার '${pkgDetails.name}' ক্রয় করায় ${packagePercent}% কমিশন (${commissionAmount} টাকা) এবং ${bonusSpins}টি স্পিন অর্জিত হয়েছে`,
                   amount: commissionAmount,
                   timestamp: serverTimestamp()
                 });
@@ -443,7 +460,7 @@
           let msg = `অভিনন্দন! আপনার প্যাকেজ সফলভাবে সক্রিয় হয়েছে।\n`;
           msg += `• নির্দিষ্ট বোনাস: ৳ ${fixedCashBonus}\n`;
           if (previousPackageRefund > 0) {
-            msg += `• আগের প্যাকেজের ৮০% রিফান্ড: ৳ ${previousPackageRefund}\n`;
+            msg += `• আগের প্যাকেজের ${packageRefundPercent}% রিফান্ড: ৳ ${previousPackageRefund}\n`;
           }
           msg += `• মোট যোগ হলো: ৳ ${totalTaskCashBonus} মাই ক্যাশ!\n`;
           if (bonusSpins > 0) {
