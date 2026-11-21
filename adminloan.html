@@ -3,104 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>লোন ও স্যালারি অ্যাডমিন প্যানেল - TaskOra</title>
+    <title>Taskora Admin — Modular Control Console</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px; color: #2e3440; }
-        .container { max-width: 850px; margin: 0 auto; }
-        #loginBox { max-width: 350px; margin: 100px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-align: center; border: 1px solid #e2e8f0; }
-        #loginBox input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; background: #f8fafc; }
+        :root {
+            --bg-app: #f7f7f5;
+            --bg-card: #ffffff;
+            --bg-subtle: #f1f2ee;
+            --ink-primary: #18181b;
+            --ink-secondary: #52525b;
+            --ink-muted: #71717a;
+            --accent-gold: #f59e0b;
+            --accent-gold-soft: #fef3c7;
+            --accent-dark: #18181b;
+            --border-light: #e4e4e7;
+            --radius-xl: 20px;
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --shadow-card: 0 2px 10px rgba(24, 24, 27, 0.04);
+        }
 
-        .tk-panel-view { display: none; }
-        .tk-header { background: #3b4252; color: #fff; padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
-        .tk-header h2 { margin: 0; font-size: 19px; }
-        .tk-logout-btn { background: #4c566a; color: white; border: 1px solid #64748b; padding: 7px 13px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .tk-back-btn { background: #4c566a; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
-        .tk-back-btn:hover { background: #3b4252; }
+        * { box-sizing: border-box; }
 
-        /* তিনটা আলাদা প্রিমিয়াম বক্স বাটন */
-        .tk-main-three-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
-        @media (max-width: 680px) { .tk-main-three-grid { grid-template-columns: 1fr; } }
-        .tk-premium-box-btn {
-            background: linear-gradient(145deg, #2e3440, #3b4252);
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: var(--bg-app);
+            margin: 0;
+            padding: 0 0 60px 0;
+            color: var(--ink-primary);
+        }
+
+        .tk-topbar {
+            background: #141416;
             color: #ffffff;
-            border: 1px solid #4c566a;
-            border-radius: 14px;
-            padding: 18px 16px;
-            text-align: left;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #27272a;
+        }
+        .tk-brand-wrap { display: flex; align-items: center; gap: 10px; }
+        .tk-brand-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: #f59e0b;
+            color: #141416;
+            font-weight: 800;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .tk-brand-title { font-size: 15px; font-weight: 700; line-height: 1.2; color: #ffffff; }
+        .tk-brand-sub { font-size: 11px; color: #a1a1aa; line-height: 1.2; }
+
+        .tk-logout-btn {
+            background: #27272a;
+            color: #ffffff;
+            border: 1px solid #3f3f46;
+            padding: 7px 12px;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 6px 14px rgba(46, 52, 64, 0.12);
-            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            white-space: nowrap;
+        }
+        .tk-logout-btn:hover { background: #3f3f46; }
+
+        .tk-page-shell {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 18px 14px;
+        }
+
+        .tk-login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            padding: 28px 20px;
+            margin-top: 12px;
+            box-shadow: var(--shadow-card);
+            text-align: center;
+        }
+        .tk-lock-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 13px;
+            background: #18181b;
+            color: #f59e0b;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        .tk-restricted-pill {
+            display: inline-block;
+            background: var(--accent-gold-soft);
+            color: #92400e;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            margin-bottom: 8px;
+        }
+        .tk-login-title { margin: 0 0 6px 0; font-size: 22px; font-weight: 800; color: var(--ink-primary); }
+        .tk-login-sub { margin: 0 0 18px 0; font-size: 13px; color: var(--ink-secondary); }
+        .tk-login-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d4d4d8;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            margin-bottom: 12px;
+            background: #fafafa;
+            color: var(--ink-primary);
+        }
+        .tk-login-btn {
+            width: 100%;
+            background: #18181b;
+            color: #ffffff;
+            border: none;
+            padding: 13px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .tk-login-btn:hover { background: #27272a; }
+
+        .tk-workspace-kicker {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            color: #d97706;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .tk-workspace-title {
+            margin: 0 0 6px 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--ink-primary);
+        }
+        .tk-workspace-desc {
+            margin: 0 0 18px 0;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--ink-secondary);
+        }
+
+        .tk-menu-list {
             display: flex;
             flex-direction: column;
+            gap: 10px;
+        }
+        .tk-menu-row {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            text-align: left;
+            box-shadow: var(--shadow-card);
+            transition: transform 0.12s ease, border-color 0.15s ease;
+        }
+        .tk-menu-row:hover {
+            border-color: #a1a1aa;
+            transform: translateY(-1px);
+        }
+        .tk-menu-left { display: flex; align-items: center; gap: 12px; }
+        .tk-menu-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--accent-gold-soft);
+            color: #b45309;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+        .tk-menu-title { font-size: 15px; font-weight: 700; color: var(--ink-primary); line-height: 1.3; }
+        .tk-menu-sub { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+        .tk-menu-arrow { font-size: 18px; color: #a1a1aa; font-weight: 700; flex-shrink: 0; }
+
+        .tk-subpage-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .tk-back-btn {
+            background: #18181b;
+            color: #ffffff;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
             gap: 6px;
         }
-        .tk-premium-box-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(46, 52, 64, 0.18); border-color: #94a3b8; }
-        .tk-premium-box-btn.active-box { background: linear-gradient(145deg, #1e293b, #334155); border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25); }
-        .tk-box-badge { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #cbd5e1; font-weight: 700; }
-        .tk-box-title { font-size: 17px; font-weight: 700; color: #ffffff; }
-        .tk-box-sub { font-size: 12px; color: #e2e8f0; }
+        .tk-back-btn:hover { background: #27272a; }
+        .tk-page-heading { margin: 0; font-size: 19px; font-weight: 800; color: var(--ink-primary); }
 
-        .tk-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-        .tk-modal-content { background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; }
-        .tk-modal-content input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; text-align: center; background: #f8fafc; }
-        .tk-modal-btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
-        .tk-btn-close { background: #dc2626; color: white; border: none; padding: 9px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .tk-btn-save { background: #3b4252; color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .tk-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-card);
+        }
+        .tk-card h3 { margin: 0 0 12px 0; font-size: 15px; font-weight: 700; color: var(--ink-primary); }
+
+        .tk-action-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .tk-nav-pill-btn {
+            background: #18181b;
+            color: #ffffff;
+            border: none;
+            padding: 11px 12px;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tk-nav-pill-btn.secondary {
+            background: #ffffff;
+            color: #18181b;
+            border: 1px solid #d4d4d8;
+        }
+        .tk-nav-pill-btn:hover { opacity: 0.92; }
+
+        .tk-btn-approve { background: #16a34a; color: #fff; border: none; padding: 7px 12px; border-radius: 7px; cursor: pointer; font-weight: 700; font-size: 12px; }
+        .tk-btn-reject { background: #dc2626; color: #fff; border: none; padding: 7px 12px; border-radius: 7px; cursor: pointer; font-weight: 700; font-size: 12px; margin-left: 6px; }
+        .tk-btn-edit { background: #2563eb; color: #fff; border: none; padding: 6px 11px; border-radius: 7px; cursor: pointer; font-weight: 700; font-size: 12px; }
+        .tk-btn-del { background: #dc2626; color: #fff; border: none; padding: 6px 11px; border-radius: 7px; cursor: pointer; font-weight: 700; font-size: 12px; margin-left: 5px; }
+        .tk-btn-save { background: #18181b; color: #fff; border: none; padding: 11px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; width: 100%; }
+
+        .tk-field-label { display: block; font-size: 13px; font-weight: 700; color: #27272a; margin-bottom: 5px; }
+        .tk-input, .tk-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d4d4d8;
+            border-radius: 9px;
+            font-size: 13px;
+            background: #fafafa;
+            color: #18181b;
+            margin-bottom: 10px;
+        }
+        .tk-date-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .tk-date-row input { flex: 1; margin-bottom: 0; }
+
+        .tk-item-box { border: 1px solid #e4e4e7; padding: 12px; border-radius: 11px; margin-bottom: 10px; background: #fafafa; font-size: 13px; }
+        .tk-item-box p { margin: 4px 0; }
+        .tk-no-data { text-align: center; color: #71717a; padding: 14px; background: #fafafa; border: 1px dashed #d4d4d8; border-radius: 10px; font-size: 13px; }
+
+        .tk-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+        .tk-table th, .tk-table td { border: 1px solid #e4e4e7; padding: 8px; text-align: left; }
+        .tk-table th { background: #f4f4f5; color: #18181b; font-weight: 700; }
+
+        .tk-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center; padding: 15px; }
+        .tk-modal-card { background: #fff; border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .tk-modal-card h4 { margin: 0 0 12px 0; font-size: 16px; color: #18181b; }
+        .tk-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+        .tk-btn-cancel { background: #71717a; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 12px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- অ্যাডমিন লগইন -->
-        <div id="loginBox">
-            <h3>অ্যাডমিন লগইন</h3>
-            <p style="font-size: 13px; color: #64748b;">প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন</p>
-            <input type="password" id="adminPassword" placeholder="পাসওয়ার্ড দিন">
-            <button onclick="checkAdminLogin()" style="width:100%; background:#3b4252; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">লগইন করুন</button>
+    <div class="tk-topbar">
+        <div class="tk-brand-wrap">
+            <div class="tk-brand-badge">T</div>
+            <div>
+                <div class="tk-brand-title">Taskora Admin</div>
+                <div class="tk-brand-sub">Modular Control Console</div>
+            </div>
+        </div>
+        <button type="button" class="tk-logout-btn" onclick="tkAdminLogout()">↩ লগআউট</button>
+    </div>
+
+    <div class="tk-page-shell">
+        <div id="loginBox" class="tk-login-card">
+            <div class="tk-lock-icon-box">🔒</div>
+            <div><span class="tk-restricted-pill">RESTRICTED ACCESS</span></div>
+            <h1 class="tk-login-title">Admin Control Panel</h1>
+            <p class="tk-login-sub">অ্যাডমিন প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন</p>
+            <input type="password" id="adminPassword" class="tk-login-input" placeholder="অ্যাডমিন পাসওয়ার্ড লিখুন...">
+            <button type="button" class="tk-login-btn" onclick="checkAdminLogin()">Access Dashboard</button>
         </div>
 
-        <!-- মূল ড্যাশবোর্ড শেল -->
-        <div id="adminDashboard" class="tk-panel-view">
-            <div class="tk-header">
-                <h2>📋 লোন, টিম ও স্যালারি অ্যাডমিন প্যানেল</h2>
-                <button class="tk-logout-btn" onclick="location.reload()">লগআউট</button>
-            </div>
+        <div id="adminWorkspacePage" style="display: none;">
+            <div class="tk-workspace-kicker">MANAGEMENT CONSOLE</div>
+            <h1 class="tk-workspace-title">Admin Workspace</h1>
+            <p class="tk-workspace-desc">প্রতিটি ফিচার আলাদা পেজে সাজানো আছে—প্রয়োজনমতো বাটনে চাপ দিয়ে আলাদা পেজ খুলুন।</p>
 
-            <!-- তিনটা আলাদা প্রিমিয়াম বক্স বাটন -->
-            <div class="tk-main-three-grid">
-                <button type="button" id="mainBoxLoan" class="tk-premium-box-btn active-box" onclick="selectMainSection('loan')">
-                    <span class="tk-box-badge">বক্স ১ • লোন</span>
-                    <span class="tk-box-title">💳 লোন</span>
-                    <span class="tk-box-sub">লোন রিকোয়েস্ট ও লোন সেটিংস পেজ</span>
+            <div class="tk-menu-list">
+                <button type="button" class="tk-menu-row" onclick="tkNavigatePage('loanMainPage')">
+                    <div class="tk-menu-left">
+                        <div class="tk-menu-icon">💳</div>
+                        <div>
+                            <div class="tk-menu-title">লোন ম্যানেজমেন্ট</div>
+                            <div class="tk-menu-sub">লোন রিকোয়েস্ট ও লোন সেটিংস আলাদা পেজ</div>
+                        </div>
+                    </div>
+                    <div class="tk-menu-arrow">›</div>
                 </button>
-                <button type="button" id="mainBoxTeam" class="tk-premium-box-btn" onclick="selectMainSection('team')">
-                    <span class="tk-box-badge">বক্স ২ • টিম</span>
-                    <span class="tk-box-title">👥 টিম</span>
-                    <span class="tk-box-sub">মাসিক ভাতা টেবিল ও ইউজার ডিটেইলস</span>
+
+                <button type="button" class="tk-menu-row" onclick="tkNavigatePage('teamMainPage')">
+                    <div class="tk-menu-left">
+                        <div class="tk-menu-icon">👥</div>
+                        <div>
+                            <div class="tk-menu-title">টিম ও মাসিক ভাতা ধাপ</div>
+                            <div class="tk-menu-sub">রেফার ভাতা টেবিল ও ইউজার ডিটেইলস পেজ</div>
+                        </div>
+                    </div>
+                    <div class="tk-menu-arrow">›</div>
                 </button>
-                <button type="button" id="mainBoxSalary" class="tk-premium-box-btn" onclick="selectMainSection('salary')">
-                    <span class="tk-box-badge">বক্স ৩ • স্যালারি</span>
-                    <span class="tk-box-title">💰 স্যালারি</span>
-                    <span class="tk-box-sub">তারিখ ও মাসিক উইথড্র সীমা সেটিংস</span>
+
+                <button type="button" class="tk-menu-row" onclick="tkNavigatePage('salaryMainPage')">
+                    <div class="tk-menu-left">
+                        <div class="tk-menu-icon">💰</div>
+                        <div>
+                            <div class="tk-menu-title">স্যালারি ও উইথড্র রিকোয়েস্ট</div>
+                            <div class="tk-menu-sub">উইথড্র রিকোয়েস্ট, সেটিংস, স্ট্যাটাস ও ভাতা প্রাপ্ত পেজ</div>
+                        </div>
+                    </div>
+                    <div class="tk-menu-arrow">›</div>
                 </button>
             </div>
-
-            <!-- প্রতিটি ব্লকের কন্টেইনার এখানে বসবে -->
-            <div id="loanSectionHost"></div>
-            <div id="teamSectionHost" style="display:none;"></div>
-            <div id="salarySectionHost" style="display:none;"></div>
         </div>
 
-        <!-- আলাদা পেজ: লোন সেটিংস ও চলমান লোন প্রোফাইল -->
-        <div id="loanSettingsPage" class="tk-panel-view"></div>
+        <div id="loanMainPage" style="display: none;"></div>
+        <div id="loanSettingsPage" style="display: none;"></div>
 
-        <!-- আলাদা পেজ: ইউজার ডিটেইলস -->
-        <div id="teamUserDetailsPage" class="tk-panel-view"></div>
+        <div id="teamMainPage" style="display: none;"></div>
+        <div id="teamUserDetailsPage" style="display: none;"></div>
 
-        <!-- আলাদা পেজ: স্যালারি স্ট্যাটাস -->
-        <div id="salaryStatusPage" class="tk-panel-view"></div>
-
-        <!-- আলাদা পেজ: স্যালারি ভাতা প্রাপ্ত / প্রাপ্ত নয় -->
-        <div id="salaryRecipientsPage" class="tk-panel-view"></div>
+        <div id="salaryMainPage" style="display: none;"></div>
+        <div id="salarySettingsPage" style="display: none;"></div>
+        <div id="salaryStatusPage" style="display: none;"></div>
+        <div id="salaryRecipientsPage" style="display: none;"></div>
     </div>
 
     <script type="module">
@@ -120,47 +385,53 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        const ALL_PAGE_IDS = [
+            "loginBox",
+            "adminWorkspacePage",
+            "loanMainPage",
+            "loanSettingsPage",
+            "teamMainPage",
+            "teamUserDetailsPage",
+            "salaryMainPage",
+            "salarySettingsPage",
+            "salaryStatusPage",
+            "salaryRecipientsPage"
+        ];
+
+        function checkActivePackage(member) {
+            if (!member || typeof member !== "object") return false;
+            const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
+            if (!pkgVal) return false;
+            const inactiveValues = ["none", "free", "নিষ্ক্রিয়", "null", "undefined", "false", "0"];
+            return !inactiveValues.includes(pkgVal);
+        }
+
         window.tkAdminCore = {
             db,
             fs: { collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, query, where, orderBy },
             hooks: {},
+            isActivePackage: checkActivePackage,
             registerHook(name, fn) {
                 this.hooks[name] = fn;
-            },
-            isActivePackage(member) {
-                const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
-                if (!pkgVal) return false;
-                const inactiveValues = ["none", "free", "নিষ্ক্রিয়", "null", "undefined", "false", "0"];
-                return !inactiveValues.includes(pkgVal);
             }
         };
 
-        function showOnlyView(viewId) {
-            ["adminDashboard", "loanSettingsPage", "teamUserDetailsPage", "salaryStatusPage", "salaryRecipientsPage"].forEach(id => {
+        window.tkNavigatePage = async function(pageId) {
+            ALL_PAGE_IDS.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.style.display = (id === viewId) ? "block" : "none";
+                if (el) el.style.display = (id === pageId) ? "block" : "none";
             });
-        }
+            window.scrollTo({ top: 0, behavior: "smooth" });
 
-        window.tkShowView = showOnlyView;
-
-        window.selectMainSection = async function(section) {
-            showOnlyView("adminDashboard");
-            document.getElementById("mainBoxLoan").classList.toggle("active-box", section === "loan");
-            document.getElementById("mainBoxTeam").classList.toggle("active-box", section === "team");
-            document.getElementById("mainBoxSalary").classList.toggle("active-box", section === "salary");
-
-            document.getElementById("loanSectionHost").style.display = (section === "loan") ? "block" : "none";
-            document.getElementById("teamSectionHost").style.display = (section === "team") ? "block" : "none";
-            document.getElementById("salarySectionHost").style.display = (section === "salary") ? "block" : "none";
-
-            if (section === "loan" && window.tkAdminCore.hooks.onLoanTabOpen) {
-                await window.tkAdminCore.hooks.onLoanTabOpen();
-            } else if (section === "team" && window.tkAdminCore.hooks.onTeamTabOpen) {
-                await window.tkAdminCore.hooks.onTeamTabOpen();
-            } else if (section === "salary" && window.tkAdminCore.hooks.onSalaryTabOpen) {
-                await window.tkAdminCore.hooks.onSalaryTabOpen();
-            }
+            const hooks = window.tkAdminCore.hooks;
+            if (pageId === "loanMainPage" && hooks.onLoanMainOpen) await hooks.onLoanMainOpen();
+            else if (pageId === "loanSettingsPage" && hooks.onLoanSettingsOpen) await hooks.onLoanSettingsOpen();
+            else if (pageId === "teamMainPage" && hooks.onTeamMainOpen) await hooks.onTeamMainOpen();
+            else if (pageId === "teamUserDetailsPage" && hooks.onTeamUsersOpen) await hooks.onTeamUsersOpen();
+            else if (pageId === "salaryMainPage" && hooks.onSalaryMainOpen) await hooks.onSalaryMainOpen();
+            else if (pageId === "salarySettingsPage" && hooks.onSalarySettingsOpen) await hooks.onSalarySettingsOpen();
+            else if (pageId === "salaryStatusPage" && hooks.onSalaryStatusOpen) await hooks.onSalaryStatusOpen();
+            else if (pageId === "salaryRecipientsPage" && hooks.onSalaryRecipientsOpen) await hooks.onSalaryRecipientsOpen();
         };
 
         window.checkAdminLogin = async function() {
@@ -168,316 +439,300 @@
             const correctPassword = "TarekHasan@36";
 
             if (pass === correctPassword) {
-                document.getElementById('loginBox').style.display = "none";
-                await window.selectMainSection("loan");
+                document.getElementById('adminPassword').value = "";
+                await window.tkNavigatePage("adminWorkspacePage");
             } else {
                 alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
             }
         };
+
+        window.tkAdminLogout = async function() {
+            await window.tkNavigatePage("loginBox");
+        };
     </script>
-
-
-
-<!-- ===== ব্লক ১: লোন - স্বতন্ত্র ব্লক ===== -->
-<style>
-    .tk-loan-card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 18px; box-shadow: 0 3px 10px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; }
-    .tk-loan-card h3 { margin-top: 0; color: #3b4252; font-size: 16px; margin-bottom: 14px; }
-    .tk-loan-top-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-    .tk-loan-settings-btn { background: #3b4252; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
-    .tk-loan-settings-btn:hover { background: #2e3440; }
-    .tk-loan-setting-row { display: flex; gap: 15px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
-    .tk-loan-setting-row label { flex: 1; min-width: 180px; font-weight: 600; font-size: 14px; color: #3b4252; }
-    .tk-loan-setting-row input { flex: 2; min-width: 200px; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; color: #2e3440; box-sizing: border-box; }
-    .tk-loan-save-btn { background: #3b4252; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-    .tk-loan-req-card { background: #f8fafc; padding: 15px 18px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .tk-loan-req-info h4 { margin: 0 0 5px 0; color: #2e3440; }
-    .tk-loan-req-info p { margin: 3px 0; font-size: 14px; color: #4c566a; }
-    .tk-loan-btn-group button { padding: 8px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-left: 5px; }
-    .tk-loan-btn-approve { background-color: #16a34a; color: white; }
-    .tk-loan-btn-reject { background-color: #dc2626; color: white; }
-    .tk-loan-no-data { text-align: center; color: #64748b; background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px dashed #cbd5e1; font-size: 14px; }
-    .tk-loan-search { width: 100%; padding: 10px 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #f8fafc; color: #2e3440; }
-    .tk-loan-profile-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-    .tk-loan-profile-card p { margin: 4px 0; font-size: 14px; color: #2e3440; }
-    .tk-loan-action-group { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .tk-loan-btn-edit { background: #3b4252; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; }
-    .tk-loan-btn-del { background: #dc2626; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; }
-</style>
-
-<div id="loanEditModal" class="tk-modal">
-    <div class="tk-modal-content">
-        <h3 style="margin-top:0; font-size:16px;">ইউজারের লোন তথ্য এডিট করুন</h3>
+<div id="loanEditModal" class="tk-modal-backdrop">
+    <div class="tk-modal-card">
+        <h4>✏️ চলমান লোন এডিট করুন</h4>
         <input type="hidden" id="tkEditLoanId">
-        <label style="font-size:13px; font-weight:bold; display:block; text-align:left;">মূল লোন (Amount):</label>
-        <input type="number" id="tkEditAmountInput" placeholder="মূল লোন">
-        <label style="font-size:13px; font-weight:bold; display:block; text-align:left;">বকেয়া পরিমাণ (Due Amount):</label>
-        <input type="number" id="tkEditDueInput" placeholder="বকেয়া পরিমাণ">
-        <div class="tk-modal-btn-group">
-            <button class="tk-btn-save" onclick="tkSaveEditedLoan()">সংরক্ষণ করুন</button>
-            <button class="tk-btn-close" onclick="tkCloseLoanEditModal()">বাতিল</button>
+        <p id="tkEditLoanUserInfo" style="font-size:13px; color:#52525b; margin:0 0 10px 0;"></p>
+
+        <label class="tk-field-label">মোট লোন অ্যামাউন্ট (৳):</label>
+        <input type="number" id="tkEditLoanAmountInput" class="tk-input" min="0" step="0.01">
+
+        <label class="tk-field-label">বকেয়া (Due) অ্যামাউন্ট (৳):</label>
+        <input type="number" id="tkEditLoanDueInput" class="tk-input" min="0" step="0.01">
+
+        <label class="tk-field-label">লোনের স্ট্যাটাস:</label>
+        <select id="tkEditLoanStatusSelect" class="tk-select">
+            <option value="active">active (চলমান)</option>
+            <option value="pending">pending (পেন্ডিং)</option>
+            <option value="paid">paid (পরিশোধিত)</option>
+        </select>
+
+        <div class="tk-modal-actions">
+            <button type="button" class="tk-btn-cancel" onclick="tkCloseLoanEditModal()">বাতিল</button>
+            <button type="button" class="tk-btn-approve" onclick="tkSaveLoanEdit()">সেভ করুন</button>
         </div>
     </div>
 </div>
 
 <script type="module">
     const { db, fs, registerHook } = window.tkAdminCore;
-    const { collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, query, where, orderBy } = fs;
+    const { collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment } = fs;
 
-    let tkPackageList = [];
-    let tkAllLoansCache = [];
+    let tkLoanConfigCache = { none: 500 };
+    let tkActiveLoansCache = [];
 
-    function mountLoanBlockUI() {
-        document.getElementById("loanSectionHost").innerHTML = `
-            <div class="tk-loan-top-bar">
-                <h3 style="margin:0; color:#3b4252;">📥 পেন্ডিং লোন রিকোয়েস্টসমূহ</h3>
-                <button type="button" class="tk-loan-settings-btn" onclick="tkOpenLoanSettingsPage()">⚙️ লোন সেটিংস</button>
+    function mountLoanPages() {
+        document.getElementById("loanMainPage").innerHTML = `
+            <div class="tk-subpage-header">
+                <button type="button" class="tk-back-btn" onclick="tkNavigatePage('adminWorkspacePage')">← ওয়ার্কস্পেস</button>
+                <h2 class="tk-page-heading">💳 লোন রিকোয়েস্ট</h2>
+                <button type="button" class="tk-nav-pill-btn secondary" onclick="tkNavigatePage('loanSettingsPage')">⚙️ লোন সেটিংস</button>
             </div>
-            <div id="tkLoanRequestsList">
-                <p style="text-align:center;">ডাটা লোড হচ্ছে...</p>
+
+            <div class="tk-card">
+                <h3>💳 পেন্ডিং লোন রিকোয়েস্ট</h3>
+                <div id="tkLoanRequestsList">
+                    <div class="tk-no-data">লোড হচ্ছে...</div>
+                </div>
             </div>
         `;
 
         document.getElementById("loanSettingsPage").innerHTML = `
-            <button class="tk-back-btn" onclick="tkBackFromLoanSettings()">← মূল প্যানেলে ফিরে যান</button>
-            <div class="tk-header" style="margin-top: 5px;">
-                <h2>⚙️ লোন সেটিংস ও চলমান লোন প্রোফাইল</h2>
+            <div class="tk-subpage-header">
+                <button type="button" class="tk-back-btn" onclick="tkNavigatePage('loanMainPage')">← লোন পেজে ফিরুন</button>
+                <h2 class="tk-page-heading">⚙️ লোন সেটিংস</h2>
             </div>
 
-            <div class="tk-loan-card">
-                <h3>⚙️ প্যাকেজ অনুযায়ী লোন অ্যামাউন্ট কনফিগার করুন</h3>
-                <div id="tkDynamicPackageSettings">
-                    <p>প্যাকেজসমূহ লোড হচ্ছে...</p>
+            <div class="tk-card">
+                <h3>⚙️ প্যাকেজ অনুযায়ী লোন অ্যামাউন্ট সেট করুন</h3>
+                <div id="tkPackageLoanConfigInputs">
+                    <div class="tk-no-data">প্যাকেজ লিস্ট লোড হচ্ছে...</div>
                 </div>
-                <button class="tk-loan-save-btn" onclick="tkSaveLoanSettings()">সেটিংস সেভ করুন</button>
+                <button type="button" class="tk-btn-save" style="margin-top:10px;" onclick="tkSaveLoanConfig()">লোন সেটিংস সেভ করুন</button>
             </div>
 
-            <div class="tk-loan-card">
-                <h3>👤 চলমান ও পেন্ডিং লোন কন্ট্রোল</h3>
-                <input type="text" id="tkLoanSearchInput" class="tk-loan-search" placeholder="🔍 নাম বা ফোন নম্বর দিয়ে সার্চ করুন..." onkeyup="tkFilterLoanProfiles()">
-                <div id="tkAdminLoanListContainer">
-                    <p style="text-align:center;">ডেটা লোড হচ্ছে...</p>
+            <div class="tk-card">
+                <h3>📋 চলমান ও পেন্ডিং লোন কন্ট্রোল</h3>
+                <input type="text" id="tkActiveLoanSearchInput" class="tk-input" placeholder="🔍 ইউজারের নাম বা ফোন দিয়ে লোন খুঁজুন..." onkeyup="tkFilterActiveLoans()">
+                <div id="tkActiveLoansList">
+                    <div class="tk-no-data">চলমান লোন লোড হচ্ছে...</div>
                 </div>
             </div>
         `;
     }
 
-    async function tkLoadPackagesAndLoanSettings() {
-        const settingsContainer = document.getElementById('tkDynamicPackageSettings');
-        try {
-            const q = query(collection(db, "packages"), orderBy("level", "asc"));
-            const querySnapshot = await getDocs(q);
-
-            tkPackageList = [];
-            querySnapshot.forEach((docSnap) => tkPackageList.push(docSnap.data()));
-
-            const settingsSnap = await getDoc(doc(db, "admin_settings", "loan_config"));
-            const savedConfig = settingsSnap.exists() ? settingsSnap.data() : {};
-
-            let html = `
-                <div class="tk-loan-setting-row">
-                    <label><strong>কোনো প্যাকেজ নেই (Free User / No Package):</strong></label>
-                    <input type="number" id="tk_loan_pkg_none" value="${savedConfig['none'] || 0}" placeholder="লোন অ্যামাউন্ট">
-                </div>
-            `;
-
-            tkPackageList.forEach((pkg) => {
-                const savedVal = savedConfig[pkg.packageId] !== undefined ? savedConfig[pkg.packageId] : (pkg.price * 0.5);
-                html += `
-                    <div class="tk-loan-setting-row">
-                        <label><strong>${pkg.name} (ID: ${pkg.packageId}):</strong></label>
-                        <input type="number" id="tk_loan_pkg_${pkg.packageId}" value="${savedVal}" placeholder="লোন অ্যামাউন্ট">
-                    </div>
-                `;
-            });
-
-            settingsContainer.innerHTML = html;
-        } catch (error) {
-            console.error("Error loading packages/settings:", error);
-            settingsContainer.innerHTML = "<p style='color:red;'>প্যাকেজ তথ্য লোড করতে সমস্যা হয়েছে।</p>";
-        }
-    }
-
-    window.tkSaveLoanSettings = async function() {
-        try {
-            const configToSave = {};
-            configToSave['none'] = Number(document.getElementById('tk_loan_pkg_none').value) || 0;
-
-            tkPackageList.forEach((pkg) => {
-                const inputEl = document.getElementById(`tk_loan_pkg_${pkg.packageId}`);
-                if (inputEl) configToSave[pkg.packageId] = Number(inputEl.value) || 0;
-            });
-
-            await setDoc(doc(db, "admin_settings", "loan_config"), configToSave, { merge: true });
-            alert("প্যাকেজভিত্তিক লোন সেটিংস সফলভাবে সেভ হয়েছে!");
-        } catch (error) {
-            console.error("Error saving loan settings:", error);
-            alert("সেটিংস সেভ করতে সমস্যা হয়েছে।");
-        }
-    };
-
     async function tkLoadLoanRequests() {
-        const listContainer = document.getElementById('tkLoanRequestsList');
-        if (!listContainer) return;
-        listContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
-
-        try {
-            const q = query(collection(db, "loan_requests"), where("status", "==", "pending"));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                listContainer.innerHTML = `<div class="tk-loan-no-data">এই মুহূর্তে কোনো নতুন লোন রিকোয়েস্ট নেই।</div>`;
-                return;
-            }
-
-            let html = "";
-            querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const reqId = docSnap.id;
-                html += `
-                    <div class="tk-loan-req-card">
-                        <div class="tk-loan-req-info">
-                            <h4>নাম: ${data.userName || "N/A"}</h4>
-                            <p>ফোন: ${data.userPhone || "N/A"}</p>
-                            <p>প্যাকেজ: <strong>${data.userPackage || "কোনো প্যাকেজ নেই"}</strong></p>
-                            <p>লোনের পরিমাণ: <strong>৳ ${data.amount}</strong></p>
-                        </div>
-                        <div class="tk-loan-btn-group">
-                            <button class="tk-loan-btn-approve" onclick="tkHandleLoan('${reqId}', '${data.userId}', ${data.amount}, 'approved')">অ্যাপ্রুভ</button>
-                            <button class="tk-loan-btn-reject" onclick="tkHandleLoan('${reqId}', '${data.userId}', ${data.amount}, 'rejected')">রিজেক্ট</button>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-        } catch (error) {
-            console.error("Error loading loan requests:", error);
-            listContainer.innerHTML = `<div class="tk-loan-no-data" style="color:red;">ডাটা লোড করতে সমস্যা হয়েছে।</div>`;
-        }
-    }
-
-    window.tkHandleLoan = async function(requestId, userId, amount, action) {
-        const confirmMsg = action === 'approved'
-            ? "আপনি কি নিশ্চিতভাবে এই লোনটি অ্যাপ্রুভ করতে চান? এটি ইউজারের My Cash-এ জমা হবে।"
-            : "আপনি কি এই লোন রিকোয়েস্টটি রিজেক্ট করতে চান?";
-        if (!confirm(confirmMsg)) return;
-
-        try {
-            const requestRef = doc(db, "loan_requests", requestId);
-            if (action === 'approved') {
-                await updateDoc(doc(db, "users", userId), {
-                    myCash: increment(amount),
-                    loan_status: "active"
-                });
-                await updateDoc(requestRef, {
-                    status: "approved",
-                    dueAmount: amount
-                });
-                alert("লোন অ্যাপ্রুভ করা হয়েছে এবং ইউজারের My Cash-এ যোগ হয়েছে!");
-            } else {
-                await updateDoc(requestRef, { status: "rejected" });
-                alert("লোন রিকোয়েস্টটি রিজেক্ট করা হয়েছে।");
-            }
-            tkLoadLoanRequests();
-        } catch (error) {
-            console.error("Error updating loan:", error);
-            alert("অপারেশন সম্পন্ন করতে সমস্যা হয়েছে: " + error.message);
-        }
-    };
-
-    window.tkOpenLoanSettingsPage = async function() {
-        window.tkShowView("loanSettingsPage");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        await tkLoadPackagesAndLoanSettings();
-        await tkLoadLoanProfiles();
-    };
-
-    window.tkBackFromLoanSettings = async function() {
-        await window.selectMainSection("loan");
-    };
-
-    async function tkLoadLoanProfiles() {
-        const container = document.getElementById('tkAdminLoanListContainer');
-        if (!container) return;
-        container.innerHTML = "<p style='text-align:center;'>ডেটা লোড হচ্ছে...</p>";
-        document.getElementById('tkLoanSearchInput').value = "";
+        const listEl = document.getElementById('tkLoanRequestsList');
+        if (!listEl) return;
+        listEl.innerHTML = "<div class='tk-no-data'>লোড হচ্ছে...</div>";
 
         try {
             const querySnapshot = await getDocs(collection(db, "loan_requests"));
-            tkAllLoansCache = [];
-            querySnapshot.forEach(docSnap => tkAllLoansCache.push({ id: docSnap.id, data: docSnap.data() }));
-            tkRenderLoanProfiles(tkAllLoansCache);
+            let html = "";
+            querySnapshot.forEach((docSnap) => {
+                const d = docSnap.data();
+                if (d.status === "pending") {
+                    html += `
+                        <div class="tk-item-box">
+                            <p><strong>নাম:</strong> ${d.userName || 'নামবিহীন'} (${d.userPhone || ''})</p>
+                            <p><strong>প্যাকেজ:</strong> ${d.packageName || 'None'} | <strong>লোনের পরিমাণ:</strong> ৳ ${d.amount}</p>
+                            <p><strong>মেয়াদ:</strong> ${d.days || 15} দিন (প্রতিদিন ৳ ${d.dailyInstallment || 0} কাটা হবে)</p>
+                            <div style="margin-top:8px;">
+                                <button class="tk-btn-approve" onclick="tkApproveLoan('${docSnap.id}', '${d.userId}', ${d.amount}, ${d.days || 15}, ${d.dailyInstallment || 0})">অ্যাপ্রুভ</button>
+                                <button class="tk-btn-reject" onclick="tkRejectLoan('${docSnap.id}')">রিজেক্ট</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            listEl.innerHTML = html || "<div class='tk-no-data'>কোনো পেন্ডিং লোন রিকোয়েস্ট নেই।</div>";
         } catch (err) {
-            console.error("Error loading admin loan profiles:", err);
-            container.innerHTML = "<p style='color:red; text-align:center;'>লোড করতে সমস্যা হয়েছে।</p>";
+            console.error("Error loading loan requests:", err);
+            listEl.innerHTML = "<div class='tk-no-data'>লোন রিকোয়েস্ট লোড করা যায়নি।</div>";
         }
     }
 
-    function tkRenderLoanProfiles(loansArray) {
-        const activeLoans = loansArray.filter(item => {
-            const status = item.data.status;
-            const due = item.data.dueAmount !== undefined ? Number(item.data.dueAmount) : Number(item.data.amount);
-            return status !== 'paid' && due > 0 && (status === 'approved' || status === 'active' || status === 'pending');
-        }).sort((a, b) => {
-            const timeA = a.data.requestTime ? a.data.requestTime.toMillis() : 0;
-            const timeB = b.data.requestTime ? b.data.requestTime.toMillis() : 0;
-            return timeB - timeA;
+    window.tkApproveLoan = async function(reqId, userId, amount, days, dailyInstallment) {
+        if (!confirm(`আপনি কি ৳ ${amount} লোন অ্যাপ্রুভ করতে চান?`)) return;
+        try {
+            const loanAmt = Number(amount) || 0;
+            const totalDays = Number(days) || 15;
+            const perDay = Number(dailyInstallment) || Number((loanAmt / totalDays).toFixed(2));
+
+            await updateDoc(doc(db, "users", userId), {
+                myCash: increment(loanAmt),
+                loan_status: "active"
+            });
+
+            await updateDoc(doc(db, "loan_requests", reqId), {
+                status: "approved",
+                dueAmount: loanAmt,
+                totalDays: totalDays,
+                dailyInstallment: perDay,
+                paidInstallments: 0,
+                approvedAt: new Date().toISOString()
+            });
+
+            alert("লোন সফলভাবে অ্যাপ্রুভ করা হয়েছে!");
+            await tkLoadLoanRequests();
+        } catch (err) {
+            console.error("Error approving loan:", err);
+            alert("লোন অ্যাপ্রুভ করতে সমস্যা হয়েছে!");
+        }
+    };
+
+    window.tkRejectLoan = async function(reqId) {
+        if (!confirm("আপনি কি এই লোন রিকোয়েস্ট রিজেক্ট করতে চান?")) return;
+        try {
+            await updateDoc(doc(db, "loan_requests", reqId), { status: "rejected" });
+            alert("লোন রিকোয়েস্ট রিজেক্ট করা হয়েছে।");
+            await tkLoadLoanRequests();
+        } catch (err) {
+            console.error("Error rejecting loan:", err);
+            alert("রিজেক্ট করতে সমস্যা হয়েছে!");
+        }
+    };
+    async function tkLoadLoanSettingsPage() {
+        const container = document.getElementById('tkPackageLoanConfigInputs');
+        if (container) container.innerHTML = "<div class='tk-no-data'>প্যাকেজ লিস্ট লোড হচ্ছে...</div>";
+
+        try {
+            const cfgSnap = await getDoc(doc(db, "admin_settings", "loan_config"));
+            tkLoanConfigCache = cfgSnap.exists() ? cfgSnap.data() : { none: 500 };
+
+            const pkgSnap = await getDocs(collection(db, "packages"));
+            let html = `
+                <div style="margin-bottom:10px;">
+                    <label class="tk-field-label">ফ্রি ইউজার (প্যাকেজ নেই - none) লোন (৳):</label>
+                    <input type="number" class="tk-input tk-pkg-loan-input" data-pkg-key="none" value="${tkLoanConfigCache.none ?? 500}">
+                </div>
+            `;
+
+            pkgSnap.forEach((pDoc) => {
+                const pData = pDoc.data();
+                const pkgKey = pDoc.id;
+                const pkgTitle = pData.name || pData.title || pkgKey;
+                const currentVal = tkLoanConfigCache[pkgKey] ?? tkLoanConfigCache[pkgTitle] ?? 0;
+
+                html += `
+                    <div style="margin-bottom:10px;">
+                        <label class="tk-field-label">${pkgTitle} (${pkgKey}) লোন (৳):</label>
+                        <input type="number" class="tk-input tk-pkg-loan-input" data-pkg-key="${pkgKey}" value="${currentVal}">
+                    </div>
+                `;
+            });
+
+            if (container) container.innerHTML = html;
+            await tkLoadActiveLoansList();
+        } catch (err) {
+            console.error("Error loading loan settings:", err);
+            if (container) container.innerHTML = "<div class='tk-no-data'>লোন সেটিংস লোড করা যায়নি।</div>";
+        }
+    }
+
+    window.tkSaveLoanConfig = async function() {
+        const inputs = document.querySelectorAll('.tk-pkg-loan-input');
+        const newConfig = {};
+        inputs.forEach((inp) => {
+            const key = inp.getAttribute('data-pkg-key');
+            const val = parseFloat(inp.value);
+            newConfig[key] = isNaN(val) ? 0 : val;
         });
 
-        if (activeLoans.length === 0) {
-            document.getElementById('tkAdminLoanListContainer').innerHTML = "<div class='tk-loan-no-data'>এই মুহূর্তে কোনো চলমান বা পেন্ডিং লোন নেই।</div>";
+        try {
+            await setDoc(doc(db, "admin_settings", "loan_config"), newConfig, { merge: true });
+            tkLoanConfigCache = { ...tkLoanConfigCache, ...newConfig };
+            alert("প্যাকেজ অনুযায়ী লোন সেটিংস সেভ হয়েছে!");
+        } catch (err) {
+            console.error("Error saving loan config:", err);
+            alert("লোন সেটিংস সেভ করতে সমস্যা হয়েছে!");
+        }
+    };
+
+    async function tkLoadActiveLoansList() {
+        const listEl = document.getElementById('tkActiveLoansList');
+        if (!listEl) return;
+        listEl.innerHTML = "<div class='tk-no-data'>চলমান লোন লোড হচ্ছে...</div>";
+
+        try {
+            const snap = await getDocs(collection(db, "loan_requests"));
+            const items = [];
+            snap.forEach((dSnap) => {
+                const d = dSnap.data();
+                if (d.status === "active" || d.status === "pending") {
+                    items.push({ id: dSnap.id, ...d });
+                }
+            });
+
+            tkActiveLoansCache = items;
+            tkRenderActiveLoansList(tkActiveLoansCache);
+        } catch (err) {
+            console.error("Error loading active loans:", err);
+            listEl.innerHTML = "<div class='tk-no-data'>চলমান লোন লোড করা যায়নি।</div>";
+        }
+    }
+
+    function tkRenderActiveLoansList(list) {
+        const listEl = document.getElementById('tkActiveLoansList');
+        if (!listEl) return;
+
+        if (!list || list.length === 0) {
+            listEl.innerHTML = "<div class='tk-no-data'>কোনো চলমান বা পেন্ডিং লোন নেই।</div>";
             return;
         }
 
         let html = "";
-        activeLoans.forEach(item => {
-            const loan = item.data;
-            const loanId = item.id;
-            const originalAmount = Number(loan.amount || 0);
-            const dueAmount = loan.dueAmount !== undefined ? Number(loan.dueAmount) : originalAmount;
-            const paidAmount = originalAmount - dueAmount;
+        list.forEach((item) => {
+            const loanAmt = Number(item.amount || 0);
+            const dueAmt = Number(item.dueAmount !== undefined ? item.dueAmount : loanAmt);
+            const paidAmt = Math.max(0, Number((loanAmt - dueAmt).toFixed(2)));
+            const historyArr = Array.isArray(item.deductionHistory) ? item.deductionHistory : [];
 
-            let historyText = "কোনো পেমেন্ট কাটার হিস্ট্রি নেই";
-            if (loan.history && loan.history.length > 0) {
-                historyText = loan.history.map(h => `• ${h.date}: ৳${h.amount} (${h.type})`).join("<br>");
+            let historyHtml = "";
+            if (historyArr.length > 0) {
+                historyHtml = `<div style="margin-top:6px; background:#fff; border:1px solid #e4e4e7; padding:8px; border-radius:8px; font-size:12px;">
+                    <strong>কিস্তি কাটার হিস্ট্রি:</strong>
+                    <ul style="margin:4px 0 0 16px; padding:0;">
+                        ${historyArr.map(h => `<li>${h.date || h.deductedAt || 'তারিখ নেই'}: ৳ ${h.amount || 0} (${h.note || 'দৈনিক কিস্তি'})</li>`).join("")}
+                    </ul>
+                </div>`;
             }
 
-            const statusBadge = loan.status === 'pending'
-                ? '<span style="color:orange; font-weight:bold;">পেন্ডিং (Pending)</span>'
-                : '<span style="color:green; font-weight:bold;">চলমান (Active)</span>';
-
+            const safeName = (item.userName || 'নামবিহীন').replace(/'/g, "\\'");
             html += `
-                <div class="tk-loan-profile-card">
-                    <p><strong>ইউজার নাম:</strong> ${loan.userName || "N/A"} (${loan.userPhone || "N/A"})</p>
-                    <p><strong>প্যাকেজ:</strong> ${loan.userPackage || "N/A"}</p>
-                    <p><strong>মূল লোন:</strong> ৳${originalAmount} | <strong>বকেয়া (Due):</strong> <span style="color:red; font-weight:bold;">৳${dueAmount}</span></p>
-                    <p><strong>মোট পরিশোধিত:</strong> ৳${paidAmount >= 0 ? paidAmount : 0} | <strong>স্ট্যাটাস:</strong> ${statusBadge}</p>
-                    <div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-top:6px; font-size:12px;">
-                        <strong>হিস্ট্রি ও কাটার বিবরণ:<br></strong> ${historyText}
-                    </div>
-                    <div class="tk-loan-action-group">
-                        <button class="tk-loan-btn-edit" onclick="tkOpenLoanEditModal('${loanId}', ${originalAmount}, ${dueAmount})">এডিট</button>
-                        <button class="tk-loan-btn-del" onclick="tkDeleteLoanRecord('${loanId}')">ডিলিট</button>
+                <div class="tk-item-box">
+                    <p><strong>নাম:</strong> ${item.userName || 'নামবিহীন'} (${item.userPhone || 'ফোন নেই'})</p>
+                    <p><strong>স্ট্যাটাস:</strong> ${item.status} | <strong>মূল লোন:</strong> ৳ ${loanAmt} | <strong>বকেয়া (Due):</strong> <span style="color:#dc2626; font-weight:700;">৳ ${dueAmt}</span></p>
+                    <p><strong>পরিশোধিত টাকা:</strong> ৳ ${paidAmt}</p>
+                    ${historyHtml}
+                    <div style="margin-top:8px;">
+                        <button class="tk-btn-edit" onclick="tkOpenLoanEditModal('${item.id}', '${safeName}', ${loanAmt}, ${dueAmt}, '${item.status}')">এডিট</button>
+                        <button class="tk-btn-del" onclick="tkDeleteLoanRecord('${item.id}', '${item.userId || ''}')">ডিলিট</button>
                     </div>
                 </div>
             `;
         });
-        document.getElementById('tkAdminLoanListContainer').innerHTML = html;
+
+        listEl.innerHTML = html;
     }
 
-    window.tkFilterLoanProfiles = function() {
-        const queryText = document.getElementById('tkLoanSearchInput').value.toLowerCase().trim();
-        const filtered = tkAllLoansCache.filter(item => {
-            const name = (item.data.userName || "").toLowerCase();
-            const phone = (item.data.userPhone || "").toLowerCase();
-            return name.includes(queryText) || phone.includes(queryText);
-        });
-        tkRenderLoanProfiles(filtered);
+    window.tkFilterActiveLoans = function() {
+        const q = (document.getElementById('tkActiveLoanSearchInput')?.value || "").toLowerCase().trim();
+        const filtered = tkActiveLoansCache.filter(item =>
+            (item.userName || "").toLowerCase().includes(q) ||
+            (item.userPhone || "").toLowerCase().includes(q)
+        );
+        tkRenderActiveLoansList(filtered);
     };
 
-    window.tkOpenLoanEditModal = function(loanId, amount, due) {
+    window.tkOpenLoanEditModal = function(loanId, userName, amount, dueAmount, status) {
         document.getElementById('tkEditLoanId').value = loanId;
-        document.getElementById('tkEditAmountInput').value = amount;
-        document.getElementById('tkEditDueInput').value = due;
+        document.getElementById('tkEditLoanUserInfo').innerText = `ইউজার: ${userName}`;
+        document.getElementById('tkEditLoanAmountInput').value = amount;
+        document.getElementById('tkEditLoanDueInput').value = dueAmount;
+        document.getElementById('tkEditLoanStatusSelect').value = status || "active";
         document.getElementById('loanEditModal').style.display = 'flex';
     };
 
@@ -485,79 +740,70 @@
         document.getElementById('loanEditModal').style.display = 'none';
     };
 
-    window.tkSaveEditedLoan = async function() {
+    window.tkSaveLoanEdit = async function() {
         const loanId = document.getElementById('tkEditLoanId').value;
-        const newAmount = parseFloat(document.getElementById('tkEditAmountInput').value);
-        const newDue = parseFloat(document.getElementById('tkEditDueInput').value);
-        if (isNaN(newAmount) || isNaN(newDue)) {
-            alert("দয়া করে সঠিক সংখ্যা লিখুন!");
+        const amountVal = parseFloat(document.getElementById('tkEditLoanAmountInput').value);
+        const dueVal = parseFloat(document.getElementById('tkEditLoanDueInput').value);
+        let statusVal = document.getElementById('tkEditLoanStatusSelect').value;
+
+        if (isNaN(amountVal) || amountVal < 0 || isNaN(dueVal) || dueVal < 0) {
+            alert("সঠিক লোন ও বকেয়ার পরিমাণ দিন।");
             return;
         }
+        if (dueVal === 0) statusVal = "paid";
+
         try {
+            const targetLoan = tkActiveLoansCache.find(x => x.id === loanId);
             await updateDoc(doc(db, "loan_requests", loanId), {
-                amount: newAmount,
-                dueAmount: newDue,
-                status: newDue <= 0 ? "paid" : "approved"
+                amount: amountVal,
+                dueAmount: dueVal,
+                status: statusVal
             });
-            alert("লোন তথ্য সফলভাবে আপডেট করা হয়েছে!");
+
+            if (targetLoan && targetLoan.userId && statusVal === "paid") {
+                await updateDoc(doc(db, "users", targetLoan.userId), { loan_status: "none" });
+            }
+
+            alert("লোন তথ্য আপডেট হয়েছে!");
             tkCloseLoanEditModal();
-            await tkLoadLoanProfiles();
+            await tkLoadActiveLoansList();
         } catch (err) {
             console.error("Error updating loan:", err);
-            alert("আপডেট করতে সমস্যা হয়েছে।");
+            alert("লোন আপডেট করতে সমস্যা হয়েছে।");
         }
     };
 
-    window.tkDeleteLoanRecord = async function(loanId) {
-        if (!confirm("আপনি কি নিশ্চিতভাবে এই লোন রেকর্ডটি ডিলিট করতে চান?")) return;
+    window.tkDeleteLoanRecord = async function(loanId, userId) {
+        if (!confirm("আপনি কি এই লোন রেকর্ডটি স্থায়ীভাবে ডিলিট করতে চান?")) return;
         try {
             await deleteDoc(doc(db, "loan_requests", loanId));
-            alert("লোন রেকর্ড সফলভাবে ডিলিট করা হয়েছে!");
-            await tkLoadLoanProfiles();
+            if (userId) {
+                await updateDoc(doc(db, "users", userId), { loan_status: "none" });
+            }
+            alert("লোন রেকর্ড ডিলিট হয়েছে!");
+            await tkLoadActiveLoansList();
+            await tkLoadLoanRequests();
         } catch (err) {
             console.error("Error deleting loan:", err);
-            alert("ডিলিট করতে সমস্যা হয়েছে।");
+            alert("লোন ডিলিট করতে সমস্যা হয়েছে।");
         }
     };
 
-    mountLoanBlockUI();
-    registerHook("onLoanTabOpen", tkLoadLoanRequests);
+    mountLoanPages();
+    registerHook("onLoanMainOpen", tkLoadLoanRequests);
+    registerHook("onLoanSettingsOpen", tkLoadLoanSettingsPage);
 </script>
 
-
-
-<!-- ===== ব্লক ২: টিম - স্বতন্ত্র ব্লক ===== -->
-<style>
-    .tk-team-card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 18px; box-shadow: 0 3px 10px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; }
-    .tk-team-card h3 { margin-top: 0; color: #3b4252; font-size: 16px; margin-bottom: 14px; }
-    .tk-team-top-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-    .tk-team-details-btn { background: #4c566a; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
-    .tk-team-details-btn:hover { background: #3b4252; }
-    .tk-team-form-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-    .tk-team-form-row input { flex: 1; min-width: 140px; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; }
-    .tk-team-add-btn { background: #3b4252; color: #fff; border: none; padding: 9px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .tk-team-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-    .tk-team-table th, .tk-team-table td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
-    .tk-team-table th { background: #f4f5f7; color: #3b4252; }
-    .tk-team-search { width: 100%; padding: 10px 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #f8fafc; color: #2e3440; }
-    .tk-team-user-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-    .tk-team-user-card p { margin: 4px 0; font-size: 14px; color: #2e3440; }
-    .tk-team-btn-group { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .tk-team-btn-edit { background: #3b4252; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; }
-    .tk-team-btn-del { background: #dc2626; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; }
-    .tk-team-no-data { text-align: center; color: #64748b; background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px dashed #cbd5e1; font-size: 14px; }
-</style>
-
-<div id="userSalaryEditModal" class="tk-modal">
-    <div class="tk-modal-content">
-        <h3 style="margin-top:0; font-size:16px;">ইউজারের মাসিক ভাতা এডিট করুন</h3>
+<div id="userSalaryEditModal" class="tk-modal-backdrop">
+    <div class="tk-modal-card">
+        <h4>✏️ ইউজারের মাসিক ভাতা এডিট করুন</h4>
         <input type="hidden" id="tkEditSalaryUserId">
-        <p id="tkEditSalaryUserName" style="font-size:13px; color:#555; margin:4px 0;"></p>
-        <label style="font-size:13px; font-weight:bold; display:block; text-align:left;">মাসিক ভাতা (৳):</label>
-        <input type="number" id="tkEditUserMonthlySalaryInput" placeholder="মাসিক ভাতার পরিমাণ">
-        <div class="tk-modal-btn-group">
-            <button class="tk-btn-save" onclick="tkSaveUserMonthlySalary()">সংরক্ষণ করুন</button>
-            <button class="tk-btn-close" onclick="tkCloseUserSalaryEditModal()">বাতিল</button>
+        <p id="tkEditSalaryUserName" style="font-size:13px; color:#52525b; margin:0 0 10px 0;"></p>
+        <label class="tk-field-label">মাসিক ভাতার পরিমাণ (৳):</label>
+        <input type="number" id="tkEditUserMonthlySalaryInput" class="tk-input" min="0" step="1">
+        <div class="tk-modal-actions">
+            <button type="button" class="tk-btn-cancel" onclick="tkCloseUserSalaryEditModal()">বাতিল</button>
+            <button type="button" class="tk-btn-approve" onclick="tkSaveUserMonthlySalary()">সেভ করুন</button>
         </div>
     </div>
 </div>
@@ -579,37 +825,36 @@
         { minRef: 100, amount: 20000 }
     ];
 
-    function mountTeamBlockUI() {
-        document.getElementById("teamSectionHost").innerHTML = `
-            <div class="tk-team-top-bar">
-                <h3 style="margin:0; color:#3b4252;">📊 রেফার অনুযায়ী মাসিক ভাতা টেবিল</h3>
-                <button type="button" class="tk-team-details-btn" onclick="tkOpenUserDetailsPage()">👤 ইউজার ডিটেইলস</button>
+    function mountTeamPages() {
+        document.getElementById("teamMainPage").innerHTML = `
+            <div class="tk-subpage-header">
+                <button type="button" class="tk-back-btn" onclick="tkNavigatePage('adminWorkspacePage')">← ওয়ার্কস্পেস</button>
+                <h2 class="tk-page-heading">👥 টিম ও ভাতা ধাপ</h2>
+                <button type="button" class="tk-nav-pill-btn secondary" onclick="tkNavigatePage('teamUserDetailsPage')">👤 ইউজার ডিটেইলস</button>
             </div>
 
-            <div class="tk-team-card">
+            <div class="tk-card">
                 <h3>📊 রেফার সংখ্যা অনুযায়ী মাসিক ভাতা টেবিল (লেভেল ১ + প্যাকেজ সক্রিয়)</h3>
-                <div class="tk-team-form-row">
-                    <input type="number" id="tkTierMinRefInput" placeholder="প্যাকেজ রেফার সংখ্যা (যেমন: 12)">
-                    <input type="number" id="tkTierAmountInput" placeholder="মাসিক ভাতা টাকা (যেমন: 2000)">
-                    <button class="tk-team-add-btn" onclick="tkAddOrUpdateSalaryTier()">+ যোগ / আপডেট</button>
-                </div>
-                <div id="tkSalaryTiersTableContainer">
-                    <p>টেবিল লোড হচ্ছে...</p>
+                <input type="number" id="tkTierMinRefInput" class="tk-input" placeholder="প্যাকেজ রেফার সংখ্যা (যেমন: 12)">
+                <input type="number" id="tkTierAmountInput" class="tk-input" placeholder="মাসিক ভাতা টাকা (যেমন: 2000)">
+                <button type="button" class="tk-btn-save" onclick="tkAddOrUpdateSalaryTier()">+ যোগ / আপডেট</button>
+                <div id="tkSalaryTiersTableContainer" style="margin-top:12px;">
+                    <div class="tk-no-data">টেবিল লোড হচ্ছে...</div>
                 </div>
             </div>
         `;
 
         document.getElementById("teamUserDetailsPage").innerHTML = `
-            <button class="tk-back-btn" onclick="tkBackFromUserDetails()">← মূল প্যানেলে ফিরে যান</button>
-            <div class="tk-header" style="margin-top: 5px;">
-                <h2>👤 ইউজার ডিটেইলস (রেফার ও মাসিক ভাতা)</h2>
+            <div class="tk-subpage-header">
+                <button type="button" class="tk-back-btn" onclick="tkNavigatePage('teamMainPage')">← টিম পেজে ফিরুন</button>
+                <h2 class="tk-page-heading">👤 ইউজার ডিটেইলস</h2>
             </div>
 
-            <div class="tk-team-card">
-                <h3>👤 ইউজারের ডিটেলস</h3>
-                <input type="text" id="tkTeamUserSearchInput" class="tk-team-search" placeholder="🔍 ইউজারের নাম বা ফোন দিয়ে খুঁজুন..." onkeyup="tkFilterTeamUsers()">
+            <div class="tk-card">
+                <h3>👤 ইউজারের রেফার ও মাসিক ভাতা</h3>
+                <input type="text" id="tkTeamUserSearchInput" class="tk-input" placeholder="🔍 ইউজারের নাম বা ফোন দিয়ে খুঁজুন..." onkeyup="tkFilterTeamUsers()">
                 <div id="tkTeamUsersListContainer">
-                    <p style="text-align:center;">ইউজার তথ্য লোড হচ্ছে...</p>
+                    <div class="tk-no-data">ইউজার তথ্য লোড হচ্ছে...</div>
                 </div>
             </div>
         `;
@@ -622,68 +867,69 @@
     }
 
     async function tkFetchSalaryTiersAndUsers() {
-        const tierSnap = await getDoc(doc(db, "admin_settings", "monthly_salary_tiers"));
-        if (tierSnap.exists() && Array.isArray(tierSnap.data().tiers)) {
-            tkSalaryTiersCache = tierSnap.data().tiers;
-        } else {
-            tkSalaryTiersCache = [...tkDefaultSalaryTiers];
+        tkSalaryTiersCache = [...tkDefaultSalaryTiers];
+
+        try {
+            const tierSnap = await getDoc(doc(db, "admin_settings", "monthly_salary_tiers"));
+            if (tierSnap.exists() && Array.isArray(tierSnap.data().tiers)) {
+                tkSalaryTiersCache = tierSnap.data().tiers;
+            }
+        } catch (err) {
+            console.warn("Using default salary tiers:", err);
         }
 
-        const usersSnap = await getDocs(collection(db, "users"));
-        const allUsers = [];
-        usersSnap.forEach((d) => allUsers.push({ id: d.id, ...d.data() }));
+        tkRenderSalaryTiersTable();
 
-        tkTeamUsersCache = allUsers.map((u) => {
-            const directRefs = allUsers.filter(child => child.referredBy && u.referralCode && child.referredBy === u.referralCode);
-            const paidDirectRefs = directRefs.filter(child => isActivePackage(child));
-            const tierSalary = tkCalculateTierSalary(paidDirectRefs.length, tkSalaryTiersCache);
-            const customSalary = Number(u.monthlySalary || 0);
-            const effectiveSalary = customSalary > 0 ? customSalary : tierSalary;
+        try {
+            const usersSnap = await getDocs(collection(db, "users"));
+            const allUsers = [];
+            usersSnap.forEach((d) => allUsers.push({ id: d.id, ...d.data() }));
 
-            return {
-                id: u.id,
-                name: u.name || "নামবিহীন",
-                phone: u.phone || "নেই",
-                totalDirectRefs: directRefs.length,
-                paidDirectRefsCount: paidDirectRefs.length,
-                customSalary,
-                effectiveSalary
-            };
-        });
+            tkTeamUsersCache = allUsers.map((u) => {
+                const directRefs = allUsers.filter(child => child.referredBy && u.referralCode && child.referredBy === u.referralCode);
+                const paidDirectRefs = directRefs.filter(child => isActivePackage(child));
+                const tierSalary = tkCalculateTierSalary(paidDirectRefs.length, tkSalaryTiersCache);
+                const customSalary = Number(u.monthlySalary || 0);
+                const effectiveSalary = customSalary > 0 ? customSalary : tierSalary;
 
-        window.tkTeamUsersCache = tkTeamUsersCache;
+                return {
+                    id: u.id,
+                    name: u.name || "নামবিহীন",
+                    phone: u.phone || "নেই",
+                    totalDirectRefs: directRefs.length,
+                    paidDirectRefsCount: paidDirectRefs.length,
+                    customSalary,
+                    effectiveSalary
+                };
+            });
+
+            window.tkTeamUsersCache = tkTeamUsersCache;
+        } catch (err) {
+            console.warn("Could not load users list for team:", err);
+        }
     }
 
-    window.tkLoadTeamBlock = async function() {
-        document.getElementById('tkSalaryTiersTableContainer').innerHTML = "<p>টেবিল লোড হচ্ছে...</p>";
-        try {
-            await tkFetchSalaryTiersAndUsers();
-            tkRenderSalaryTiersTable();
-        } catch (err) {
-            console.error("Error loading team block:", err);
-            document.getElementById('tkSalaryTiersTableContainer').innerHTML = "<p style='color:red;'>টেবিল লোড করতে সমস্যা হয়েছে।</p>";
-        }
-    };
+    async function tkLoadTeamMainPage() {
+        tkRenderSalaryTiersTable();
+        await tkFetchSalaryTiersAndUsers();
+        tkRenderSalaryTiersTable();
+    }
 
-    window.tkOpenUserDetailsPage = async function() {
-        window.tkShowView("teamUserDetailsPage");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        document.getElementById('tkTeamUsersListContainer').innerHTML = "<p style='text-align:center;'>ইউজার তথ্য লোড হচ্ছে...</p>";
+    async function tkLoadTeamUsersPage() {
+        document.getElementById('tkTeamUsersListContainer').innerHTML = "<div class='tk-no-data'>ইউজার তথ্য লোড হচ্ছে...</div>";
         document.getElementById('tkTeamUserSearchInput').value = "";
         await tkFetchSalaryTiersAndUsers();
         tkRenderTeamUsersList(tkTeamUsersCache);
-    };
-
-    window.tkBackFromUserDetails = async function() {
-        await window.selectMainSection("team");
-    };
+    }
 
     function tkRenderSalaryTiersTable() {
         const container = document.getElementById('tkSalaryTiersTableContainer');
-        const sorted = [...tkSalaryTiersCache].sort((a, b) => Number(a.minRef) - Number(b.minRef));
+        if (!container) return;
+        const sourceList = tkSalaryTiersCache.length > 0 ? tkSalaryTiersCache : tkDefaultSalaryTiers;
+        const sorted = [...sourceList].sort((a, b) => Number(a.minRef) - Number(b.minRef));
 
         if (sorted.length === 0) {
-            container.innerHTML = "<div class='tk-team-no-data'>কোনো ধাপ যুক্ত করা হয়নি।</div>";
+            container.innerHTML = "<div class='tk-no-data'>কোনো ধাপ যুক্ত করা হয়নি।</div>";
             return;
         }
 
@@ -694,15 +940,15 @@
                     <td><strong>${tier.minRef} জন</strong> (লেভেল ১ প্যাকেজ)</td>
                     <td><strong>৳ ${Number(tier.amount)}</strong></td>
                     <td>
-                        <button class="tk-team-btn-edit" onclick="tkEditSalaryTierRow(${tier.minRef}, ${tier.amount})">এডিট</button>
-                        <button class="tk-team-btn-del" onclick="tkDeleteSalaryTierRow(${index})">ডিলিট</button>
+                        <button class="tk-btn-edit" onclick="tkEditSalaryTierRow(${tier.minRef}, ${tier.amount})">এডিট</button>
+                        <button class="tk-btn-del" onclick="tkDeleteSalaryTierRow(${index})">ডিলিট</button>
                     </td>
                 </tr>
             `;
         });
 
         container.innerHTML = `
-            <table class="tk-team-table">
+            <table class="tk-table">
                 <thead>
                     <tr>
                         <th>প্যাকেজ রেফার</th>
@@ -714,7 +960,6 @@
             </table>
         `;
     }
-
     window.tkEditSalaryTierRow = function(minRef, amount) {
         document.getElementById('tkTierMinRefInput').value = minRef;
         document.getElementById('tkTierAmountInput').value = amount;
@@ -770,20 +1015,20 @@
         const container = document.getElementById('tkTeamUsersListContainer');
         if (!container) return;
         if (!usersArray || usersArray.length === 0) {
-            container.innerHTML = "<div class='tk-team-no-data'>কোনো ইউজার পাওয়া যায়নি।</div>";
+            container.innerHTML = "<div class='tk-no-data'>কোনো ইউজার পাওয়া যায়নি।</div>";
             return;
         }
 
         let html = "";
         usersArray.forEach((u) => {
             html += `
-                <div class="tk-team-user-card">
+                <div class="tk-item-box">
                     <p><strong>নাম:</strong> ${u.name} | <strong>ফোন:</strong> ${u.phone}</p>
                     <p><strong>লেভেল ১ রেফার:</strong> মোট ${u.totalDirectRefs} জন (প্যাকেজ সক্রিয়: <strong>${u.paidDirectRefsCount} জন</strong>)</p>
-                    <p><strong>মাসিক ভাতা:</strong> <span style="color:#3b4252; font-weight:bold;">৳ ${u.effectiveSalary}</span> ${u.customSalary > 0 ? '(কাস্টম সেট)' : '(ধাপ অনুযায়ী)'}</p>
-                    <div class="tk-team-btn-group">
-                        <button class="tk-team-btn-edit" onclick="tkOpenUserSalaryEditModal('${u.id}', '${u.name.replace(/'/g, "\\'")}', ${u.effectiveSalary})">ভাতা এডিট</button>
-                        <button class="tk-team-btn-del" onclick="tkDeleteUserCustomSalary('${u.id}')">ভাতা ডিলিট</button>
+                    <p><strong>মাসিক ভাতা:</strong> <span style="color:#18181b; font-weight:700;">৳ ${u.effectiveSalary}</span> ${u.customSalary > 0 ? '(কাস্টম সেট)' : '(ধাপ অনুযায়ী)'}</p>
+                    <div style="margin-top:8px;">
+                        <button class="tk-btn-edit" onclick="tkOpenUserSalaryEditModal('${u.id}', '${u.name.replace(/'/g, "\\'")}', ${u.effectiveSalary})">ভাতা এডিট</button>
+                        <button class="tk-btn-del" onclick="tkDeleteUserCustomSalary('${u.id}')">ভাতা ডিলিট</button>
                     </div>
                 </div>
             `;
@@ -844,279 +1089,380 @@
     };
 
     window.tkEnsureTeamUsersLoaded = tkFetchSalaryTiersAndUsers;
-    mountTeamBlockUI();
-    registerHook("onTeamTabOpen", tkLoadTeamBlock);
+    mountTeamPages();
+    registerHook("onTeamMainOpen", tkLoadTeamMainPage);
+    registerHook("onTeamUsersOpen", tkLoadTeamUsersPage);
 </script>
 
 
-
-
-<!-- ===== ব্লক ৩ (পার্ট ১): স্যালারি - CSS ও UI মাউন্ট ===== -->
-<style>
-    .tk-sal-card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 18px; box-shadow: 0 3px 10px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; }
-    .tk-sal-card h3 { margin-top: 0; color: #3b4252; font-size: 16px; margin-bottom: 14px; }
-    .tk-sal-room-grid { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
-    .tk-sal-room-btn { flex: 1; min-width: 180px; background: #3b4252; color: #fff; border: none; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
-    .tk-sal-room-btn:hover { background: #2e3440; }
-    .tk-sal-room-btn.alt { background: #4c566a; }
-    .tk-sal-room-btn.alt:hover { background: #3b4252; }
-    .tk-sal-row { display: flex; gap: 15px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
-    .tk-sal-row label { flex: 1; min-width: 190px; font-weight: 600; font-size: 14px; color: #3b4252; }
-    .tk-sal-row input, .tk-sal-row select { flex: 2; min-width: 200px; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; color: #2e3440; box-sizing: border-box; }
-    .tk-sal-date-pair { flex: 2; min-width: 220px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .tk-sal-date-pair input[type="date"] { flex: 1; min-width: 140px; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; color: #2e3440; box-sizing: border-box; }
-    .tk-sal-save-btn { background: #3b4252; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-    .tk-sal-save-btn:hover { background: #2e3440; }
-    .tk-sal-req-card { background: #f8fafc; padding: 15px 18px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .tk-sal-req-info h4 { margin: 0 0 5px 0; color: #2e3440; }
-    .tk-sal-req-info p { margin: 3px 0; font-size: 14px; color: #4c566a; }
-    .tk-sal-btn-group button { padding: 8px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-left: 5px; }
-    .tk-sal-btn-approve { background-color: #16a34a; color: white; }
-    .tk-sal-btn-reject { background-color: #dc2626; color: white; }
-    .tk-sal-no-data { text-align: center; color: #64748b; background: #f8fafc; padding: 18px; border-radius: 10px; border: 1px dashed #cbd5e1; font-size: 14px; }
-    .tk-sal-badge-active { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-    .tk-sal-badge-pending { background: #fef9c3; color: #854d0e; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-    .tk-sal-tabs { display: flex; gap: 10px; margin-bottom: 14px; }
-    .tk-sal-tab-btn { flex: 1; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f4f5f7; color: #3b4252; font-size: 14px; font-weight: bold; cursor: pointer; }
-    .tk-sal-tab-btn.active-tab { background: #3b4252; color: #ffffff; border-color: #3b4252; }
-    .tk-sal-search { width: 100%; padding: 10px 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #f8fafc; color: #2e3440; }
-    .tk-sal-user-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-    .tk-sal-user-card p { margin: 4px 0; font-size: 14px; color: #2e3440; }
-</style>
-
 <script type="module">
-    const MONTH_NAMES_BN = [
+    const { db, fs, registerHook } = window.tkAdminCore;
+    const { collection, getDocs, doc, getDoc, setDoc, updateDoc, increment } = fs;
+
+    let tkSalaryRequestsAllCache = [];
+    let tkRecipientFilterMode = "eligible";
+    let tkScheduleManualOverride = false;
+
+    const TK_BN_MONTHS = [
         "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
         "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
     ];
 
-    function formatBnDateDisplay(isoDateStr) {
-        if (!isoDateStr) return "";
-        const parts = isoDateStr.split("-");
-        if (parts.length !== 3) return isoDateStr;
-        const year = parts[0];
-        const monthIdx = parseInt(parts[1], 10) - 1;
-        const day = parseInt(parts[2], 10);
-        const monthBn = MONTH_NAMES_BN[monthIdx] || parts[1];
-        return `${day} ${monthBn}, ${year}`;
+    function tkToBnDigits(val) {
+        const map = { "0": "০", "1": "১", "2": "২", "3": "৩", "4": "৪", "5": "৫", "6": "৬", "7": "৭", "8": "৮", "9": "৯" };
+        return String(val).replace(/[0-9]/g, d => map[d] || d);
     }
 
-    window.tkBuildFormattedScheduleNote = function(startDateStr, endDateStr, monthlyLimit, manualNote) {
-        const startBn = formatBnDateDisplay(startDateStr);
-        const endBn = formatBnDateDisplay(endDateStr);
-        let datePart = "";
-        if (startBn && endBn) {
-            datePart = `${startBn} থেকে ${endBn} পর্যন্ত টাকা তোলা যাবে।`;
-        } else if (startBn) {
-            datePart = `${startBn} থেকে টাকা তোলা যাবে।`;
-        } else if (endBn) {
-            datePart = `${endBn} পর্যন্ত টাকা তোলা যাবে।`;
+    function tkFormatBnDate(isoStr) {
+        if (!isoStr) return "";
+        const parts = String(isoStr).trim().split("-");
+        if (parts.length !== 3) return String(isoStr);
+        const y = tkToBnDigits(parts[0]);
+        const mIdx = parseInt(parts[1], 10) - 1;
+        const d = tkToBnDigits(parseInt(parts[2], 10));
+        const mName = TK_BN_MONTHS[mIdx] || tkToBnDigits(parts[1]);
+        return `${d} ${mName}, ${y}`;
+    }
+
+    function tkBuildWithdrawDateRangeText(startIso, endIso, limitNum) {
+        const sBn = tkFormatBnDate(startIso);
+        const eBn = tkFormatBnDate(endIso);
+        const limBn = tkToBnDigits(limitNum || 1);
+
+        if (sBn && eBn) {
+            return `${sBn} থেকে ${eBn} পর্যন্ত উইথড্র করা যাবে। (মাসে সর্বোচ্চ ${limBn} বার)`;
         }
+        if (sBn) {
+            return `${sBn} থেকে উইথড্র করা যাবে। (মাসে সর্বোচ্চ ${limBn} বার)`;
+        }
+        if (eBn) {
+            return `${eBn} পর্যন্ত উইথড্র করা যাবে। (মাসে সর্বোচ্চ ${limBn} বার)`;
+        }
+        return `মাসে সর্বোচ্চ ${limBn} বার টাকা তোলা যাবে।`;
+    }
 
-        const limitPart = `মাসে সর্বোচ্চ ${monthlyLimit} বার টাকা তোলা যাবে।`;
-        const extraPart = manualNote ? ` ${manualNote}` : "";
-        return `${datePart ? datePart + " " : ""}${limitPart}${extraPart}`.trim();
-    };
-
-    function mountSalaryBlockUI() {
-        document.getElementById("salarySectionHost").innerHTML = `
-            <div class="tk-sal-room-grid">
-                <button type="button" class="tk-sal-room-btn" onclick="tkOpenSalaryStatusRoom()">📋 স্ট্যাটাস ঘর দেখুন</button>
-                <button type="button" class="tk-sal-room-btn alt" onclick="tkOpenSalaryRecipientsRoom()">✅ ভাতা প্রাপ্ত / প্রাপ্ত নয় ঘর</button>
+    function mountSalaryPages() {
+        document.getElementById("salaryMainPage").innerHTML = `
+            <div class="tk-subpage-header">
+                <button type="button" class="tk-back-btn" onclick="tkNavigatePage('adminWorkspacePage')">← ওয়ার্কস্পেস</button>
+                <h2 class="tk-page-heading">💰 মাসিক ভাতা</h2>
             </div>
 
-            <div class="tk-sal-card">
-                <h3>⚙️ salary.html কন্ট্রোল সেটিংস</h3>
-                <div class="tk-sal-row">
-                    <label><strong>উইথড্র / ক্লেইম অপশন:</strong></label>
-                    <select id="tkSalaryClaimEnabled">
-                        <option value="true">চালু (Open)</option>
-                        <option value="false">বন্ধ (Closed)</option>
-                    </select>
-                </div>
-                <div class="tk-sal-row">
-                    <label><strong>কোন মাস ও তারিখ থেকে কত তারিখ পর্যন্ত টাকা তুলতে পারবে:</strong></label>
-                    <div class="tk-sal-date-pair">
-                        <input type="date" id="tkSalaryStartDate" onchange="tkSyncSalarySchedulePreview()">
-                        <span>থেকে</span>
-                        <input type="date" id="tkSalaryEndDate" onchange="tkSyncSalarySchedulePreview()">
-                    </div>
-                </div>
-                <div class="tk-sal-row">
-                    <label><strong>মাসে কয়বার টাকা তুলতে পারবে:</strong></label>
-                    <input type="number" id="tkSalaryMonthlyLimit" min="1" value="1" placeholder="যেমন: 1 বা 2" oninput="tkSyncSalarySchedulePreview()">
-                </div>
-                <div class="tk-sal-row">
-                    <label><strong>পেমেন্ট তারিখ ও নিয়মের ঘরে যা দেখাবে:</strong></label>
-                    <input type="text" id="tkSalaryScheduleNote" placeholder="সিলেক্ট করা মাস ও তারিখ অনুযায়ী স্বয়ংক্রিয়ভাবে তৈরি হবে">
-                </div>
-                <div class="tk-sal-row">
-                    <label><strong>salary.html নোটিশ বার্তা:</strong></label>
-                    <input type="text" id="tkSalaryNoticeMsg" placeholder="ইউজারের জন্য স্যালারি পেজের নোটিশ">
-                </div>
-                <button class="tk-sal-save-btn" onclick="tkSaveSalaryPageConfig()">স্যালারি সেটিংস সেভ করুন</button>
+            <div class="tk-action-bar">
+                <button type="button" class="tk-nav-pill-btn secondary" onclick="tkNavigatePage('salaryStatusPage')">📋 স্ট্যাটাস ঘর দেখুন</button>
+                <button type="button" class="tk-nav-pill-btn secondary" onclick="tkNavigatePage('salaryRecipientsPage')">✅ ভাতা প্রাপ্ত / প্রাপ্ত নয় ঘর</button>
+                <button type="button" class="tk-nav-pill-btn" onclick="tkNavigatePage('salarySettingsPage')">⚙️ সেটিংস</button>
             </div>
 
-            <div class="tk-sal-card">
+            <div class="tk-card">
                 <h3>📥 মাসিক ভাতা উইথড্র রিকোয়েস্ট</h3>
-                <div id="tkSalaryWithdrawRequestsContainer">
-                    <p style="text-align:center;">উইথড্র রিকোয়েস্ট লোড হচ্ছে...</p>
+                <div id="tkSalaryWithdrawRequestsList">
+                    <div class="tk-no-data">উইথড্র রিকোয়েস্ট লোড হচ্ছে...</div>
                 </div>
             </div>
         `;
 
-        document.getElementById("salaryStatusPage").innerHTML = `
-            <button class="tk-back-btn" onclick="tkBackFromSalarySubPage()">← স্যালারি সেকশনে ফিরে যান</button>
-            <div class="tk-header" style="margin-top: 5px;">
-                <h2>📋 মাসিক ভাতা স্ট্যাটাস</h2>
+        document.getElementById("salarySettingsPage").innerHTML = `
+            <div class="tk-subpage-header">
+                <button type="button" class="tk-back-btn" onclick="tkNavigatePage('salaryMainPage')">← স্যালারি পেজে ফিরুন</button>
+                <h2 class="tk-page-heading">⚙️ স্যালারি সেটিংস</h2>
             </div>
-            <div class="tk-sal-card">
-                <h3>📋 অ্যাপ্রুভ ও রিজেক্ট করা রিকোয়েস্টের স্ট্যাটাস</h3>
-                <div id="tkSalaryWithdrawStatusListContainer">
-                    <p style="text-align:center;">স্ট্যাটাস লোড হচ্ছে...</p>
+
+            <div class="tk-card">
+                <h3>⚙️ salary.html কন্ট্রোল সেটিংস</h3>
+
+                <label class="tk-field-label">উইথড্র / ক্লেইম অপশন:</label>
+                <select id="tkSalaryWithdrawEnabledSelect" class="tk-select">
+                    <option value="true">চালু (Open)</option>
+                    <option value="false">বন্ধ (Closed)</option>
+                </select>
+
+                <label class="tk-field-label">কোন তারিখ থেকে কত তারিখ পর্যন্ত উইথড্র করা যাবে:</label>
+                <div class="tk-date-row">
+                    <input type="date" id="tkSalaryStartDateInput" class="tk-input" onchange="tkOnSalaryScheduleFieldChange()">
+                    <span style="font-size:13px; font-weight:700; color:#52525b;">থেকে</span>
+                    <input type="date" id="tkSalaryEndDateInput" class="tk-input" onchange="tkOnSalaryScheduleFieldChange()">
+                </div>
+
+                <label class="tk-field-label">মাসে কয়বার টাকা তুলতে পারবে:</label>
+                <input type="number" id="tkSalaryMonthlyLimitInput" class="tk-input" min="1" value="1" oninput="tkOnSalaryScheduleFieldChange()">
+
+                <label class="tk-field-label">পেমেন্ট তারিখ ও নিয়মের ঘরে যা দেখাবে:</label>
+                <input type="text" id="tkSalaryScheduleNoteInput" class="tk-input" placeholder="তারিখ সিলেক্ট করলে স্বয়ংক্রিয়ভাবে এখানে দেখাবে..." oninput="tkScheduleManualOverride = true;">
+
+                <label class="tk-field-label">salary.html নোটিশ বার্তা:</label>
+                <input type="text" id="tkSalaryNoticeInput" class="tk-input" placeholder="ইউজারের জন্য স্যালারি পেজের নোটিশ">
+
+                <button type="button" class="tk-btn-save" onclick="tkSaveSalaryPageConfig()">স্যালারি সেটিংস সেভ করুন</button>
+            </div>
+        `;
+
+        document.getElementById("salaryStatusPage").innerHTML = `
+            <div class="tk-subpage-header">
+                <button type="button" class="tk-back-btn" onclick="tkNavigatePage('salaryMainPage')">← স্যালারি পেজে ফিরুন</button>
+                <h2 class="tk-page-heading">📋 স্ট্যাটাস ঘর</h2>
+            </div>
+
+            <div class="tk-card">
+                <h3>📋 অ্যাপ্রুভ ও রিজেক্ট হওয়া উইথড্র রিকোয়েস্ট</h3>
+                <div id="tkSalaryHistoryStatusContainer">
+                    <div class="tk-no-data">স্ট্যাটাস লোড হচ্ছে...</div>
                 </div>
             </div>
         `;
 
         document.getElementById("salaryRecipientsPage").innerHTML = `
-            <button class="tk-back-btn" onclick="tkBackFromSalarySubPage()">← স্যালারি সেকশনে ফিরে যান</button>
-            <div class="tk-header" style="margin-top: 5px;">
-                <h2>✅ মাসিক ভাতা প্রাপকদের ডিটেইলস</h2>
+            <div class="tk-subpage-header">
+                <button type="button" class="tk-back-btn" onclick="tkNavigatePage('salaryMainPage')">← স্যালারি পেজে ফিরুন</button>
+                <h2 class="tk-page-heading">✅ ভাতা প্রাপ্ত / প্রাপ্ত নয় ঘর</h2>
             </div>
-            <div class="tk-sal-card">
-                <h3>✅ মাসিক ভাতা প্রাপকদের ডিটেইলস</h3>
-                <div class="tk-sal-tabs">
-                    <button type="button" id="tkBtnTabEligible" class="tk-sal-tab-btn active-tab" onclick="tkSwitchSalaryRecipientTab('eligible')">ভাতা প্রাপ্ত</button>
-                    <button type="button" id="tkBtnTabNotEligible" class="tk-sal-tab-btn" onclick="tkSwitchSalaryRecipientTab('not_eligible')">ভাতা প্রাপ্ত নয়</button>
+
+            <div class="tk-card">
+                <h3>✅ ভাতা প্রাপ্ত / ভাতা প্রাপ্ত নয় তালিকা</h3>
+                <div class="tk-action-bar">
+                    <button type="button" id="tkTabEligibleBtn" class="tk-nav-pill-btn" onclick="tkSwitchSalaryRecipientTab('eligible')">ভাতা প্রাপ্ত</button>
+                    <button type="button" id="tkTabIneligibleBtn" class="tk-nav-pill-btn secondary" onclick="tkSwitchSalaryRecipientTab('ineligible')">ভাতা প্রাপ্ত নয়</button>
                 </div>
-                <input type="text" id="tkSalaryRecipientSearchInput" class="tk-sal-search" placeholder="🔍 নাম বা ফোন নম্বর দিয়ে খুঁজুন..." onkeyup="tkRenderSalaryRecipientList()">
-                <div id="tkSalaryEligibleUsersContainer">
-                    <p style="text-align:center;">তালিকা লোড হচ্ছে...</p>
+                <input type="text" id="tkSalaryRecipientSearchInput" class="tk-input" placeholder="🔍 নাম বা ফোন দিয়ে খুঁজুন..." onkeyup="tkRenderSalaryRecipientList()">
+                <div id="tkSalaryRecipientListContainer">
+                    <div class="tk-no-data">তালিকা লোড হচ্ছে...</div>
                 </div>
             </div>
         `;
     }
 
-    window.tkSyncSalarySchedulePreview = function() {
-        const startVal = document.getElementById('tkSalaryStartDate').value;
-        const endVal = document.getElementById('tkSalaryEndDate').value;
-        const limitVal = Math.max(1, parseInt(document.getElementById('tkSalaryMonthlyLimit').value || "1", 10) || 1);
-        document.getElementById('tkSalaryScheduleNote').value = window.tkBuildFormattedScheduleNote(startVal, endVal, limitVal, "");
+    window.tkOnSalaryScheduleFieldChange = function() {
+        if (tkScheduleManualOverride) return;
+        const startVal = document.getElementById('tkSalaryStartDateInput')?.value || "";
+        const endVal = document.getElementById('tkSalaryEndDateInput')?.value || "";
+        const limitVal = parseInt(document.getElementById('tkSalaryMonthlyLimitInput')?.value || "1", 10) || 1;
+        const noteEl = document.getElementById('tkSalaryScheduleNoteInput');
+        if (noteEl) {
+            noteEl.value = tkBuildWithdrawDateRangeText(startVal, endVal, limitVal);
+        }
     };
 
-    mountSalaryBlockUI();
-</script>
-
-
-
-<!-- ===== ব্লক ৩ (পার্ট ২): স্যালারি - Firebase লজিক ও হুক ===== -->
-<script type="module">
-    const { db, fs, registerHook } = window.tkAdminCore;
-    const { collection, getDocs, doc, getDoc, setDoc, updateDoc } = fs;
-
-    let tkCurrentRecipientTab = "eligible";
-
-    window.tkLoadSalaryBlock = async function() {
+    async function tkLoadSalarySettingsPage() {
         try {
             const cfgSnap = await getDoc(doc(db, "admin_settings", "salary_page_config"));
             const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
 
-            document.getElementById('tkSalaryClaimEnabled').value = cfg.claimEnabled === false ? "false" : "true";
-            document.getElementById('tkSalaryStartDate').value = cfg.withdrawStartDate || "";
-            document.getElementById('tkSalaryEndDate').value = cfg.withdrawEndDate || "";
-            document.getElementById('tkSalaryMonthlyLimit').value = cfg.monthlyWithdrawLimit || 1;
-            document.getElementById('tkSalaryScheduleNote').value = cfg.scheduleNote || "";
-            document.getElementById('tkSalaryNoticeMsg').value = cfg.noticeMessage || "";
+            const isEnabled = cfg.claimEnabled !== false && cfg.withdrawEnabled !== false;
+            const startIso = cfg.withdrawStartDate || cfg.startDate || "";
+            const endIso = cfg.withdrawEndDate || cfg.endDate || "";
+            const parsedLimit = parseInt(cfg.monthlyWithdrawLimit, 10);
+            const limitNum = (!Number.isNaN(parsedLimit) && parsedLimit >= 1) ? parsedLimit : 1;
 
-            if (window.tkEnsureTeamUsersLoaded) await window.tkEnsureTeamUsersLoaded();
-            await tkLoadSalaryWithdrawRequests();
+            document.getElementById('tkSalaryWithdrawEnabledSelect').value = isEnabled ? "true" : "false";
+            document.getElementById('tkSalaryStartDateInput').value = startIso;
+            document.getElementById('tkSalaryEndDateInput').value = endIso;
+            document.getElementById('tkSalaryMonthlyLimitInput').value = limitNum;
+            document.getElementById('tkSalaryNoticeInput').value = cfg.noticeMessage || "";
+
+            const autoText = tkBuildWithdrawDateRangeText(startIso, endIso, limitNum);
+            const savedNote = (cfg.scheduleNote || "").toString().trim();
+            document.getElementById('tkSalaryScheduleNoteInput').value = savedNote || autoText;
+            tkScheduleManualOverride = Boolean(savedNote && savedNote !== autoText);
         } catch (err) {
-            console.error("Error opening salary admin block:", err);
+            console.error("Error loading salary config:", err);
         }
-    };
+    }
 
     window.tkSaveSalaryPageConfig = async function() {
-        const startVal = document.getElementById('tkSalaryStartDate').value;
-        const endVal = document.getElementById('tkSalaryEndDate').value;
-        const monthlyWithdrawLimit = Math.max(1, parseInt(document.getElementById('tkSalaryMonthlyLimit').value || "1", 10) || 1);
-        const rawNote = document.getElementById('tkSalaryScheduleNote').value.trim();
-        const finalScheduleNote = rawNote || window.tkBuildFormattedScheduleNote(startVal, endVal, monthlyWithdrawLimit, "");
+        const withdrawEnabled = document.getElementById('tkSalaryWithdrawEnabledSelect').value === "true";
+        const withdrawStartDate = document.getElementById('tkSalaryStartDateInput').value;
+        const withdrawEndDate = document.getElementById('tkSalaryEndDateInput').value;
+        const parsedLimit = parseInt(document.getElementById('tkSalaryMonthlyLimitInput').value, 10);
+        const monthlyWithdrawLimit = (!Number.isNaN(parsedLimit) && parsedLimit >= 1) ? parsedLimit : 1;
+
+        const autoScheduleText = tkBuildWithdrawDateRangeText(withdrawStartDate, withdrawEndDate, monthlyWithdrawLimit);
+        const rawNote = document.getElementById('tkSalaryScheduleNoteInput').value.trim();
+        const scheduleNote = rawNote || autoScheduleText;
+        const noticeMessage = document.getElementById('tkSalaryNoticeInput').value.trim();
 
         try {
             await setDoc(doc(db, "admin_settings", "salary_page_config"), {
-                claimEnabled: document.getElementById('tkSalaryClaimEnabled').value === "true",
-                withdrawStartDate: startVal,
-                withdrawEndDate: endVal,
+                claimEnabled: withdrawEnabled,
+                withdrawEnabled,
+                withdrawStartDate,
+                withdrawEndDate,
+                startDate: withdrawStartDate,
+                endDate: withdrawEndDate,
                 monthlyWithdrawLimit,
-                scheduleNote: finalScheduleNote,
-                noticeMessage: document.getElementById('tkSalaryNoticeMsg').value.trim()
+                scheduleNote,
+                noticeMessage,
+                updatedAt: new Date().toISOString()
             }, { merge: true });
-            document.getElementById('tkSalaryScheduleNote').value = finalScheduleNote;
-            alert("salary.html কন্ট্রোল সেটিংস সেভ হয়েছে!");
+
+            document.getElementById('tkSalaryScheduleNoteInput').value = scheduleNote;
+            alert("স্যালারি পেজ কন্ট্রোল সেটিংস সেভ হয়েছে!");
         } catch (err) {
-            console.error("Error saving salary page config:", err);
-            alert("সেটিংস সেভ করতে সমস্যা হয়েছে।");
+            console.error("Error saving salary config:", err);
+            alert("সেটিংস সেভ করতে সমস্যা হয়েছে!");
         }
     };
 
-    window.tkOpenSalaryStatusRoom = async function() {
-        window.tkShowView("salaryStatusPage");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        await tkLoadSalaryWithdrawRequests();
+    async function tkFetchSalaryWithdrawRequests() {
+        const snap = await getDocs(collection(db, "salary_withdraw_requests"));
+        const list = [];
+        snap.forEach((dSnap) => list.push({ id: dSnap.id, ...dSnap.data() }));
+        tkSalaryRequestsAllCache = list;
+        return list;
+    }
+
+    async function tkLoadSalaryMainPage() {
+        const pendingListEl = document.getElementById('tkSalaryWithdrawRequestsList');
+        if (pendingListEl) pendingListEl.innerHTML = "<div class='tk-no-data'>উইথড্র রিকোয়েস্ট লোড হচ্ছে...</div>";
+
+        try {
+            const list = await tkFetchSalaryWithdrawRequests();
+            tkRenderPendingSalaryRequests(list.filter(item => item.status === "pending"));
+        } catch (err) {
+            console.error("Error loading salary withdraw requests:", err);
+            if (pendingListEl) pendingListEl.innerHTML = "<div class='tk-no-data'>রিকোয়েস্ট লোড করা যায়নি।</div>";
+        }
+    }
+
+    async function tkLoadSalaryStatusPage() {
+        const statusEl = document.getElementById('tkSalaryHistoryStatusContainer');
+        if (statusEl) statusEl.innerHTML = "<div class='tk-no-data'>স্ট্যাটাস লোড হচ্ছে...</div>";
+
+        try {
+            const list = await tkFetchSalaryWithdrawRequests();
+            tkRenderProcessedSalaryStatus(list.filter(item => item.status === "approved" || item.status === "rejected"));
+        } catch (err) {
+            console.error("Error loading salary status:", err);
+            if (statusEl) statusEl.innerHTML = "<div class='tk-no-data'>স্ট্যাটাস লোড করা যায়নি।</div>";
+        }
+    }
+
+    function tkRenderPendingSalaryRequests(pendingList) {
+        const listEl = document.getElementById('tkSalaryWithdrawRequestsList');
+        if (!listEl) return;
+
+        if (!pendingList || pendingList.length === 0) {
+            listEl.innerHTML = "<div class='tk-no-data'>কোনো পেন্ডিং মাসিক ভাতা উইথড্র রিকোয়েস্ট নেই।</div>";
+            return;
+        }
+
+        let html = "";
+        pendingList.forEach((item) => {
+            html += `
+                <div class="tk-item-box">
+                    <p><strong>নাম:</strong> ${item.userName || 'নামবিহীন'} (${item.userPhone || 'নেই'})</p>
+                    <p><strong>মাধ্যম:</strong> ${item.method || 'বিকাশ'} | <strong>নম্বর:</strong> ${item.account || item.accountNumber || ''}</p>
+                    <p><strong>পরিমাণ:</strong> <span style="color:#16a34a; font-weight:700;">৳ ${item.amount || 0}</span></p>
+                    <div style="margin-top:8px;">
+                        <button class="tk-btn-approve" onclick="tkApproveSalaryWithdraw('${item.id}', '${item.userId}', ${Number(item.amount || 0)})">অ্যাপ্রুভ</button>
+                        <button class="tk-btn-reject" onclick="tkRejectSalaryWithdraw('${item.id}')">রিজেক্ট</button>
+                    </div>
+                </div>
+            `;
+        });
+        listEl.innerHTML = html;
+    }
+
+    function tkRenderProcessedSalaryStatus(processedList) {
+        const statusEl = document.getElementById('tkSalaryHistoryStatusContainer');
+        if (!statusEl) return;
+
+        if (!processedList || processedList.length === 0) {
+            statusEl.innerHTML = "<div class='tk-no-data'>এখনো কোনো অ্যাপ্রুভ বা রিজেক্ট রিকোয়েস্ট নেই।</div>";
+            return;
+        }
+
+        let html = "";
+        processedList.forEach((item) => {
+            const isApproved = item.status === "approved";
+            const badgeText = isApproved ? "অ্যাপ্রুভড" : "রিজেক্টেড";
+            const badgeColor = isApproved ? "#16a34a" : "#dc2626";
+
+            html += `
+                <div class="tk-item-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong>${item.userName || 'নামবিহীন'} (${item.userPhone || 'নেই'})</strong>
+                        <span style="color:${badgeColor}; font-weight:700;">${badgeText}</span>
+                    </div>
+                    <p><strong>পরিমাণ:</strong> ৳ ${item.amount || 0} | <strong>মাধ্যম:</strong> ${item.method || ''} (${item.account || item.accountNumber || ''})</p>
+                </div>
+            `;
+        });
+        statusEl.innerHTML = html;
+    }
+
+    window.tkApproveSalaryWithdraw = async function(reqId, userId, amount) {
+        if (!confirm(`আপনি কি ৳ ${amount} মাসিক ভাতা উইথড্র অ্যাপ্রুভ করতে চান?`)) return;
+        try {
+            await updateDoc(doc(db, "users", userId), {
+                myCash: increment(Number(amount) || 0)
+            });
+            await updateDoc(doc(db, "salary_withdraw_requests", reqId), {
+                status: "approved",
+                approvedAt: new Date().toISOString()
+            });
+            alert("মাসিক ভাতা উইথড্র অ্যাপ্রুভ করা হয়েছে!");
+            await tkLoadSalaryMainPage();
+        } catch (err) {
+            console.error("Error approving salary withdraw:", err);
+            alert("অ্যাপ্রুভ করতে সমস্যা হয়েছে!");
+        }
     };
 
-    window.tkOpenSalaryRecipientsRoom = async function() {
-        window.tkShowView("salaryRecipientsPage");
-        document.getElementById('tkSalaryRecipientSearchInput').value = "";
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        if ((!window.tkTeamUsersCache || window.tkTeamUsersCache.length === 0) && window.tkEnsureTeamUsersLoaded) {
+    window.tkRejectSalaryWithdraw = async function(reqId) {
+        if (!confirm("আপনি কি এই মাসিক ভাতা উইথড্র রিকোয়েস্ট রিজেক্ট করতে চান?")) return;
+        try {
+            await updateDoc(doc(db, "salary_withdraw_requests", reqId), {
+                status: "rejected",
+                rejectedAt: new Date().toISOString()
+            });
+            alert("মাসিক ভাতা উইথড্র রিজেক্ট করা হয়েছে।");
+            await tkLoadSalaryMainPage();
+        } catch (err) {
+            console.error("Error rejecting salary withdraw:", err);
+            alert("রিজেক্ট করতে সমস্যা হয়েছে!");
+        }
+    };
+
+    window.tkSwitchSalaryRecipientTab = async function(mode) {
+        tkRecipientFilterMode = mode;
+        const eligBtn = document.getElementById('tkTabEligibleBtn');
+        const ineligBtn = document.getElementById('tkTabIneligibleBtn');
+        if (eligBtn) eligBtn.className = mode === "eligible" ? "tk-nav-pill-btn" : "tk-nav-pill-btn secondary";
+        if (ineligBtn) ineligBtn.className = mode === "ineligible" ? "tk-nav-pill-btn" : "tk-nav-pill-btn secondary";
+
+        if (!window.tkTeamUsersCache && window.tkEnsureTeamUsersLoaded) {
             await window.tkEnsureTeamUsersLoaded();
         }
         tkRenderSalaryRecipientList();
     };
 
-    window.tkBackFromSalarySubPage = async function() {
-        await window.selectMainSection("salary");
-    };
-
-    window.tkSwitchSalaryRecipientTab = function(tabName) {
-        tkCurrentRecipientTab = tabName;
-        document.getElementById('tkBtnTabEligible').classList.toggle('active-tab', tabName === 'eligible');
-        document.getElementById('tkBtnTabNotEligible').classList.toggle('active-tab', tabName === 'not_eligible');
-        tkRenderSalaryRecipientList();
-    };
-
     window.tkRenderSalaryRecipientList = function() {
-        const container = document.getElementById('tkSalaryEligibleUsersContainer');
-        const searchEl = document.getElementById('tkSalaryRecipientSearchInput');
-        if (!container || !searchEl) return;
+        const container = document.getElementById('tkSalaryRecipientListContainer');
+        if (!container) return;
 
-        const qText = (searchEl.value || "").toLowerCase().trim();
-        const usersList = window.tkTeamUsersCache || [];
+        const allUsers = window.tkTeamUsersCache || [];
+        const qText = (document.getElementById('tkSalaryRecipientSearchInput')?.value || "").toLowerCase().trim();
 
-        const filteredByTab = usersList.filter(u => {
-            const hasSalary = Number(u.effectiveSalary) > 0;
-            return tkCurrentRecipientTab === 'eligible' ? hasSalary : !hasSalary;
+        const filtered = allUsers.filter((u) => {
+            const matchesQuery = u.name.toLowerCase().includes(qText) || u.phone.toLowerCase().includes(qText);
+            if (!matchesQuery) return false;
+            return tkRecipientFilterMode === "eligible" ? Number(u.effectiveSalary) > 0 : Number(u.effectiveSalary) <= 0;
         });
 
-        const finalList = filteredByTab.filter(u =>
-            u.name.toLowerCase().includes(qText) || u.phone.toLowerCase().includes(qText)
-        );
-
-        if (finalList.length === 0) {
-            container.innerHTML = `<div class='tk-sal-no-data'>${tkCurrentRecipientTab === 'eligible' ? "এই তালিকায় কোনো ভাতা প্রাপ্ত ইউজার নেই।" : "এই তালিকায় কোনো ভাতা প্রাপ্ত নয় এমন ইউজার নেই।"}</div>`;
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class='tk-no-data'>${tkRecipientFilterMode === "eligible" ? "কোনো ভাতা প্রাপ্ত ইউজার পাওয়া যায়নি।" : "কোনো ভাতা প্রাপ্ত নয় এমন ইউজার পাওয়া যায়নি।"}</div>`;
             return;
         }
 
         let html = "";
-        finalList.forEach((u) => {
+        filtered.forEach((u) => {
             html += `
-                <div class="tk-sal-user-card">
+                <div class="tk-item-box">
                     <p><strong>নাম:</strong> ${u.name} | <strong>ফোন:</strong> ${u.phone}</p>
-                    <p><strong>প্যাকেজ-সক্রিয় লেভেল ১ রেফার:</strong> ${u.paidDirectRefsCount} জন</p>
-                    <p><strong>মাসিক ভাতা:</strong> <span style="color:#3b4252; font-weight:bold;">৳ ${u.effectiveSalary}</span></p>
-                    <div class="tk-team-btn-group">
-                        <button class="tk-team-btn-edit" onclick="tkOpenUserSalaryEditModal('${u.id}', '${u.name.replace(/'/g, "\\'")}', ${u.effectiveSalary})">ভাতা এডিট</button>
+                    <p><strong>প্যাকেজ সক্রিয় রেফার:</strong> ${u.paidDirectRefsCount} জন (মোট রেফার: ${u.totalDirectRefs} জন)</p>
+                    <p><strong>মাসিক ভাতা:</strong> <span style="color:${Number(u.effectiveSalary) > 0 ? '#16a34a' : '#dc2626'}; font-weight:700;">৳ ${Number(u.effectiveSalary)}</span></p>
+                    <div style="margin-top:8px;">
+                        <button class="tk-btn-edit" onclick="tkOpenUserSalaryEditModal('${u.id}', '${u.name.replace(/'/g, "\\'")}', ${u.effectiveSalary})">ভাতা এডিট</button>
                     </div>
                 </div>
             `;
@@ -1124,92 +1470,19 @@
         container.innerHTML = html;
     };
 
-    async function tkLoadSalaryWithdrawRequests() {
-        const pendingContainer = document.getElementById('tkSalaryWithdrawRequestsContainer');
-        const statusContainer = document.getElementById('tkSalaryWithdrawStatusListContainer');
-        if (pendingContainer) pendingContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
-        if (statusContainer) statusContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
-
-        try {
-            const snap = await getDocs(collection(db, "salary_withdraw_requests"));
-            let pendingHtml = "";
-            let statusHtml = "";
-            let pendingCount = 0;
-            let statusCount = 0;
-
-            snap.forEach((docSnap) => {
-                const r = docSnap.data();
-                const reqId = docSnap.id;
-                const st = r.status || "pending";
-
-                if (st === "pending") {
-                    pendingCount++;
-                    pendingHtml += `
-                        <div class="tk-sal-req-card">
-                            <div class="tk-sal-req-info">
-                                <h4>${r.userName || "N/A"} (${r.userPhone || "N/A"}) — <span class="tk-sal-badge-pending">পেন্ডিং</span></h4>
-                                <p>মেথড: <strong>${r.method || "N/A"}</strong> | নম্বর: <strong>${r.account || r.accountNumber || "N/A"}</strong></p>
-                                <p>পরিমাণ: <strong>৳ ${r.amount || 0}</strong></p>
-                            </div>
-                            <div class="tk-sal-btn-group">
-                                <button class="tk-sal-btn-approve" onclick="tkHandleSalaryWithdraw('${reqId}', 'approved')">অ্যাপ্রুভ</button>
-                                <button class="tk-sal-btn-reject" onclick="tkHandleSalaryWithdraw('${reqId}', 'rejected')">রিজেক্ট</button>
-                            </div>
-                        </div>
-                    `;
-                } else if (st === "approved" || st === "rejected") {
-                    statusCount++;
-                    const statusBadge = st === "approved"
-                        ? '<span class="tk-sal-badge-active">অ্যাপ্রুভড</span>'
-                        : '<span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:bold;">রিজেক্টেড</span>';
-
-                    statusHtml += `
-                        <div class="tk-sal-req-card">
-                            <div class="tk-sal-req-info">
-                                <h4>${r.userName || "N/A"} (${r.userPhone || "N/A"}) — ${statusBadge}</h4>
-                                <p>মেথড: <strong>${r.method || "N/A"}</strong> | নম্বর: <strong>${r.account || r.accountNumber || "N/A"}</strong></p>
-                                <p>পরিমাণ: <strong>৳ ${r.amount || 0}</strong></p>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            if (pendingContainer) {
-                pendingContainer.innerHTML = pendingCount > 0 ? pendingHtml : "<div class='tk-sal-no-data'>এই মুহূর্তে কোনো নতুন উইথড্র রিকোয়েস্ট নেই।</div>";
-            }
-            if (statusContainer) {
-                statusContainer.innerHTML = statusCount > 0 ? statusHtml : "<div class='tk-sal-no-data'>এখনো কোনো রিকোয়েস্ট অ্যাপ্রুভ বা রিজেক্ট করা হয়নি।</div>";
-            }
-        } catch (err) {
-            console.error("Error loading salary withdraw requests:", err);
-            if (pendingContainer) pendingContainer.innerHTML = "<div class='tk-sal-no-data'>উইথড্র রিকোয়েস্ট লোড করতে সমস্যা হয়েছে।</div>";
-            if (statusContainer) statusContainer.innerHTML = "<div class='tk-sal-no-data'>স্ট্যাটাস লোড করতে সমস্যা হয়েছে।</div>";
+    async function tkLoadSalaryRecipientsPage() {
+        if (window.tkEnsureTeamUsersLoaded) {
+            await window.tkEnsureTeamUsersLoaded();
         }
+        await tkSwitchSalaryRecipientTab(tkRecipientFilterMode);
     }
 
-    window.tkHandleSalaryWithdraw = async function(reqId, action) {
-        const msg = action === "approved"
-            ? "আপনি কি এই মাসিক ভাতা উইথড্র রিকোয়েস্টটি অ্যাপ্রুভ করতে চান?"
-            : "আপনি কি এই উইথড্র রিকোয়েস্টটি রিজেক্ট করতে চান?";
-        if (!confirm(msg)) return;
-
-        try {
-            await updateDoc(doc(db, "salary_withdraw_requests", reqId), { status: action });
-            alert(action === "approved" ? "উইথড্র রিকোয়েস্ট অ্যাপ্রুভ হয়েছে!" : "উইথড্র রিকোয়েস্ট রিজেক্ট হয়েছে!");
-            await tkLoadSalaryWithdrawRequests();
-        } catch (err) {
-            console.error("Error updating salary withdraw:", err);
-            alert("আপডেট করতে সমস্যা হয়েছে।");
-        }
-    };
-
-    registerHook("onSalaryTabOpen", tkLoadSalaryBlock);
+    mountSalaryPages();
+    registerHook("onSalaryMainOpen", tkLoadSalaryMainPage);
+    registerHook("onSalarySettingsOpen", tkLoadSalarySettingsPage);
+    registerHook("onSalaryStatusOpen", tkLoadSalaryStatusPage);
+    registerHook("onSalaryRecipientsOpen", tkLoadSalaryRecipientsPage);
 </script>
-
-
-
-
-
 </body>
 </html>
+
