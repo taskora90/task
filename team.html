@@ -16,6 +16,10 @@
         .total-referral-card h3 { margin: 0 0 5px 0; font-size: 15px; color: #333; }
         .total-referral-card p { margin: 0; font-size: 20px; font-weight: bold; color: #28a745; }
 
+        /* মাসিক ভাতা ঘর স্টাইল */
+        .monthly-allowance-card { display: none; background: #eef2f5; border-left: 4px solid #28a745; padding: 14px 16px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
+        .monthly-allowance-card p { margin: 0; font-size: 17px; font-weight: bold; color: #2e3440; }
+
         .stats-grid { display: flex; gap: 10px; margin-bottom: 20px; }
         .stat-card { flex: 1; background: #eef2f5; padding: 15px; border-radius: 8px; text-align: center; }
         .stat-card h3 { margin: 0 0 5px 0; font-size: 16px; color: #333; }
@@ -41,6 +45,11 @@
         <div class="total-referral-card">
             <h3>মোট রেফার আয় (প্যাকেজ কমিশন)</h3>
             <p id="totalReferralIncome">৳ 0.00</p>
+        </div>
+
+        <!-- নির্ধারিত সরাসরি রেফার সংখ্যায় পৌঁছালে অটো দৃশ্যমান মাসিক ভাতা ঘর -->
+        <div class="monthly-allowance-card" id="monthlyAllowanceBox">
+            <p id="monthlyAllowanceText">মাসিক ভাতা = ৳ 0</p>
         </div>
 
         <!-- সামারি কার্ড (লেভেল ১ ও লেভেল ২ মেম্বার সংখ্যা) -->
@@ -99,6 +108,30 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      function renderMonthlyAllowance(directReferCount) {
+        const allowanceBox = document.getElementById('monthlyAllowanceBox');
+        const allowanceText = document.getElementById('monthlyAllowanceText');
+        if (!allowanceBox || !allowanceText) return;
+
+        const tiers = [
+          { minRef: 100, amount: 20000 },
+          { minRef: 80,  amount: 15000 },
+          { minRef: 60,  amount: 10000 },
+          { minRef: 40,  amount: 8500 },
+          { minRef: 28,  amount: 6200 },
+          { minRef: 20,  amount: 4000 },
+          { minRef: 12,  amount: 2000 }
+        ];
+
+        const matchedTier = tiers.find(t => directReferCount >= t.minRef);
+        if (matchedTier) {
+          allowanceText.innerText = `মাসিক ভাতা = ৳ ${matchedTier.amount}`;
+          allowanceBox.style.display = 'block';
+        } else {
+          allowanceBox.style.display = 'none';
+        }
+      }
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
@@ -122,7 +155,6 @@
               const refHistorySnap = await getDocs(refHistoryRef);
               refHistorySnap.forEach((hDoc) => {
                 const hData = hDoc.data();
-                // শুধুমাত্র প্যাকেজ ক্রয়ের ১০% কমিশনের হিস্ট্রি হিসাব করা হবে
                 if (hData.title && (hData.title.includes("প্যাকেজ") || hData.title === "রেফার কমিশন (প্যাকেজ ক্রয়)")) {
                   totalPackageRefIncome += Number(hData.amount || 0);
                 }
@@ -149,6 +181,7 @@
             });
 
             document.getElementById('level1Count').innerText = level1Users.length;
+            renderMonthlyAllowance(level1Users.length);
 
             const level1ListEl = document.getElementById('level1List');
             if (level1Users.length === 0) {
