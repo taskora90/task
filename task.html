@@ -171,6 +171,12 @@
         sat: "শনিবার"
       };
 
+      function hasActivePaidPkg(userObj) {
+        if (!userObj || !userObj.package) return false;
+        const pkg = String(userObj.package).trim();
+        return pkg !== "" && pkg !== "none" && pkg !== "free_trial";
+      }
+
       async function getWorkOpenDays() {
         const defaultOpen = ["sun", "mon", "tue", "wed", "thu", "sat"];
         try {
@@ -201,6 +207,25 @@
           console.error("Free trial settings load error:", e);
         }
         return defaultTrial;
+      }
+
+      async function getTaskReferralPercents() {
+        const defaultPercents = { taskLevel1Percent: 10, taskLevel2Percent: 4 };
+        try {
+          const snap = await getDoc(doc(db, "admin_settings", "referral_commission"));
+          if (snap.exists()) {
+            const data = snap.data();
+            const l1 = Number(data.taskLevel1Percent);
+            const l2 = Number(data.taskLevel2Percent);
+            return {
+              taskLevel1Percent: (!Number.isNaN(l1) && l1 >= 0) ? l1 : defaultPercents.taskLevel1Percent,
+              taskLevel2Percent: (!Number.isNaN(l2) && l2 >= 0) ? l2 : defaultPercents.taskLevel2Percent
+            };
+          }
+        } catch (e) {
+          console.error("Task referral commission load error:", e);
+        }
+        return defaultPercents;
       }
 
       // প্যাকেজ ID দিয়ে প্যাকেজের লেভেল বের করার সহায়ক ফাংশন
@@ -267,8 +292,7 @@
 
                 if (pkgSnap.exists()) {
                   let data = pkgSnap.data();
-                  pkgRule = { 
-                    maxTasks: Number(data.tasksLimit || 10), 
+                  pkgRule = {                     maxTasks: Number(data.tasksLimit || 10), 
                     reward: Number(data.reward || 10) 
                   };
                   displayName = data.name || userPackage;
@@ -443,6 +467,7 @@
             timestamp: serverTimestamp()
           });
 
+          const { taskLevel1Percent, taskLevel2Percent } = await getTaskReferralPercents();
           const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
           if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
@@ -463,26 +488,21 @@
             }
 
             if (level1Ref && level1Data) {
-              // বর্তমান প্যাকেজ লেভেল অনুযায়ী প্রতিদিনের কাজের ১০% বোনাসের যোগ্যতা যাচাই:
-              // রেফারকারীর বর্তমান প্যাকেজের চেয়ে বড় প্যাকেজ হলে বোনাস যুক্ত হবে না;
-              // রেফারকারীও বড় প্যাকেজ কিনে নিলে (ইউজারের প্যাকেজ সমান বা ছোট হলে) বোনাস যুক্ত হবে।
+              // রেফারকারী প্যাকেজ না কিনলে কাজের কমিশন পাবে না; প্যাকেজ কিনলে লেভেল যাচাই হবে
+              const hasLevel1Pkg = hasActivePaidPkg(level1Data);
               const userPkgId = currentUserData && currentUserData.package ? String(currentUserData.package).trim() : "";
               const isPaidPackage = userPkgId !== "" && userPkgId !== "free_trial" && userPkgId !== "none";
-              let isEligibleForDailyBonus = true;
+              let isEligibleForDailyBonus = hasLevel1Pkg;
 
-              if (isPaidPackage) {
-                const referrerPkgId = level1Data.package ? String(level1Data.package).trim() : "";
-                if (!referrerPkgId || referrerPkgId === "none" || referrerPkgId === "free_trial") {
-                  isEligibleForDailyBonus = false;
-                } else {
-                  const userPkgLevel = await getPackageLevel(userPkgId);
-                  const referrerPkgLevel = await getPackageLevel(referrerPkgId);
-                  isEligibleForDailyBonus = (userPkgLevel > -1 && referrerPkgLevel > -1 && userPkgLevel <= referrerPkgLevel);
-                }
+              if (hasLevel1Pkg && isPaidPackage) {
+                const referrerPkgId = String(level1Data.package).trim();
+                const userPkgLevel = await getPackageLevel(userPkgId);
+                const referrerPkgLevel = await getPackageLevel(referrerPkgId);
+                isEligibleForDailyBonus = (userPkgLevel > -1 && referrerPkgLevel > -1 && userPkgLevel <= referrerPkgLevel);
               }
 
               if (isEligibleForDailyBonus) {
-                const level1Commission = rewardAmount * 0.10;
+                const level1Commission = rewardAmount * (taskLevel1Percent / 100);
                 await updateDoc(level1Ref, {
                   taskCash: increment(level1Commission),
                   teamCommission: increment(level1Commission),
@@ -501,20 +521,23 @@
               const level2Code = level1Data.referredBy ? String(level1Data.referredBy).trim() : "";
               if (level2Code && level2Code !== "none" && level2Code !== "undefined") {
                 let level2Ref = null;
+                let level2Data = null;
                 const directL2Snap = await getDoc(doc(db, "users", level2Code));
 
                 if (directL2Snap.exists()) {
                   level2Ref = doc(db, "users", level2Code);
+                  level2Data = directL2Snap.data();
                 } else {
                   const q2 = query(collection(db, "users"), where("referralCode", "==", level2Code));
                   const snap2 = await getDocs(q2);
                   if (!snap2.empty) {
                     level2Ref = doc(db, "users", snap2.docs[0].id);
+                    level2Data = snap2.docs[0].data();
                   }
                 }
 
-                if (level2Ref) {
-                  const level2Commission = rewardAmount * 0.04;
+                if (level2Ref && level2Data && hasActivePaidPkg(level2Data)) {
+                  const level2Commission = rewardAmount * (taskLevel2Percent / 100);
                   await updateDoc(level2Ref, {
                     taskCash: increment(level2Commission),
                     teamCommission: increment(level2Commission),
