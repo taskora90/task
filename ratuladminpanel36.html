@@ -2148,7 +2148,7 @@
 
 
 
-  <!-- ===== রেফার কমিশন কন্ট্রোল - স্বতন্ত্র ব্লক ===== -->
+   <!-- ===== রেফার কমিশন ও প্যাকেজ রিফান্ড কন্ট্রোল - স্বতন্ত্র ব্লক ===== -->
   <style>
     .tk-rc-card {
       background: #ffffff;
@@ -2216,6 +2216,7 @@
 
     const DEFAULT_RC = {
       packagePercent: 10,
+      packageRefundPercent: 80,
       taskLevel1Percent: 10,
       taskLevel2Percent: 4
     };
@@ -2229,6 +2230,10 @@
           ? Number(data.packagePercent)
           : DEFAULT_RC.packagePercent;
 
+        const refundVal = (data.packageRefundPercent !== undefined && !Number.isNaN(Number(data.packageRefundPercent)))
+          ? Number(data.packageRefundPercent)
+          : DEFAULT_RC.packageRefundPercent;
+
         const l1Val = (data.taskLevel1Percent !== undefined && !Number.isNaN(Number(data.taskLevel1Percent)))
           ? Number(data.taskLevel1Percent)
           : DEFAULT_RC.taskLevel1Percent;
@@ -2238,10 +2243,12 @@
           : DEFAULT_RC.taskLevel2Percent;
 
         const pkgInp = document.getElementById("tkRcPkgPercent");
+        const refundInp = document.getElementById("tkRcPkgRefundPercent");
         const l1Inp = document.getElementById("tkRcTaskL1Percent");
         const l2Inp = document.getElementById("tkRcTaskL2Percent");
 
         if (pkgInp) pkgInp.value = pkgVal;
+        if (refundInp) refundInp.value = refundVal;
         if (l1Inp) l1Inp.value = l1Val;
         if (l2Inp) l2Inp.value = l2Val;
       } catch (e) {
@@ -2251,18 +2258,24 @@
 
     window.tkRegisterFeature({
       id: "referralCommission",
-      title: "রেফার কমিশন সেটিংস",
+      title: "রেফার কমিশন ও রিফান্ড",
       icon: "fa-percent",
       badgeText: "নতুন",
       renderRoom: (root) => {
         root.innerHTML = `
-          <h3 style="margin:0 0 12px;color:#141517;">রেফার কমিশন নিয়ন্ত্রণ (%)</h3>
+          <h3 style="margin:0 0 12px;color:#141517;">রেফার কমিশন ও রিফান্ড নিয়ন্ত্রণ (%)</h3>
 
           <div class="tk-rc-card">
-            <div class="tk-rc-section-title">📦 প্যাকেজের উপর রেফার কমিশন</div>
-            <div class="tk-rc-field" style="margin-bottom:0;">
-              <label for="tkRcPkgPercent">প্যাকেজ রেফার কমিশন (%)</label>
-              <input type="number" id="tkRcPkgPercent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
+            <div class="tk-rc-section-title">📦 প্যাকেজ রেফার কমিশন ও আপগ্রেড রিফান্ড</div>
+            <div class="tk-rc-grid">
+              <div class="tk-rc-field">
+                <label for="tkRcPkgPercent">প্যাকেজ রেফার কমিশন (%)</label>
+                <input type="number" id="tkRcPkgPercent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
+              </div>
+              <div class="tk-rc-field">
+                <label for="tkRcPkgRefundPercent">প্যাকেজ রিফান্ড (%)</label>
+                <input type="number" id="tkRcPkgRefundPercent" min="0" max="100" step="0.1" value="80" placeholder="যেমন: 80">
+              </div>
             </div>
           </div>
 
@@ -2279,18 +2292,20 @@
               </div>
             </div>
             <button type="button" id="tkSaveReferralCommissionBtn" class="tk-rc-save-btn">
-              <i class="fa-solid fa-check"></i> কমিশন সেটিংস সেভ করুন
+              <i class="fa-solid fa-check"></i> কমিশন ও রিফান্ড সেভ করুন
             </button>
           </div>
         `;
 
         document.getElementById("tkSaveReferralCommissionBtn").addEventListener("click", async () => {
           const packagePercent = Number(document.getElementById("tkRcPkgPercent").value);
+          const packageRefundPercent = Number(document.getElementById("tkRcPkgRefundPercent").value);
           const taskLevel1Percent = Number(document.getElementById("tkRcTaskL1Percent").value);
           const taskLevel2Percent = Number(document.getElementById("tkRcTaskL2Percent").value);
 
           if (
             Number.isNaN(packagePercent) || packagePercent < 0 || packagePercent > 100 ||
+            Number.isNaN(packageRefundPercent) || packageRefundPercent < 0 || packageRefundPercent > 100 ||
             Number.isNaN(taskLevel1Percent) || taskLevel1Percent < 0 || taskLevel1Percent > 100 ||
             Number.isNaN(taskLevel2Percent) || taskLevel2Percent < 0 || taskLevel2Percent > 100
           ) {
@@ -2301,10 +2316,11 @@
           try {
             await setDoc(REF_DOC_REF, {
               packagePercent,
+              packageRefundPercent,
               taskLevel1Percent,
               taskLevel2Percent
             }, { merge: true });
-            alert("✅ প্যাকেজ ও কাজের রেফার কমিশন সেভ হয়েছে!");
+            alert("✅ প্যাকেজ কমিশন, রিফান্ড ও কাজের রেফার কমিশন সেভ হয়েছে!");
           } catch (e) {
             alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
           }
