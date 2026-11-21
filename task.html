@@ -73,7 +73,7 @@
             <div class="video-container">
                 <div style="width: 100%; text-align: center; padding: 20px;">
                     <div style="background: #3b82f6; color: #fff; padding: 15px; border-radius: 8px; font-weight: bold;">
-                        <i class="fa-solid fa-ad"></i> রিওয়ার্ড পেতে বিজ্ঞাপনটি দেখুন এবং ১০ সেকেন্ড অপেক্ষা করুন।
+                        <i class="fa-solid fa-ad"></i> রিওয়ার্ড পেতে বিজ্ঞাপন দেখুন, ক্লিক করুন এবং ১০ সেকেন্ড অপেক্ষা করুন।
                     </div>
                 </div>
             </div>
@@ -112,8 +112,7 @@
             <a href="package.html" style="display: inline-block; background-color: #2d3748; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
         </div>
     </div>  
-
-    <!-- Fixed Bottom Navigation -->
+ <!-- Fixed Bottom Navigation -->
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item">
             <i class="fa-solid fa-house"></i>
@@ -190,7 +189,9 @@
             ongoingBox.style.display = 'block';
             finishedBox.style.display = 'none';
         }
-      }onAuthStateChanged(auth, async (user) => {
+      }
+
+      onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
           userDocRef = doc(db, "users", user.uid);
