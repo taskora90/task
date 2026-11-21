@@ -64,6 +64,7 @@
 <body>
 
     <div class="salary-wrap">
+        <!-- মাসিক ভাতা হেডিং ও টিমে ফিরে যাওয়ার বাটন -->
         <div class="top-bar">
             <h2><i class="fa-solid fa-sack-dollar"></i> মাসিক ভাতা</h2>
             <a href="team.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> টিম</a>
@@ -152,16 +153,15 @@
                 <button type="submit" class="submit-btn" id="submitSalaryWithdrawBtn" disabled>উইথড্র রিকোয়েস্ট পাঠান</button>
             </form>
         </div>
-  <!-- উইথড্র হিস্ট্রি -->
+
+        <!-- উইথড্র হিস্ট্রি -->
         <div class="card-box">
             <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> ভাতা উত্তোলনের হিস্ট্রি</h3>
             <div id="salaryHistoryList">
                 <div class="empty-msg">লোড হচ্ছে...</div>
             </div>
         </div>
-    </div>
-
-    <nav class="bottom-nav">
+    </div>    <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
         <a href="task.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
         <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
@@ -364,7 +364,6 @@
           if (!userSnap.exists()) return;
           currentUserData = userSnap.data();
 
-          // উইথড্র প্রোফাইল লোড (withdrawProfiles/{uid})
           const wpSnap = await getDoc(doc(db, "withdrawProfiles", user.uid));
           if (wpSnap.exists()) {
             const wp = wpSnap.data();
@@ -380,7 +379,7 @@
             document.getElementById("autoWithdrawAccount").value = "উইথড্র প্রোফাইল নেই";
             document.getElementById("missingWithdrawProfileMsg").style.display = "block";
           }
-  // অ্যাডমিন স্যালারি পেজ কনফিগ লোড
+
           const cfgSnap = await getDoc(doc(db, "admin_settings", "salary_page_config"));
           const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
 
@@ -411,7 +410,6 @@
             badgeEl.className = "status-badge status-closed";
           }
 
-          // অ্যাডমিন ধাপসমূহ লোড
           const tierSnap = await getDoc(doc(db, "admin_settings", "monthly_salary_tiers"));
           const rawTiers = (tierSnap.exists() && Array.isArray(tierSnap.data().tiers) && tierSnap.data().tiers.length > 0)
             ? tierSnap.data().tiers
@@ -420,7 +418,6 @@
           const tiersAsc = [...rawTiers].sort((a, b) => Number(a.minRef) - Number(b.minRef));
           const tiersDesc = [...rawTiers].sort((a, b) => Number(b.minRef) - Number(a.minRef));
 
-          // লেভেল ১ মোট রেফার ও প্যাকেজ-সক্রিয় রেফার হিসাব
           let totalRef = 0;
           let activePkgRef = 0;
 
@@ -446,7 +443,6 @@
           document.getElementById("currentAllowanceText").innerText = `৳ ${payableSalaryAmount}`;
           document.getElementById("autoSalaryAmount").value = payableSalaryAmount;
 
-          // পরবর্তী ধাপ হিসাব ও রেফার বাড়ার সাথে সাথে বাকি সংখ্যা কমানো
           const nextTier = tiersAsc.find(t => Number(t.minRef) > activePkgRef);
           const prevMinRef = matchedTier ? Number(matchedTier.minRef) : 0;
 
