@@ -17,7 +17,7 @@
         .total-referral-card p { margin: 0; font-size: 20px; font-weight: bold; color: #28a745; }
 
         /* মাসিক ভাতা ঘর স্টাইল */
-        .monthly-allowance-card { display: none; background: #eef2f5; border-left: 4px solid #28a745; padding: 14px 16px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
+        .monthly-allowance-card { display: block; background: #eef2f5; border-left: 4px solid #28a745; padding: 14px 16px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
         .monthly-allowance-card p { margin: 0; font-size: 17px; font-weight: bold; color: #2e3440; }
 
         .stats-grid { display: flex; gap: 10px; margin-bottom: 20px; }
@@ -47,7 +47,7 @@
             <p id="totalReferralIncome">৳ 0.00</p>
         </div>
 
-        <!-- নির্ধারিত সরাসরি রেফার সংখ্যায় পৌঁছালে অটো দৃশ্যমান মাসিক ভাতা ঘর -->
+        <!-- সবসময় দৃশ্যমান মাসিক ভাতা ঘর (নির্ধারিত ধাপে পৌঁছালে অটো টাকার পরিমাণ বদলাবে) -->
         <div class="monthly-allowance-card" id="monthlyAllowanceBox">
             <p id="monthlyAllowanceText">মাসিক ভাতা = ৳ 0</p>
         </div>
@@ -124,12 +124,9 @@
         ];
 
         const matchedTier = tiers.find(t => directReferCount >= t.minRef);
-        if (matchedTier) {
-          allowanceText.innerText = `মাসিক ভাতা = ৳ ${matchedTier.amount}`;
-          allowanceBox.style.display = 'block';
-        } else {
-          allowanceBox.style.display = 'none';
-        }
+        const currentAmount = matchedTier ? matchedTier.amount : 0;
+        allowanceText.innerText = `মাসিক ভাতা = ৳ ${currentAmount}`;
+        allowanceBox.style.display = 'block';
       }
 
       onAuthStateChanged(auth, async (user) => {
