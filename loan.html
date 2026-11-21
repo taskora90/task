@@ -494,15 +494,15 @@
             }
         };
 
-        window.closeHomeNotice = function() {
-            const modal = document.getElementById('homeNoticeModal');
+        window.closeLoanNotice = function() {
+            const modal = document.getElementById('loanNoticeModal');
             if (modal) {
                 modal.style.display = 'none';
             }
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('homeNoticeModal');
+            const modal = document.getElementById('loanNoticeModal');
             if (modal) {
                 modal.style.display = 'flex';
             }
