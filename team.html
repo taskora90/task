@@ -7,35 +7,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px 20px 80px 20px; }
-        .team-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .team-header { text-align: center; margin-bottom: 15px; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(180deg, #eef2f6 0%, #f8fafc 100%); margin: 0; padding: 20px 20px 85px 20px; color: #2e3440; }
+        .team-container { max-width: 450px; margin: 0 auto; background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%); padding: 20px; border-radius: 14px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06); border: 1px solid #e2e8f0; }
+        .team-header { text-align: center; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #eef2f6; }
+        .team-header h2 { margin: 0 0 4px 0; color: #1e293b; font-size: 21px; }
 
         /* মোট রেফার আয় কার্ড স্টাইল */
-        .total-referral-card { background: #eef2f5; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
-        .total-referral-card h3 { margin: 0 0 5px 0; font-size: 15px; color: #333; }
-        .total-referral-card p { margin: 0; font-size: 20px; font-weight: bold; color: #28a745; }
+        .total-referral-card { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 1px solid #cbd5e1; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04); }
+        .total-referral-card h3 { margin: 0 0 5px 0; font-size: 14px; color: #475569; }
+        .total-referral-card p { margin: 0; font-size: 21px; font-weight: bold; color: #15803d; }
 
-        /* মাসিক ভাতা ঘর স্টাইল */
-        .monthly-allowance-card { display: block; background: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #28a745; padding: 14px 16px; border-radius: 8px; text-align: center; margin-bottom: 15px; transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
-        .monthly-allowance-card p { margin: 0; font-size: 17px; font-weight: bold; color: #2e3440; }
+        /* মাসিক ভাতা ঘর স্টাইল (সক্রিয় হওয়ার আগে অ্যাশ কালার ও নিষ্ক্রিয় টাচ) */
+        .monthly-allowance-card { display: block; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); border: 1px solid #94a3b8; border-left: 4px solid #64748b; padding: 14px 16px; border-radius: 10px; text-align: center; margin-bottom: 15px; cursor: default; user-select: none; box-shadow: inset 0 1px 2px rgba(255,255,255,0.6); transition: all 0.25s ease; }
+        .monthly-allowance-card p { margin: 0; font-size: 17px; font-weight: bold; color: #334155; }
 
-        /* মাসিক ভাতা অ্যাড হলে অ্যাস কালার ও ক্লিকযোগ্য স্টাইল */
-        .monthly-allowance-card.allowance-unlocked { background: #9ca3af; border-color: #6b7280; border-left: 4px solid #374151; cursor: pointer; }
+        /* মাসিক ভাতা সক্রিয় হলে সবুজ স্টাইল ও ক্লিকযোগ্য ইফেক্ট */
+        .monthly-allowance-card.allowance-unlocked { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); border-color: #15803d; border-left: 4px solid #14532d; cursor: pointer; box-shadow: 0 6px 14px rgba(22, 163, 74, 0.28); }
         .monthly-allowance-card.allowance-unlocked p { color: #ffffff; }
-        .monthly-allowance-card.allowance-unlocked:hover { background: #6b7280; }
+        .monthly-allowance-card.allowance-unlocked:hover { background: linear-gradient(135deg, #15803d 0%, #166534 100%); transform: translateY(-1px); }
 
-        .stats-grid { display: flex; gap: 10px; margin-bottom: 20px; }
-        .stat-card { flex: 1; background: #eef2f5; padding: 15px; border-radius: 8px; text-align: center; }
-        .stat-card h3 { margin: 0 0 5px 0; font-size: 16px; color: #333; }
-        .stat-card p { margin: 0; font-size: 18px; font-weight: bold; color: #007bff; }
+        .stats-grid { display: flex; gap: 10px; margin-bottom: 22px; }
+        .stat-card { flex: 1; background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%); padding: 15px 10px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03); }
+        .stat-card h3 { margin: 0 0 6px 0; font-size: 14px; color: #475569; }
+        .stat-card p { margin: 0; font-size: 19px; font-weight: bold; color: #0284c7; }
 
-        .level-section { margin-bottom: 25px; }
-        .level-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #495057; border-bottom: 2px solid #e9ecef; padding-bottom: 5px; }
+        .level-section { margin-bottom: 24px; }
+        .level-title { font-size: 15px; font-weight: bold; margin-bottom: 10px; color: #334155; background: #f1f5f9; border-left: 3px solid #3b4252; padding: 7px 10px; border-radius: 6px; }
 
-        .member-card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-        .member-info span { display: block; color: #6c757d; font-size: 12px; }
-        .no-member { text-align: center; color: #888; font-size: 14px; padding: 10px; background: #fdfdfd; border-radius: 6px; border: 1px dashed #ddd; }
+        .member-card { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0; border-radius: 8px; padding: 11px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03); }
+        .member-info span { display: block; color: #64748b; font-size: 12px; margin-top: 2px; }
+        .no-member { text-align: center; color: #64748b; font-size: 13px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; }
     </style>
 </head>
 <body>
@@ -43,7 +44,7 @@
     <div class="team-container">
         <div class="team-header">
             <h2><i class="fa-solid fa-users"></i> আমার টিম</h2>
-            <p style="font-size: 13px; color: #6c757d;">আপনার রেফারেল ও টিম কমিশন ওভারভিউ</p>
+            <p style="font-size: 13px; color: #64748b; margin: 0;">আপনার রেফারেল ও টিম কমিশন ওভারভিউ</p>
         </div>
 
         <!-- মোট রেফার আয় বক্স (শুধুমাত্র প্যাকেজ ক্রয়ের ১০% কমিশন) -->
@@ -52,7 +53,7 @@
             <p id="totalReferralIncome">৳ 0.00</p>
         </div>
 
-        <!-- সবসময় দৃশ্যমান মাসিক ভাতা ঘর (ভাতা যুক্ত হলে অ্যাস কালার হবে এবং ক্লিক করলে salary.html-এ যাবে) -->
+        <!-- সবসময় দৃশ্যমান মাসিক ভাতা ঘর (সক্রিয় হওয়ার আগে অ্যাশ কালার ও নিষ্ক্রিয়; সক্রিয় হলে সবুজ ও salary.html-এ যাবে) -->
         <div class="monthly-allowance-card" id="monthlyAllowanceBox">
             <p id="monthlyAllowanceText">মাসিক ভাতা = ৳ 0</p>
         </div>
@@ -144,15 +145,16 @@
         const customSalary = Number(adminSalary || 0);
         const currentAmount = customSalary > 0 ? customSalary : tierAllowance;
 
-        allowanceText.innerText = `মাসিক ভাতা = ৳ ${currentAmount}`;
         allowanceBox.style.display = 'block';
 
         if (currentAmount > 0) {
+          allowanceText.innerHTML = `মাসিক ভাতা = ৳ ${currentAmount} <span style="display:block; font-size:12px; font-weight:normal; margin-top:3px; opacity:0.95;">উত্তোলন করতে ক্লিক করুন →</span>`;
           allowanceBox.classList.add('allowance-unlocked');
           allowanceBox.onclick = () => {
             window.location.href = 'salary.html';
           };
         } else {
+          allowanceText.innerText = `মাসিক ভাতা = ৳ 0`;
           allowanceBox.classList.remove('allowance-unlocked');
           allowanceBox.onclick = null;
         }
