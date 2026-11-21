@@ -17,8 +17,13 @@
         .total-referral-card p { margin: 0; font-size: 20px; font-weight: bold; color: #28a745; }
 
         /* মাসিক ভাতা ঘর স্টাইল */
-        .monthly-allowance-card { display: block; background: #eef2f5; border-left: 4px solid #28a745; padding: 14px 16px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
+        .monthly-allowance-card { display: block; background: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #28a745; padding: 14px 16px; border-radius: 8px; text-align: center; margin-bottom: 15px; transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
         .monthly-allowance-card p { margin: 0; font-size: 17px; font-weight: bold; color: #2e3440; }
+
+        /* মাসিক ভাতা অ্যাড হলে অ্যাস কালার ও ক্লিকযোগ্য স্টাইল */
+        .monthly-allowance-card.allowance-unlocked { background: #9ca3af; border-color: #6b7280; border-left: 4px solid #374151; cursor: pointer; }
+        .monthly-allowance-card.allowance-unlocked p { color: #ffffff; }
+        .monthly-allowance-card.allowance-unlocked:hover { background: #6b7280; }
 
         .stats-grid { display: flex; gap: 10px; margin-bottom: 20px; }
         .stat-card { flex: 1; background: #eef2f5; padding: 15px; border-radius: 8px; text-align: center; }
@@ -47,7 +52,7 @@
             <p id="totalReferralIncome">৳ 0.00</p>
         </div>
 
-        <!-- সবসময় দৃশ্যমান মাসিক ভাতা ঘর (শুধুমাত্র প্যাকেজ কেনা লেভেল ১ রেফার অনুযায়ী আপডেট হবে) -->
+        <!-- সবসময় দৃশ্যমান মাসিক ভাতা ঘর (ভাতা যুক্ত হলে অ্যাস কালার হবে এবং ক্লিক করলে salary.html-এ যাবে) -->
         <div class="monthly-allowance-card" id="monthlyAllowanceBox">
             <p id="monthlyAllowanceText">মাসিক ভাতা = ৳ 0</p>
         </div>
@@ -108,7 +113,7 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // ইউজার প্যাকেজ কিনেছে কি না তা যাচাই করার হেল্পার ফাংশন
+      // ইউজার প্যাকেজ কিনেছে কি না তা যাচাই করার হেল্পার ফাংশন ("none" থাকলে নিষ্ক্রিয় ধরা হবে)
       function hasActivePackage(member) {
         const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
         if (!pkgVal) return false;
@@ -135,6 +140,16 @@
         const currentAmount = matchedTier ? matchedTier.amount : 0;
         allowanceText.innerText = `মাসিক ভাতা = ৳ ${currentAmount}`;
         allowanceBox.style.display = 'block';
+
+        if (currentAmount > 0) {
+          allowanceBox.classList.add('allowance-unlocked');
+          allowanceBox.onclick = () => {
+            window.location.href = 'salary.html';
+          };
+        } else {
+          allowanceBox.classList.remove('allowance-unlocked');
+          allowanceBox.onclick = null;
+        }
       }
 
       onAuthStateChanged(auth, async (user) => {
