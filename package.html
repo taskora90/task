@@ -204,6 +204,19 @@
       let userData = null;
       let allPackages = {}; 
 
+      // প্যাকেজ ID বা ডক ID দিয়ে লেভেল বের করার সহায়ক ফাংশন
+      function getPackageLevelById(pkgId) {
+        if (!pkgId || pkgId === "none") return -1;
+        const cleanId = String(pkgId).trim();
+        for (let key in allPackages) {
+          const p = allPackages[key];
+          if (p.packageId === cleanId || p.id === cleanId || key === cleanId) {
+            return Number(p.level || 0);
+          }
+        }
+        return -1;
+      }
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
@@ -243,13 +256,7 @@
 
             // সঠিক উপায়ে ইউজারের বর্তমান লেভেল খুঁজে বের করা
             if (currentPkg) {
-              for (let key in allPackages) {
-                let p = allPackages[key];
-                if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
-                  currentPkgLevel = Number(p.level || 0);
-                  break;
-                }
-              }
+              currentPkgLevel = getPackageLevelById(currentPkg);
             }
 
             packagesArray.forEach((pkg) => {
@@ -269,11 +276,11 @@
               } else if (currentPkgLevel > -1 && currentPkgLevel > pkgLevel) {
                 btnText = "প্যাকেজ কিনুন";
                 btnClass = "btn-buy btn-blocked";
-                isDisabled = ""; // ছোট প্যাকেজের ক্ষেত্রে disabled রাখা হয়নি যাতে ক্লিক করলে ওয়ার্নিং আসে
+                isDisabled = "";
               }
 
               const displayLuckySpin = Number(pkg.LuckySpinCount || pkg.luckySpin || 0);
-              const displayReward = Number(pkg.reward || 10); // ডাইনামিক রিওয়ার্ড (ডিফল্ট ১০ টাকা)
+              const displayReward = Number(pkg.reward || 10);
 
               const cardHTML = `
                 <div class="card" id="pkg-card-${pkg.packageId}">
@@ -313,13 +320,7 @@
         let currentPkgLevel = -1;
 
         if (currentPkg) {
-          for (let key in allPackages) {
-            let p = allPackages[key];
-            if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
-              currentPkgLevel = Number(p.level || 0);
-              break;
-            }
-          }
+          currentPkgLevel = getPackageLevelById(currentPkg);
         }
 
         // সিকিউরিটি চেক: যদি টার্গেট প্যাকেজের লেভেল বর্তমান প্যাকেজের কম হয়, তবে ওয়ার্নিং পপ-আপ দেখাবে
@@ -357,13 +358,57 @@
 
           const totalTaskCashBonus = fixedCashBonus + previousPackageRefund;
 
+          // রেফারকারীর তথ্য যাচাই করে প্রতিদিনের কাজের ১০% বোনাসের যোগ্যতা নির্ধারণ
+          let dailyTaskRefBonusEligible = false;
+          let referrerRef = null;
+          let referrerDocId = "";
+          let referrerSnap = null;
+          let referrerPackage = "none";
+
+          const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
+
+          if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
+            referrerSnap = await getDoc(doc(db, "users", referrerCode));
+
+            if (referrerSnap.exists()) {
+              referrerRef = doc(db, "users", referrerCode);
+              referrerDocId = referrerCode;
+            } else {
+              const q = query(collection(db, "users"), where("referralCode", "==", referrerCode));
+              const querySnapshot = await getDocs(q);
+              if (!querySnapshot.empty) {
+                referrerDocId = querySnapshot.docs[0].id;
+                referrerRef = doc(db, "users", referrerDocId);
+                referrerSnap = querySnapshot.docs[0];
+              }
+            }
+
+            if (referrerRef && referrerSnap && referrerSnap.exists()) {
+              const referrerData = referrerSnap.data();
+              referrerPackage = String(referrerData.package || "none").trim();
+
+              if (referrerPackage && referrerPackage !== "none") {
+                const referrerPkgLevel = getPackageLevelById(referrerPackage);
+                const boughtPkgLevel = Number(targetLevel !== undefined ? targetLevel : (pkgDetails.level || 0));
+
+                // রেফারকারীর প্যাকেজের সমান বা ছোট প্যাকেজ কিনলে তবেই প্রতিদিনের কাজের ১০% বোনাস যোগ্য হবে
+                if (referrerPkgLevel > -1 && boughtPkgLevel <= referrerPkgLevel) {
+                  dailyTaskRefBonusEligible = true;
+                } else {
+                  dailyTaskRefBonusEligible = false;
+                }
+              }
+            }
+          }
+
           await updateDoc(userDocRef, {
             previousPackage: currentPkg ? currentPkg : "",
             package: packageId,
             myCash: increment(-price),
             taskCash: increment(totalTaskCashBonus),     
             totalEarnings: increment(totalTaskCashBonus), 
-            luckySpinCount: increment(bonusSpins) 
+            luckySpinCount: increment(bonusSpins),
+            dailyTaskRefBonusEligible: dailyTaskRefBonusEligible
           });
 
           if (fixedCashBonus > 0) {
@@ -396,48 +441,23 @@
             }
           }
 
-          const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
+          // প্যাকেজ কেনার ১০% কমিশন (বড় প্যাকেজ হলেও এটি জমা হবে)
+          if (referrerRef && referrerSnap && referrerSnap.exists() && referrerPackage !== "none") {
+            const commissionAmount = price * 0.10; 
 
-          if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
-            let referrerRef = null;
-            let referrerSnap = await getDoc(doc(db, "users", referrerCode));
-            let referrerDocId = "";
+            await updateDoc(referrerRef, {
+              teamCommission: increment(commissionAmount),     
+              taskCash: increment(commissionAmount),           
+              totalEarnings: increment(commissionAmount),        
+              luckySpinCount: increment(bonusSpins) 
+            });
 
-            if (referrerSnap.exists()) {
-              referrerRef = doc(db, "users", referrerCode);
-              referrerDocId = referrerCode;
-            } else {
-              const q = query(collection(db, "users"), where("referralCode", "==", referrerCode));
-              const querySnapshot = await getDocs(q);
-              if (!querySnapshot.empty) {
-                referrerDocId = querySnapshot.docs[0].id;
-                referrerRef = doc(db, "users", referrerDocId);
-                referrerSnap = querySnapshot.docs[0];
-              }
-            }
-
-            if (referrerRef && referrerSnap.exists()) {
-              const referrerData = referrerSnap.data();
-              const referrerPackage = referrerData.package || 'none';
-
-              if (referrerPackage !== 'none') {
-                const commissionAmount = price * 0.10; 
-
-                await updateDoc(referrerRef, {
-                  teamCommission: increment(commissionAmount),     
-                  taskCash: increment(commissionAmount),           
-                  totalEarnings: increment(commissionAmount),        
-                  luckySpinCount: increment(bonusSpins) 
-                });
-
-                await addDoc(collection(db, "users", referrerDocId, "referralHistory"), {
-                  title: "রেফার কমিশন (প্যাকেজ ক্রয়)",
-                  desc: `টিম মেম্বার '${pkgDetails.name}' ক্রয় করায় ১০% কমিশন (${commissionAmount} টাকা) এবং ${bonusSpins}টি স্পিন অর্জিত হয়েছে`,
-                  amount: commissionAmount,
-                  timestamp: serverTimestamp()
-                });
-              }
-            }
+            await addDoc(collection(db, "users", referrerDocId, "referralHistory"), {
+              title: "রেফার কমিশন (প্যাকেজ ক্রয়)",
+              desc: `টিম মেম্বার '${pkgDetails.name}' ক্রয় করায় ১০% কমিশন (${commissionAmount} টাকা) এবং ${bonusSpins}টি স্পিন অর্জিত হয়েছে`,
+              amount: commissionAmount,
+              timestamp: serverTimestamp()
+            });
           }
 
           let msg = `অভিনন্দন! আপনার প্যাকেজ সফলভাবে সক্রিয় হয়েছে।\n`;
