@@ -161,6 +161,22 @@
       let currentUser = null;
       let currentUserData = null;
 
+      // প্যাকেজ ID দিয়ে প্যাকেজের লেভেল বের করার সহায়ক ফাংশন
+      async function getPackageLevel(pkgId) {
+        if (!pkgId || pkgId === "free_trial" || pkgId === "none") return -1;
+        const cleanId = String(pkgId).trim();
+        const pkgSnap = await getDoc(doc(db, "packages", cleanId));
+        if (pkgSnap.exists()) {
+          return Number(pkgSnap.data().level || 0);
+        }
+        const q = query(collection(db, "packages"), where("packageId", "==", cleanId));
+        const querySnap = await getDocs(q);
+        if (!querySnap.empty) {
+          return Number(querySnap.docs[0].data().level || 0);
+        }
+        return -1;
+      }
+
       function updateTaskStatusBox(completedTasks, totalPackageTasks) {
         const ongoingBox = document.getElementById('task-ongoing-box');
         const finishedBox = document.getElementById('task-finished-box');
@@ -174,9 +190,7 @@
             ongoingBox.style.display = 'block';
             finishedBox.style.display = 'none';
         }
-      }
-
-      onAuthStateChanged(auth, async (user) => {
+      }onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
           userDocRef = doc(db, "users", user.uid);
@@ -248,7 +262,6 @@
 
                 const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
                 if (diffDays > 3) {
                   document.getElementById('taskCard').style.display = 'none';                  
                   document.getElementById('userInfoBox').style.display = 'none';
@@ -401,20 +414,40 @@
             }
 
             if (level1Ref && level1Data) {
-              const level1Commission = rewardAmount * 0.10;
-              await updateDoc(level1Ref, {
-                taskCash: increment(level1Commission),
-                teamCommission: increment(level1Commission),
-                todayTeamCommission: increment(level1Commission),
-                totalEarnings: increment(level1Commission)
-              });
+              // বর্তমান প্যাকেজ লেভেল অনুযায়ী প্রতিদিনের কাজের ১০% বোনাসের যোগ্যতা যাচাই:
+              // রেফারকারীর বর্তমান প্যাকেজের চেয়ে বড় প্যাকেজ হলে বোনাস যুক্ত হবে না;
+              // রেফারকারীও বড় প্যাকেজ কিনে নিলে (ইউজারের প্যাকেজ সমান বা ছোট হলে) বোনাস যুক্ত হবে।
+              const userPkgId = currentUserData && currentUserData.package ? String(currentUserData.package).trim() : "";
+              const isPaidPackage = userPkgId !== "" && userPkgId !== "free_trial" && userPkgId !== "none";
+              let isEligibleForDailyBonus = true;
 
-              await addDoc(collection(db, "users", level1Ref.id, "referralHistory"), {
-                title: "রেফার কমিশন (লেভেল ১)",
-                desc: "টিম মেম্বারের টাস্ক সম্পন্ন করার মাধ্যমে কমিশন অর্জিত হয়েছে",
-                amount: Number(level1Commission),
-                timestamp: serverTimestamp()
-              });
+              if (isPaidPackage) {
+                const referrerPkgId = level1Data.package ? String(level1Data.package).trim() : "";
+                if (!referrerPkgId || referrerPkgId === "none" || referrerPkgId === "free_trial") {
+                  isEligibleForDailyBonus = false;
+                } else {
+                  const userPkgLevel = await getPackageLevel(userPkgId);
+                  const referrerPkgLevel = await getPackageLevel(referrerPkgId);
+                  isEligibleForDailyBonus = (userPkgLevel > -1 && referrerPkgLevel > -1 && userPkgLevel <= referrerPkgLevel);
+                }
+              }
+
+              if (isEligibleForDailyBonus) {
+                const level1Commission = rewardAmount * 0.10;
+                await updateDoc(level1Ref, {
+                  taskCash: increment(level1Commission),
+                  teamCommission: increment(level1Commission),
+                  todayTeamCommission: increment(level1Commission),
+                  totalEarnings: increment(level1Commission)
+                });
+
+                await addDoc(collection(db, "users", level1Ref.id, "referralHistory"), {
+                  title: "রেফার কমিশন (লেভেল ১)",
+                  desc: "টিম মেম্বারের টাস্ক সম্পন্ন করার মাধ্যমে কমিশন অর্জিত হয়েছে",
+                  amount: Number(level1Commission),
+                  timestamp: serverTimestamp()
+                });
+              }
 
               const level2Code = level1Data.referredBy ? String(level1Data.referredBy).trim() : "";
               if (level2Code && level2Code !== "none" && level2Code !== "undefined") {
@@ -480,7 +513,7 @@
       </div>
        </div>
 
-  
+
 
     <!-- Adsterra Popunder Script -->
     <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
