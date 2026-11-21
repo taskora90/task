@@ -148,7 +148,7 @@
         allowanceBox.style.display = 'block';
 
         if (currentAmount > 0) {
-          allowanceText.innerHTML = `মাসিক ভাতা = ৳ ${currentAmount} <span style="display:block; font-size:12px; font-weight:normal; margin-top:3px; opacity:0.95;">উত্তোলন করতে ক্লিক করুন →</span>`;
+          allowanceText.innerHTML = `মাসিক ভাতা = ৳ ${currentAmount} <span style="display:block; font-size:12px; font-weight:normal; margin-top:3px; opacity:0.95;">ক্লিক করুন →</span>`;
           allowanceBox.classList.add('allowance-unlocked');
           allowanceBox.onclick = () => {
             window.location.href = 'salary.html';
