@@ -312,12 +312,22 @@ updateLiveDateTime();
 
 
 
-<!-- হোমপেজ পপ-আপ মোডাল -->
-<div id="homeNoticeModal" class="notice-modal-overlay">
+<!-- ১ম হোমপেজ পপ-আপ মোডাল -->
+<div id="homeNoticeModal1" class="notice-modal-overlay" style="display: none;">
     <div class="notice-modal-content">
-        <span class="notice-close-btn" onclick="closeHomeNotice()">&times;</span>
+        <span class="notice-close-btn" onclick="closeHomeNotice1()">&times;</span>
         <div class="notice-image-container">
-            <img src="https://i.ibb.co.com/CK87jCkb/1794483288473.jpg" alt="Notice" style="width: 100%; border-radius: 8px;">
+            <img src="https://i.ibb.co.com/YFFHRx5z/1794218517036.jpg" alt="Notice 1" style="width: 100%; border-radius: 8px;">
+        </div>
+    </div>
+</div>
+
+<!-- ২য় হোমপেজ পপ-আপ মোডাল -->
+<div id="homeNoticeModal2" class="notice-modal-overlay" style="display: none;">
+    <div class="notice-modal-content">
+        <span class="notice-close-btn" onclick="closeHomeNotice2()">&times;</span>
+        <div class="notice-image-container">
+            <img src="https://i.ibb.co.com/আপনার-দ্বিতীয়-ছবির-লিংক.jpg" alt="Notice 2" style="width: 100%; border-radius: 8px;">
         </div>
     </div>
 </div>
@@ -343,25 +353,36 @@ updateLiveDateTime();
 }
 </style>
 
-
-
 <script>
-// পপ-আপ বন্ধ করার ফাংশন
-function closeHomeNotice() {
-    const modal = document.getElementById('homeNoticeModal');
-    if (modal) {
-        modal.style.display = 'none';
+// ১ম পপ-আপ বন্ধ করে ২য় পপ-আপ দেখানোর ফাংশন
+function closeHomeNotice1() {
+    const modal1 = document.getElementById('homeNoticeModal1');
+    const modal2 = document.getElementById('homeNoticeModal2');
+    if (modal1) {
+        modal1.style.display = 'none';
+    }
+    if (modal2) {
+        modal2.style.display = 'flex';
     }
 }
 
-// ইনডেক্স পেজে ঢোকার সাথে সাথে পপ-আপ দেখানোর জন্য
-window.addEventListener('DOMContentLoaded', (event) => {
-    const modal = document.getElementById('homeNoticeModal');
-    if (modal) {
-        modal.style.display = 'flex';
+// ২য় পপ-আপ বন্ধ করার ফাংশন
+function closeHomeNotice2() {
+    const modal2 = document.getElementById('homeNoticeModal2');
+    if (modal2) {
+        modal2.style.display = 'none';
+    }
+}
+
+// ইনডেক্স পেজে ঢোকার সাথে সাথে ১ম পপ-আপ দেখানোর জন্য
+window.addEventListener('DOMContentLoaded', () => {
+    const modal1 = document.getElementById('homeNoticeModal1');
+    if (modal1) {
+        modal1.style.display = 'flex';
     }
 });
 </script>
+
 
 <!-- Adsterra Popunder Script -->
 <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
