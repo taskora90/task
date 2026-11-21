@@ -493,6 +493,20 @@
             return `মাসে সর্বোচ্চ ${limBn} বার টাকা তোলা যাবে।`;
         }
 
+        function getPkgKeyVariants(keyOrTitle) {
+            const raw = (keyOrTitle || "").toString().trim();
+            if (!raw) return [];
+            const set = new Set([
+                raw,
+                raw.toLowerCase(),
+                raw.replace(/\./g, "_"),
+                raw.replace(/_/g, "."),
+                raw.toLowerCase().replace(/\./g, "_"),
+                raw.toLowerCase().replace(/_/g, ".")
+            ]);
+            return Array.from(set).filter(Boolean);
+        }
+
         function mountAllPageTemplates() {
             document.getElementById("loanMainPage").innerHTML = `
                 <div class="tk-subpage-header">
@@ -702,10 +716,11 @@
                 state.loanConfig = cfgSnap.exists() ? cfgSnap.data() : { none: 500 };
 
                 const pkgSnap = await getDocs(collection(db, "packages"));
+                const noneVal = state.loanConfig.none ?? 500;
                 let html = `
                     <div style="margin-bottom:10px;">
                         <label class="tk-field-label">ফ্রি ইউজার (প্যাকেজ নেই - none) লোন (৳):</label>
-                        <input type="number" class="tk-input tk-pkg-loan-input" data-pkg-key="none" value="${state.loanConfig.none ?? 500}">
+                        <input type="number" class="tk-input tk-pkg-loan-input" data-pkg-key="none" data-pkg-title="none" value="${noneVal}">
                     </div>
                 `;
 
@@ -713,12 +728,20 @@
                     const pData = pDoc.data();
                     const pkgKey = pDoc.id;
                     const pkgTitle = pData.name || pData.title || pkgKey;
-                    const currentVal = state.loanConfig[pkgKey] ?? state.loanConfig[pkgTitle] ?? 0;
+                    const lookupKeys = [...getPkgKeyVariants(pkgKey), ...getPkgKeyVariants(pkgTitle)];
+
+                    let currentVal = 0;
+                    for (const k of lookupKeys) {
+                        if (state.loanConfig[k] !== undefined && state.loanConfig[k] !== null && state.loanConfig[k] !== "") {
+                            currentVal = state.loanConfig[k];
+                            break;
+                        }
+                    }
 
                     html += `
                         <div style="margin-bottom:10px;">
                             <label class="tk-field-label">${pkgTitle} (${pkgKey}) লোন (৳):</label>
-                            <input type="number" class="tk-input tk-pkg-loan-input" data-pkg-key="${pkgKey}" value="${currentVal}">
+                            <input type="number" class="tk-input tk-pkg-loan-input" data-pkg-key="${pkgKey}" data-pkg-title="${pkgTitle}" value="${currentVal}">
                         </div>
                     `;
                 });
@@ -736,8 +759,17 @@
             const newConfig = {};
             inputs.forEach((inp) => {
                 const key = inp.getAttribute('data-pkg-key');
-                const val = parseFloat(inp.value);
-                newConfig[key] = isNaN(val) ? 0 : val;
+                const title = inp.getAttribute('data-pkg-title');
+                const parsed = parseFloat(inp.value);
+                const val = isNaN(parsed) ? 0 : parsed;
+
+                if (key === "none") {
+                    newConfig.none = val;
+                    return;
+                }
+
+                getPkgKeyVariants(key).forEach(v => { newConfig[v] = val; });
+                getPkgKeyVariants(title).forEach(v => { newConfig[v] = val; });
             });
 
             try {
