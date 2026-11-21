@@ -245,15 +245,16 @@
 
 
 
-    <!-- হোমপেজ পপ-আপ মোডাল -->
-    <div id="homeNoticeModal" class="notice-modal-overlay">
-        <div class="notice-modal-content">
-            <span class="notice-close-btn" onclick="closeHomeNotice()">&times;</span>
-            <div class="notice-image-container">
-                <img src="https://i.ibb.co.com/C5SnVx0D/1795267140051.jpg" alt="Notice" style="width: 100%; border-radius: 8px;">
-            </div>
+ <!-- টিম পেজ পপ-আপ মোডাল -->
+<div id="teamNoticeModal" class="notice-modal-overlay" style="display: none;">
+    <div class="notice-modal-content">
+        <span class="notice-close-btn" onclick="closeTeamNotice()">&times;</span>
+        <div class="notice-image-container">
+            <img src="https://i.ibb.co.com/C5SnVx0D/1795267140051.jpg" alt="Team Notice" style="width: 100%; border-radius: 8px;">
         </div>
     </div>
+</div>
+
 <style>
 .notice-modal-overlay {
     position: fixed;
@@ -274,18 +275,19 @@
     display: flex; align-items: center; justify-content: center; z-index: 10;
 }
 </style>
+
 <script>
-// পপ-আপ বন্ধ করার ফাংশন
-function closeHomeNotice() {
-    const modal = document.getElementById('homeNoticeModal');
+// টিম পেজের পপ-আপ বন্ধ করার ফাংশন
+function closeTeamNotice() {
+    const modal = document.getElementById('teamNoticeModal');
     if (modal) {
         modal.style.display = 'none';
     }
 }
 
-// ইনডেক্স পেজে ঢোকার সাথে সাথে পপ-আপ দেখানোর জন্য
-window.addEventListener('DOMContentLoaded', (event) => {
-    const modal = document.getElementById('homeNoticeModal');
+// টিম পেজে ঢোকার সাথে সাথে পপ-আপ দেখানোর জন্য
+window.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('teamNoticeModal');
     if (modal) {
         modal.style.display = 'flex';
     }
