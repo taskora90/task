@@ -317,22 +317,18 @@
       }
     }
 
-    // পেন্ডিং প্রাইজ প্রসেস করার ফাংশন
-    async function processPendingPrize() {
-      const savedPrize = localStorage.getItem('pendingSpinPrize');
-      if (!savedPrize || !userDocRef) return;
-
-      const prizeToProcess = JSON.parse(savedPrize);
-      localStorage.removeItem('pendingSpinPrize'); // প্রসেস হওয়ার পর রিমুভ করা হলো
+    // স্পিন শেষ হওয়ার সাথে সাথে ফায়ারবেসে প্রাইজ ও স্পিন কাউন্ট আপডেট করার ফাংশন
+    async function applySpinResult(prize) {
+      if (!userDocRef) return;
 
       try {
         let updateData = {
           luckySpinCount: increment(-1)
         };
 
-        if (prizeToProcess.amount > 0) {
-          updateData.taskCash = increment(prizeToProcess.amount);
-          updateData.totalEarnings = increment(prizeToProcess.amount);
+        if (prize.amount > 0) {
+          updateData.taskCash = increment(prize.amount);
+          updateData.totalEarnings = increment(prize.amount);
         }
 
         await updateDoc(userDocRef, updateData);
@@ -340,20 +336,20 @@
         if (currentUserObj) {
           await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
             title: "লাকি স্পিন",
-            desc: prizeToProcess.amount > 0 ? `স্পিন করে ${prizeToProcess.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
-            amount: Number(prizeToProcess.amount),
+            desc: prize.amount > 0 ? `স্পিন করে ${prize.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
+            amount: Number(prize.amount),
             timestamp: serverTimestamp()
           });
         }
 
-        if (prizeToProcess.amount > 0) {
-          alert(`অভিনন্দন! আপনি জিতেছেন ${prizeToProcess.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
+        if (prize.amount > 0) {
+          alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
         } else {
           alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
         }
 
         // পেজ রিলোড না করে ইনস্ট্যান্ট ডেটা রিফ্রেশ করা হলো
-        await loadUserData(); 
+        await loadUserData();
 
       } catch (error) {
         console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
@@ -365,11 +361,7 @@
       if (user) {
         currentUserObj = user;
         userDocRef = doc(db, "users", user.uid);
-
-        // প্রথমে পেন্ডিং প্রাইজ থাকলে তা প্রসেস করবে, তারপর ডেটা লোড করবে
-        await processPendingPrize();
         await loadUserData();
-
       } else {
         window.location.href = "login.html";
       }
@@ -387,11 +379,8 @@
       const selectedIndex = Math.floor(Math.random() * items.length);
       const prize = items[selectedIndex];
 
-      // localStorage এ সেভ করা হলো
-      localStorage.setItem('pendingSpinPrize', JSON.stringify(prize));
-
       const degreesPerItem = 360 / items.length;
-      const extraRounds = 360 * 5; 
+      const extraRounds = 360 * 5;
       const targetDegree = extraRounds + (360 - (selectedIndex * degreesPerItem));
 
       currentRotation += targetDegree;
@@ -400,19 +389,9 @@
 
       setTimeout(async () => {
         isSpinning = false;
-        // Adsterra Smart Link ওপেন হবে
-        window.location.href = "https://araplhn.org/4/79054fb4b54830da5e0866e988a90081";
+        await applySpinResult(prize);
       }, 4000);
     }
-
-    // ইউজার অ্যাড দেখে ফিরে আসলে তাৎক্ষণিক আপডেট হবে
-    window.addEventListener("pageshow", async () => {
-      await processPendingPrize();
-    });
-
-    window.addEventListener("focus", async () => {
-      await processPendingPrize();
-    });
   </script>
 
 <!-- Adsterra Popunder Script -->
