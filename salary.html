@@ -3,97 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>মাসিক ভাতা ও স্যালারি - TaskOra</title>
+    <title>মাসিক ভাতা - TaskOra</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px 20px 85px 20px; }
-        .salary-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .salary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; }
-        .salary-header h2 { margin: 0; font-size: 19px; color: #2e3440; }
-        .back-link { text-decoration: none; background: #4c566a; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; }
+        body { font-family: Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding: 18px 16px 85px 16px; color: #2e3440; }
+        .salary-wrap { max-width: 450px; margin: 0 auto; }
 
-        .allowance-hero { background: #4c566a; color: #ffffff; padding: 18px; border-radius: 10px; text-align: center; margin-bottom: 15px; }
-        .allowance-hero p { margin: 0 0 6px 0; font-size: 13px; opacity: 0.9; }
-        .allowance-hero h1 { margin: 0; font-size: 28px; }
-        .status-pill { display: inline-block; margin-top: 8px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; background: rgba(255,255,255,0.18); }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #3b4252; color: #fff; padding: 14px 16px; border-radius: 12px; margin-bottom: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+        .top-bar h2 { margin: 0; font-size: 18px; }
+        .back-btn { text-decoration: none; background: #4c566a; color: #fff; padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; }
 
-        .info-grid { display: flex; gap: 10px; margin-bottom: 15px; }
-        .info-box { flex: 1; background: #f4f5f7; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #e5e7eb; }
-        .info-box span { display: block; font-size: 12px; color: #6c757d; margin-bottom: 4px; }
-        .info-box strong { font-size: 16px; color: #2e3440; }
+        .status-strip { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 11px 14px; margin-bottom: 14px; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; white-space: nowrap; }
+        .status-open { background: #dcfce7; color: #166534; }
+        .status-closed { background: #fee2e2; color: #991b1b; }
+        .date-range-text { color: #4c566a; font-weight: bold; text-align: right; }
 
-        .notice-box { background: #eef2f5; border-left: 4px solid #4c566a; padding: 12px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; color: #2e3440; }
-        .notice-box p { margin: 4px 0; }
+        .card-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
+        .card-title { margin: 0 0 12px 0; font-size: 15px; font-weight: bold; color: #3b4252; display: flex; align-items: center; gap: 7px; }
 
-        .withdraw-card { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 10px; margin-bottom: 18px; }
-        .withdraw-card h3 { margin: 0 0 12px 0; font-size: 16px; color: #2e3440; }
-        .form-group { margin-bottom: 10px; }
-        .form-group label { display: block; font-size: 13px; font-weight: bold; color: #374151; margin-bottom: 4px; }
-        .form-group input, .form-group select { width: 100%; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; background: #fff; }
-        .submit-btn { width: 100%; background: #3b4252; color: #fff; border: none; padding: 11px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+        .stats-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .mini-stat { background: #f4f5f7; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 8px; text-align: center; }
+        .mini-stat span { display: block; font-size: 11px; color: #64748b; margin-bottom: 5px; }
+        .mini-stat strong { font-size: 16px; color: #2e3440; }
+        .mini-stat.highlight-salary { background: #3b4252; border-color: #3b4252; }
+        .mini-stat.highlight-salary span { color: #e2e8f0; }
+        .mini-stat.highlight-salary strong { color: #ffffff; }
+
+        .next-tier-card { border-left: 4px solid #4c566a; }
+        .next-tier-grid { display: flex; justify-content: space-between; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; }
+        .next-tier-col { flex: 1; }
+        .next-tier-col span { display: block; font-size: 12px; color: #64748b; margin-bottom: 4px; }
+        .next-tier-col strong { font-size: 16px; color: #2e3440; }
+        .progress-track { width: 100%; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; width: 0%; background: #4c566a; transition: width 0.3s ease; }
+
+        .notice-box { background: #eef2f5; border: 1px solid #cbd5e1; border-left: 4px solid #3b4252; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: #2e3440; }
+        .notice-box p { margin: 0; line-height: 1.5; }
+
+        .chart-holder { position: relative; height: 220px; width: 100%; }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; color: #374151; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #f8fafc; color: #2e3440; }
+        .form-group input[readonly] { background: #eef2f5; color: #475569; font-weight: bold; }
+
+        .profile-warning { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
+        .profile-warning a { color: #1d4ed8; font-weight: bold; text-decoration: underline; }
+
+        .submit-btn { width: 100%; background: #3b4252; color: #ffffff; border: none; padding: 13px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .submit-btn:hover { background: #2e3440; }
         .submit-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 
-        .history-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #2e3440; }
-        .history-item { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-        .empty-msg { text-align: center; color: #777; font-size: 13px; padding: 12px; background: #fdfdfd; border: 1px dashed #ddd; border-radius: 8px; }
+        .history-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .empty-msg { text-align: center; color: #64748b; font-size: 13px; padding: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <div class="salary-container">
-        <div class="salary-header">
-            <h2><i class="fa-solid fa-wallet"></i> মাসিক ভাতা</h2>
-            <a href="team.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> টিম পেজ</a>
+    <div class="salary-wrap">
+        <div class="top-bar">
+            <h2><i class="fa-solid fa-sack-dollar"></i> মাসিক ভাতা</h2>
+            <a href="team.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> টিম</a>
         </div>
 
-        <div class="allowance-hero">
-            <p>আপনার নির্ধারিত মাসিক ভাতা</p>
-            <h1 id="currentSalaryAmount">৳ 0</h1>
-            <span class="status-pill" id="eligibilityStatus">যাচাই করা হচ্ছে...</span>
+        <!-- উইথড্র স্ট্যাটাস ও তারিখসীমা -->
+        <div class="status-strip">
+            <span id="withdrawStatusBadge" class="status-badge status-open">উইথড্র চালু আছে</span>
+            <span id="withdrawDateRangeText" class="date-range-text">সময়সূচি লোড হচ্ছে...</span>
         </div>
 
-        <div class="info-grid">
-            <div class="info-box">
-                <span>প্যাকেজ লেভেল ১ রেফার</span>
-                <strong id="paidLevel1RefCount">0 জন</strong>
+        <!-- কার্ড ১: বর্তমান রেফার ও মাসিক ভাতা -->
+        <div class="card-box">
+            <h3 class="card-title"><i class="fa-solid fa-chart-simple"></i> বর্তমান রেফার ও মাসিক ভাতা</h3>
+            <div class="stats-three">
+                <div class="mini-stat">
+                    <span>মোট রেফার</span>
+                    <strong id="totalLevel1Refs">0 জন</strong>
+                </div>
+                <div class="mini-stat">
+                    <span>প্যাকেজ কিনেছে</span>
+                    <strong id="activePkgRefs">0 জন</strong>
+                </div>
+                <div class="mini-stat highlight-salary">
+                    <span>মাসিক ভাতা</span>
+                    <strong id="currentAllowanceText">৳ 0</strong>
+                </div>
             </div>
-            <div class="info-box">
-                <span>পরবর্তী ধাপ</span>
-                <strong id="nextTierInfo">-</strong>
+        </div>
+
+        <!-- কার্ড ২: পরবর্তী ধাপ -->
+        <div class="card-box next-tier-card">
+            <h3 class="card-title"><i class="fa-solid fa-arrow-trend-up"></i> পরবর্তী ধাপ</h3>
+            <div class="next-tier-grid">
+                <div class="next-tier-col">
+                    <span>পরবর্তী ধাপের ভাতা</span>
+                    <strong id="nextTierAmountText">-</strong>
+                </div>
+                <div class="next-tier-col" style="text-align: right;">
+                    <span>পৌঁছাতে প্রয়োজন</span>
+                    <strong id="nextTierNeedText">-</strong>
+                </div>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="nextTierProgressBar"></div>
             </div>
         </div>
 
-        <div class="notice-box" id="adminConfigNotice">
-            <p><strong>নিয়মাবলি:</strong> <span id="salaryScheduleText">অ্যাডমিন সেটিংস লোড হচ্ছে...</span></p>
-            <p id="salaryNoticeText" style="color:#4c566a;"></p>
+        <!-- নোটিশ বক্স -->
+        <div class="notice-box">
+            <p id="adminNoticeText">🔔 নোটিশ: অ্যাডমিন নির্ধারিত নিয়ম অনুযায়ী মাসিক ভাতা উত্তোলন করা যাবে।</p>
         </div>
 
-        <div class="withdraw-card">
-            <h3><i class="fa-solid fa-paper-plane"></i> মাসিক ভাতা উইথড্র রিকোয়েস্ট</h3>
+        <!-- নিচের চার্ট -->
+        <div class="card-box">
+            <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> মাসিক ভাতার ধাপ চার্ট</h3>
+            <div class="chart-holder">
+                <canvas id="salaryTierChart"></canvas>
+            </div>
+        </div>
+
+        <!-- উইথড্র ঘর -->
+        <div class="card-box">
+            <h3 class="card-title"><i class="fa-solid fa-money-bill-transfer"></i> মাসিক ভাতা উত্তোলন</h3>
+
+            <div id="missingWithdrawProfileMsg" class="profile-warning">
+                আপনার উইথড্র প্রোফাইল এখনো সেট করা নেই। <a href="withdraw.html">উইথড্র পেজে গিয়ে প্রোফাইল তৈরি করুন</a>।
+            </div>
+
             <form id="salaryWithdrawForm">
                 <div class="form-group">
-                    <label for="withdrawMethod">পেমেন্ট মাধ্যম</label>
-                    <select id="withdrawMethod" required>
-                        <option value="বিকাশ">বিকাশ (bKash)</option>
-                        <option value="নগদ">নগদ (Nagad)</option>
-                    </select>
+                    <label>পেমেন্ট মাধ্যম (উইথড্র প্রোফাইল থেকে)</label>
+                    <input type="text" id="autoWithdrawMethod" value="লোড হচ্ছে..." readonly>
                 </div>
+
                 <div class="form-group">
-                    <label for="withdrawNumber">অ্যাকাউন্ট / মোবাইল নম্বর</label>
-                    <input type="text" id="withdrawNumber" placeholder="যেমন: 017XXXXXXXX" required>
+                    <label>অ্যাকাউন্ট / মোবাইল নম্বর (অটো সিলেক্টেড)</label>
+                    <input type="text" id="autoWithdrawAccount" value="লোড হচ্ছে..." readonly>
                 </div>
+
                 <div class="form-group">
-                    <label for="withdrawAmount">রিকোয়েস্ট অ্যামাউন্ট (৳)</label>
-                    <input type="number" id="withdrawAmount" min="1" placeholder="ভাতার পরিমাণ" required>
+                    <label>নির্ধারিত মাসিক ভাতার পরিমাণ (৳)</label>
+                    <input type="number" id="autoSalaryAmount" value="0" readonly>
                 </div>
-                <button type="submit" class="submit-btn" id="submitWithdrawBtn">উইথড্র রিকোয়েস্ট পাঠান</button>
+
+                <button type="submit" class="submit-btn" id="submitSalaryWithdrawBtn" disabled>উইথড্র রিকোয়েস্ট পাঠান</button>
             </form>
         </div>
-
-        <div class="history-section">
-            <h3><i class="fa-solid fa-clock-rotate-left"></i> আপনার উইথড্র রিকোয়েস্টসমূহ</h3>
-            <div id="myWithdrawHistory">
+  <!-- উইথড্র হিস্ট্রি -->
+        <div class="card-box">
+            <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> ভাতা উত্তোলনের হিস্ট্রি</h3>
+            <div id="salaryHistoryList">
                 <div class="empty-msg">লোড হচ্ছে...</div>
             </div>
         </div>
@@ -104,7 +166,7 @@
         <a href="task.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
         <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>টিম</span></a>
         <a href="package.html" class="nav-item"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
+        <a href="profile.html" class="nav-item"><i class="phase-user"></i><span>প্রোফাইল</span></a>
     </nav>
 
     <script type="module">
@@ -136,10 +198,14 @@
         { minRef: 100, amount: 20000 }
       ];
 
-      let currentUserData = null;
       let currentAuthUser = null;
-      let allowedSalaryAmount = 0;
-      let claimIsOpen = true;
+      let currentUserData = null;
+      let withdrawProfileMethod = "";
+      let withdrawProfileAccount = "";
+      let hasWithdrawProfile = false;
+      let payableSalaryAmount = 0;
+      let withdrawAllowedByAdmin = true;
+      let tierChartInstance = null;
 
       function hasActivePackage(member) {
         const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
@@ -148,89 +214,140 @@
         return !inactiveValues.includes(pkgVal);
       }
 
-      async function loadMyWithdrawHistory(uid) {
-        const historyEl = document.getElementById('myWithdrawHistory');
+      function isWithinDateWindow(cfg) {
+        const startDate = (cfg.startDate || cfg.withdrawStartDate || "").toString().trim();
+        const endDate = (cfg.endDate || cfg.withdrawEndDate || "").toString().trim();
+        if (!startDate && !endDate) return true;
+
+        const today = new Date().toISOString().split("T")[0];
+        if (startDate && today < startDate) return false;
+        if (endDate && today > endDate) return false;
+        return true;
+      }
+
+      function renderChart(tiersAsc, activeRefs, currentAllowance) {
+        const ctx = document.getElementById("salaryTierChart").getContext("2d");
+        if (tierChartInstance) {
+          tierChartInstance.destroy();
+        }
+
+        const labels = tiersAsc.map(t => `${t.minRef} জন`);
+        const amounts = tiersAsc.map(t => Number(t.amount));
+        const bgColors = tiersAsc.map(t => {
+          if (activeRefs >= Number(t.minRef) && Number(t.amount) === currentAllowance) return "#3b4252";
+          if (activeRefs >= Number(t.minRef)) return "#64748b";
+          return "#cbd5e1";
+        });
+
+        tierChartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "মাসিক ভাতা (৳)",
+              data: amounts,
+              backgroundColor: bgColors,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: (val) => `৳ ${val}`
+                }
+              }
+            }
+          }
+        });
+      }
+
+      async function loadSalaryHistory(uid) {
+        const listEl = document.getElementById("salaryHistoryList");
         try {
           const q = query(collection(db, "salary_withdraw_requests"), where("userId", "==", uid));
           const snap = await getDocs(q);
 
           if (snap.empty) {
-            historyEl.innerHTML = '<div class="empty-msg">এখনো কোনো উইথড্র রিকোয়েস্ট করা হয়নি।</div>';
+            listEl.innerHTML = '<div class="empty-msg">এখনো কোনো ভাতা উত্তোলনের রিকোয়েস্ট করা হয়নি।</div>';
             return;
           }
 
-          let html = '';
+          let html = "";
           snap.forEach((docSnap) => {
-            const item = docSnap.data();
-            const statusText = item.status === 'approved'
-              ? '<span style="color:#16a34a; font-weight:bold;">অ্যাপ্রুভড</span>'
-              : item.status === 'rejected'
-              ? '<span style="color:#dc2626; font-weight:bold;">রিজেক্টেড</span>'
-              : '<span style="color:#d97706; font-weight:bold;">পেন্ডিং</span>';
+            const d = docSnap.data();
+            const badge = d.status === "approved"
+              ? '<strong style="color:#16a34a;">অ্যাপ্রুভড</strong>'
+              : d.status === "rejected"
+              ? '<strong style="color:#dc2626;">রিজেক্টেড</strong>'
+              : '<strong style="color:#d97706;">পেন্ডিং</strong>';
 
             html += `
               <div class="history-item">
                 <div>
-                  <strong>৳ ${Number(item.amount || 0)}</strong> (${item.method || ''})<br>
-                  <span style="color:#6b7280; font-size:12px;">নম্বর: ${item.accountNumber || ''}</span>
+                  <strong>৳ ${Number(d.amount || 0)}</strong> (${d.method || ""})<br>
+                  <span style="color:#64748b; font-size:12px;">নম্বর: ${d.account || d.accountNumber || ""}</span>
                 </div>
-                <div>${statusText}</div>
+                <div>${badge}</div>
               </div>
             `;
           });
-          historyEl.innerHTML = html;
+          listEl.innerHTML = html;
         } catch (err) {
-          console.error("Error loading withdraw history:", err);
-          historyEl.innerHTML = '<div class="empty-msg">হিস্ট্রি লোড করতে সমস্যা হয়েছে।</div>';
+          console.error("Error loading salary history:", err);
+          listEl.innerHTML = '<div class="empty-msg">হিস্ট্রি লোড করা যায়নি।</div>';
         }
       }
 
-      document.getElementById('salaryWithdrawForm').addEventListener('submit', async (e) => {
+      document.getElementById("salaryWithdrawForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         if (!currentAuthUser || !currentUserData) return;
 
-        if (!claimIsOpen) {
-          alert("এই মুহূর্তে মাসিক ভাতা উইথড্র অপশন বন্ধ রয়েছে।");
+        if (!withdrawAllowedByAdmin) {
+          alert("এই মুহূর্তে ভাতা উত্তোলন বন্ধ রয়েছে বা নির্ধারিত তারিখের বাইরে রয়েছে।");
           return;
         }
 
-        if (allowedSalaryAmount <= 0) {
-          alert("আপনার মাসিক ভাতা এখনো সক্রিয় হয়নি।");
+        if (!hasWithdrawProfile || !withdrawProfileAccount) {
+          alert("আগে উইথড্র প্রোফাইল তৈরি করুন।");
           return;
         }
 
-        const method = document.getElementById('withdrawMethod').value;
-        const accountNumber = document.getElementById('withdrawNumber').value.trim();
-        const reqAmount = Number(document.getElementById('withdrawAmount').value);
-
-        if (!accountNumber || isNaN(reqAmount) || reqAmount <= 0) {
-          alert("সঠিক নম্বর ও পরিমাণ লিখুন।");
+        if (payableSalaryAmount <= 0) {
+          alert("আপনার বর্তমান মাসিক ভাতা ৳ 0 রয়েছে।");
           return;
         }
 
-        if (reqAmount > allowedSalaryAmount) {
-          alert(`আপনি সর্বোচ্চ ৳ ${allowedSalaryAmount} পর্যন্ত রিকোয়েস্ট করতে পারবেন।`);
-          return;
-        }
+        const btn = document.getElementById("submitSalaryWithdrawBtn");
+        btn.disabled = true;
+        btn.innerText = "রিকোয়েস্ট পাঠানো হচ্ছে...";
 
         try {
           await addDoc(collection(db, "salary_withdraw_requests"), {
             userId: currentAuthUser.uid,
             userName: currentUserData.name || "নামবিহীন",
-            userPhone: currentUserData.phone || accountNumber,
-            method: method,
-            accountNumber: accountNumber,
-            amount: reqAmount,
+            method: withdrawProfileMethod,
+            account: withdrawProfileAccount,
+            accountNumber: withdrawProfileAccount,
+            amount: payableSalaryAmount,
             status: "pending",
             createdAt: serverTimestamp()
           });
 
-          alert("আপনার মাসিক ভাতা উইথড্র রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
-          document.getElementById('salaryWithdrawForm').reset();
-          await loadMyWithdrawHistory(currentAuthUser.uid);
+          alert("মাসিক ভাতা উত্তোলনের রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
+          await loadSalaryHistory(currentAuthUser.uid);
         } catch (err) {
-          console.error("Error submitting salary withdraw:", err);
+          console.error("Salary withdraw submit error:", err);
           alert("রিকোয়েস্ট পাঠাতে সমস্যা হয়েছে।");
+        } finally {
+          btn.disabled = !(withdrawAllowedByAdmin && hasWithdrawProfile && payableSalaryAmount > 0);
+          btn.innerText = "উইথড্র রিকোয়েস্ট পাঠান";
         }
       });
 
@@ -241,76 +358,119 @@
         }
 
         currentAuthUser = user;
+
         try {
           const userSnap = await getDoc(doc(db, "users", user.uid));
           if (!userSnap.exists()) return;
           currentUserData = userSnap.data();
 
-          // অ্যাডমিন স্যালারি পেজ কনফিগ লোড
+          // উইথড্র প্রোফাইল লোড (withdrawProfiles/{uid})
+          const wpSnap = await getDoc(doc(db, "withdrawProfiles", user.uid));
+          if (wpSnap.exists()) {
+            const wp = wpSnap.data();
+            hasWithdrawProfile = true;
+            withdrawProfileMethod = wp.method === "Nagad" ? "নগদ" : "বিকাশ";
+            withdrawProfileAccount = wp.account || "";
+            document.getElementById("autoWithdrawMethod").value = withdrawProfileMethod;
+            document.getElementById("autoWithdrawAccount").value = withdrawProfileAccount || "নম্বর পাওয়া যায়নি";
+            document.getElementById("missingWithdrawProfileMsg").style.display = "none";
+          } else {
+            hasWithdrawProfile = false;
+            document.getElementById("autoWithdrawMethod").value = "সেট করা নেই";
+            document.getElementById("autoWithdrawAccount").value = "উইথড্র প্রোফাইল নেই";
+            document.getElementById("missingWithdrawProfileMsg").style.display = "block";
+          }
+  // অ্যাডমিন স্যালারি পেজ কনফিগ লোড
           const cfgSnap = await getDoc(doc(db, "admin_settings", "salary_page_config"));
           const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
 
-          document.getElementById('salaryScheduleText').innerText =
-            cfg.scheduleNote || "নির্ধারিত যোগ্যতা ও অ্যাডমিন অনুমোদন অনুযায়ী ভাতা প্রদান করা হয়।";
-          document.getElementById('salaryNoticeText').innerText =
-            cfg.noticeMessage ? `নোটিশ: ${cfg.noticeMessage}` : "";
-
-          if (cfg.pageStatus === "paused") {
-            document.getElementById('eligibilityStatus').innerText = "পেজ সাময়িকভাবে বন্ধ";
+          const startDate = cfg.startDate || cfg.withdrawStartDate || "";
+          const endDate = cfg.endDate || cfg.withdrawEndDate || "";
+          if (startDate && endDate) {
+            document.getElementById("withdrawDateRangeText").innerText = `তারিখ: ${startDate} থেকে ${endDate}`;
+          } else if (cfg.scheduleNote) {
+            document.getElementById("withdrawDateRangeText").innerText = cfg.scheduleNote;
+          } else {
+            document.getElementById("withdrawDateRangeText").innerText = "তারিখ: অ্যাডমিন নির্ধারিত সময়";
           }
 
-          claimIsOpen = cfg.claimEnabled !== false;
+          if (cfg.noticeMessage) {
+            document.getElementById("adminNoticeText").innerText = `🔔 নোটিশ: ${cfg.noticeMessage}`;
+          }
 
-          // অ্যাডমিন নির্ধারিত ধাপসমূহ লোড
+          const isOpenByFlag = cfg.claimEnabled !== false && cfg.withdrawEnabled !== false && cfg.pageStatus !== "paused";
+          const isOpenByDate = isWithinDateWindow(cfg);
+          withdrawAllowedByAdmin = isOpenByFlag && isOpenByDate;
+
+          const badgeEl = document.getElementById("withdrawStatusBadge");
+          if (withdrawAllowedByAdmin) {
+            badgeEl.innerText = "উইথড্র চালু আছে";
+            badgeEl.className = "status-badge status-open";
+          } else {
+            badgeEl.innerText = "উইথড্র বন্ধ আছে";
+            badgeEl.className = "status-badge status-closed";
+          }
+
+          // অ্যাডমিন ধাপসমূহ লোড
           const tierSnap = await getDoc(doc(db, "admin_settings", "monthly_salary_tiers"));
-          const tiers = (tierSnap.exists() && Array.isArray(tierSnap.data().tiers) && tierSnap.data().tiers.length > 0)
+          const rawTiers = (tierSnap.exists() && Array.isArray(tierSnap.data().tiers) && tierSnap.data().tiers.length > 0)
             ? tierSnap.data().tiers
             : defaultTiers;
 
-          // লেভেল ১ প্যাকেজ-সক্রিয় রেফার হিসাব
-          let paidDirectCount = 0;
+          const tiersAsc = [...rawTiers].sort((a, b) => Number(a.minRef) - Number(b.minRef));
+          const tiersDesc = [...rawTiers].sort((a, b) => Number(b.minRef) - Number(a.minRef));
+
+          // লেভেল ১ মোট রেফার ও প্যাকেজ-সক্রিয় রেফার হিসাব
+          let totalRef = 0;
+          let activePkgRef = 0;
+
           if (currentUserData.referralCode) {
             const qRef = query(collection(db, "users"), where("referredBy", "==", currentUserData.referralCode));
             const refSnap = await getDocs(qRef);
             refSnap.forEach((d) => {
+              totalRef++;
               if (hasActivePackage(d.data())) {
-                paidDirectCount++;
+                activePkgRef++;
               }
             });
           }
 
-          document.getElementById('paidLevel1RefCount').innerText = `${paidDirectCount} জন`;
+          document.getElementById("totalLevel1Refs").innerText = `${totalRef} জন`;
+          document.getElementById("activePkgRefs").innerText = `${activePkgRef} জন`;
 
-          const sortedAsc = [...tiers].sort((a, b) => Number(a.minRef) - Number(b.minRef));
-          const sortedDesc = [...tiers].sort((a, b) => Number(b.minRef) - Number(a.minRef));
-          const matchedTier = sortedDesc.find(t => paidDirectCount >= Number(t.minRef));
+          const matchedTier = tiersDesc.find(t => activePkgRef >= Number(t.minRef));
           const tierAmount = matchedTier ? Number(matchedTier.amount) : 0;
           const customSalary = Number(currentUserData.monthlySalary || 0);
 
-          allowedSalaryAmount = customSalary > 0 ? customSalary : tierAmount;
-          document.getElementById('currentSalaryAmount').innerText = `৳ ${allowedSalaryAmount}`;
+          payableSalaryAmount = customSalary > 0 ? customSalary : tierAmount;
+          document.getElementById("currentAllowanceText").innerText = `৳ ${payableSalaryAmount}`;
+          document.getElementById("autoSalaryAmount").value = payableSalaryAmount;
 
-          const nextTier = sortedAsc.find(t => Number(t.minRef) > paidDirectCount);
-          document.getElementById('nextTierInfo').innerText = nextTier
-            ? `${nextTier.minRef} রেফারে ৳ ${nextTier.amount}`
-            : "সর্বোচ্চ ধাপ অর্জিত";
+          // পরবর্তী ধাপ হিসাব ও রেফার বাড়ার সাথে সাথে বাকি সংখ্যা কমানো
+          const nextTier = tiersAsc.find(t => Number(t.minRef) > activePkgRef);
+          const prevMinRef = matchedTier ? Number(matchedTier.minRef) : 0;
 
-          const submitBtn = document.getElementById('submitWithdrawBtn');
-          const amountInput = document.getElementById('withdrawAmount');
+          if (nextTier) {
+            const nextMin = Number(nextTier.minRef);
+            const needCount = Math.max(0, nextMin - activePkgRef);
+            document.getElementById("nextTierAmountText").innerText = `৳ ${Number(nextTier.amount)} (${nextMin} রেফার)`;
+            document.getElementById("nextTierNeedText").innerText = `${needCount} জন বাকি`;
 
-          if (allowedSalaryAmount > 0 && claimIsOpen && cfg.pageStatus !== "paused") {
-            document.getElementById('eligibilityStatus').innerText = "ভাতা প্রাপক (উইথড্র সক্রিয়)";
-            submitBtn.disabled = false;
-            amountInput.value = allowedSalaryAmount;
-            amountInput.max = allowedSalaryAmount;
+            const spanRange = Math.max(1, nextMin - prevMinRef);
+            const currentProgress = Math.min(100, Math.max(0, ((activePkgRef - prevMinRef) / spanRange) * 100));
+            document.getElementById("nextTierProgressBar").style.width = `${currentProgress}%`;
           } else {
-            document.getElementById('eligibilityStatus').innerText =
-              allowedSalaryAmount <= 0 ? "ভাতা এখনো আনলক হয়নি" : "উইথড্র বর্তমানে বন্ধ";
-            submitBtn.disabled = true;
-            amountInput.value = "";
+            document.getElementById("nextTierAmountText").innerText = "সর্বোচ্চ ধাপ পূর্ণ";
+            document.getElementById("nextTierNeedText").innerText = "0 জন বাকি";
+            document.getElementById("nextTierProgressBar").style.width = "100%";
           }
 
-          await loadMyWithdrawHistory(user.uid);
+          renderChart(tiersAsc, activePkgRef, payableSalaryAmount);
+
+          const submitBtn = document.getElementById("submitSalaryWithdrawBtn");
+          submitBtn.disabled = !(withdrawAllowedByAdmin && hasWithdrawProfile && payableSalaryAmount > 0);
+
+          await loadSalaryHistory(user.uid);
         } catch (err) {
           console.error("Error loading salary page:", err);
         }
