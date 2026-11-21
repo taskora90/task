@@ -1784,7 +1784,7 @@
 
 
 
-  <!-- ===== পার্ট ৫: ছুটির দিন (উইথড্র ও কাজ) - স্বতন্ত্র ব্লক ===== -->
+    <!-- ===== পার্ট ৫: ছুটির দিন (উইথড্র ও কাজ) - স্বতন্ত্র ব্লক ===== -->
   <style>
     .tk-hd-tabs {
       display: flex;
@@ -1839,6 +1839,12 @@
       gap: 10px;
       margin-bottom: 14px;
     }
+    .tk-hd-field {
+      margin-bottom: 14px;
+    }
+    .tk-hd-time-row .tk-hd-field {
+      margin-bottom: 0;
+    }
     .tk-hd-field label {
       display: block;
       font-size: 12px;
@@ -1853,6 +1859,7 @@
       border-radius: 9px;
       font-size: 13px;
       background: #fafafa;
+      box-sizing: border-box;
     }
     .tk-hd-save-btn {
       width: 100%;
@@ -1905,8 +1912,10 @@
         });
         const startInp = document.getElementById("tkWdStartTime");
         const endInp = document.getElementById("tkWdEndTime");
+        const maxInp = document.getElementById("tkWdMaxPerDay");
         if (startInp) startInp.value = data.withdraw?.startTime || "09:00";
         if (endInp) endInp.value = data.withdraw?.endTime || "22:00";
+        if (maxInp) maxInp.value = (data.withdraw?.maxPerDay !== undefined && Number(data.withdraw.maxPerDay) > 0) ? Number(data.withdraw.maxPerDay) : 1;
 
         const wkDays = Array.isArray(data.work?.openDays) ? data.work.openDays : ["sun", "mon", "tue", "wed", "thu", "sat"];
         WEEK_DAYS.forEach((d) => {
@@ -1944,6 +1953,10 @@
                 <label for="tkWdEndTime">কয়টা পর্যন্ত চালু</label>
                 <input type="time" id="tkWdEndTime" value="22:00">
               </div>
+            </div>
+            <div class="tk-hd-field">
+              <label for="tkWdMaxPerDay">দিনে কয়বার উইথড্র করা যাবে</label>
+              <input type="number" id="tkWdMaxPerDay" min="1" value="1" placeholder="যেমন: 1">
             </div>
             <button type="button" id="tkSaveWithdrawRulesBtn" class="tk-hd-save-btn">
               <i class="fa-solid fa-check"></i> উইথড্র নিয়ম ওকে / সেভ করুন
@@ -1986,11 +1999,18 @@
           const openDays = WEEK_DAYS.filter((d) => document.getElementById("tkWdDay_" + d.key)?.checked).map((d) => d.key);
           const startTime = document.getElementById("tkWdStartTime").value || "09:00";
           const endTime = document.getElementById("tkWdEndTime").value || "22:00";
+          const maxPerDay = Number(document.getElementById("tkWdMaxPerDay").value);
+
+          if (!maxPerDay || maxPerDay < 1) {
+            alert("দিনে কমপক্ষে ১ বার উইথড্র করার সংখ্যা দিন!");
+            return;
+          }
+
           try {
             await setDoc(doc(db, "admin_settings", "holiday_rules"), {
-              withdraw: { openDays, startTime, endTime }
+              withdraw: { openDays, startTime, endTime, maxPerDay }
             }, { merge: true });
-            alert("✅ উইথড্র চালু থাকার দিন ও সময় সেভ হয়েছে!");
+            alert("✅ উইথড্র চালু থাকার দিন, সময় ও দৈনিক লিমিট সেভ হয়েছে!");
           } catch (e) {
             alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
           }
@@ -2012,7 +2032,6 @@
       onOpen: loadHolidaySettings
     });
   </script>
-
 
 
 
