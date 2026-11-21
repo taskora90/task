@@ -127,6 +127,7 @@
                 <p style="text-align:center;">ডেটা লোড হচ্ছে...</p>
             </div>
         </div>
+
         <!-- ৪. টিম ও মাসিক ভাতা ম্যানেজমেন্ট পেজ -->
         <div id="teamAdminPage">
             <button class="back-btn" onclick="backToDashboard()">← ড্যাশবোর্ডে ফিরে যান</button>
@@ -154,7 +155,6 @@
                 </div>
             </div>
         </div>
-
         <!-- ৫. স্যালারি পেজ কন্ট্রোল ও উইথড্র রিকোয়েস্ট পেজ -->
         <div id="salaryAdminPage">
             <button class="back-btn" onclick="backToDashboard()">← ড্যাশবোর্ডে ফিরে যান</button>
@@ -162,7 +162,7 @@
                 <h2>💰 স্যালারি কন্ট্রোল ও উইথড্র রিকোয়েস্ট</h2>
             </div>
 
-            <!-- salary.html নিয়ন্ত্রণ সেটিংস (পেজ স্ট্যাটাস বাদ দেওয়া হয়েছে) -->
+            <!-- salary.html নিয়ন্ত্রণ সেটিংস -->
             <div class="settings-card">
                 <h3>⚙️ salary.html কন্ট্রোল সেটিংস</h3>
                 <div class="setting-row">
@@ -183,11 +183,19 @@
                 <button class="save-settings-btn" onclick="saveSalaryPageConfig()">স্যালারি সেটিংস সেভ করুন</button>
             </div>
 
-            <!-- মাসিক ভাতা উইথড্র রিকোয়েস্টসমূহ -->
+            <!-- শুধুমাত্র নতুন/পেন্ডিং মাসিক ভাতা উইথড্র রিকোয়েস্ট -->
             <div class="settings-card">
                 <h3>📥 মাসিক ভাতা উইথড্র রিকোয়েস্ট</h3>
                 <div id="salaryWithdrawRequestsContainer">
                     <p style="text-align:center;">উইথড্র রিকোয়েস্ট লোড হচ্ছে...</p>
+                </div>
+            </div>
+
+            <!-- অ্যাপ্রুভ ও রিজেক্ট করা রিকোয়েস্টের স্ট্যাটাস ঘর -->
+            <div class="settings-card">
+                <h3>📋 স্ট্যাটাস</h3>
+                <div id="salaryWithdrawStatusListContainer">
+                    <p style="text-align:center;">স্ট্যাটাস লোড হচ্ছে...</p>
                 </div>
             </div>
 
@@ -739,7 +747,6 @@
                 alert("ডিলিট করতে সমস্যা হয়েছে।");
             }
         };
-
         function renderTeamUsersList(usersArray) {
             const container = document.getElementById('teamUsersListContainer');
             if (!usersArray || usersArray.length === 0) {
@@ -771,6 +778,7 @@
             );
             renderTeamUsersList(filtered);
         };
+
         window.openUserSalaryEditModal = function(userId, userName, currentSalary) {
             document.getElementById('editSalaryUserId').value = userId;
             document.getElementById('editSalaryUserName').innerText = `ইউজার: ${userName}`;
@@ -903,44 +911,76 @@
         };
 
         async function loadSalaryWithdrawRequests() {
-            const container = document.getElementById('salaryWithdrawRequestsContainer');
-            container.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
+            const pendingContainer = document.getElementById('salaryWithdrawRequestsContainer');
+            const statusContainer = document.getElementById('salaryWithdrawStatusListContainer');
+
+            pendingContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
+            if (statusContainer) {
+                statusContainer.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
+            }
 
             try {
                 const snap = await getDocs(collection(db, "salary_withdraw_requests"));
-                if (snap.empty) {
-                    container.innerHTML = "<div class='no-data'>কোনো মাসিক ভাতা উইথড্র রিকোয়েস্ট নেই।</div>";
-                    return;
-                }
 
-                let html = "";
+                let pendingHtml = "";
+                let statusHtml = "";
+                let pendingCount = 0;
+                let statusCount = 0;
+
                 snap.forEach((docSnap) => {
                     const r = docSnap.data();
                     const reqId = docSnap.id;
-                    const statusBadge = r.status === "approved"
-                        ? '<span class="badge-active">অ্যাপ্রুভড</span>'
-                        : r.status === "rejected"
-                        ? '<span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:bold;">রিজেক্টেড</span>'
-                        : '<span class="badge-pending">পেন্ডিং</span>';
+                    const st = r.status || "pending";
 
-                    html += `
-                        <div class="request-card">
-                            <div class="request-info">
-                                <h4>${r.userName || "N/A"} (${r.userPhone || "N/A"}) — ${statusBadge}</h4>
-                                <p>মেথড: <strong>${r.method || "N/A"}</strong> | নম্বর: <strong>${r.account || r.accountNumber || "N/A"}</strong></p>
-                                <p>পরিমাণ: <strong>৳ ${r.amount || 0}</strong></p>
+                    if (st === "pending") {
+                        pendingCount++;
+                        pendingHtml += `
+                            <div class="request-card">
+                                <div class="request-info">
+                                    <h4>${r.userName || "N/A"} (${r.userPhone || "N/A"}) — <span class="badge-pending">পেন্ডিং</span></h4>
+                                    <p>মেথড: <strong>${r.method || "N/A"}</strong> | নম্বর: <strong>${r.account || r.accountNumber || "N/A"}</strong></p>
+                                    <p>পরিমাণ: <strong>৳ ${r.amount || 0}</strong></p>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn-approve" onclick="handleSalaryWithdraw('${reqId}', 'approved')">অ্যাপ্রুভ</button>
+                                    <button class="btn-reject" onclick="handleSalaryWithdraw('${reqId}', 'rejected')">রিজেক্ট</button>
+                                </div>
                             </div>
-                            <div class="btn-group">
-                                <button class="btn-approve" onclick="handleSalaryWithdraw('${reqId}', 'approved')">অ্যাপ্রুভ</button>
-                                <button class="btn-reject" onclick="handleSalaryWithdraw('${reqId}', 'rejected')">রিজেক্ট</button>
+                        `;
+                    } else if (st === "approved" || st === "rejected") {
+                        statusCount++;
+                        const statusBadge = st === "approved"
+                            ? '<span class="badge-active">অ্যাপ্রুভড</span>'
+                            : '<span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:bold;">রিজেক্টেড</span>';
+
+                        statusHtml += `
+                            <div class="request-card">
+                                <div class="request-info">
+                                    <h4>${r.userName || "N/A"} (${r.userPhone || "N/A"}) — ${statusBadge}</h4>
+                                    <p>মেথড: <strong>${r.method || "N/A"}</strong> | নম্বর: <strong>${r.account || r.accountNumber || "N/A"}</strong></p>
+                                    <p>পরিমাণ: <strong>৳ ${r.amount || 0}</strong></p>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
                 });
-                container.innerHTML = html;
+
+                pendingContainer.innerHTML = pendingCount > 0
+                    ? pendingHtml
+                    : "<div class='no-data'>এই মুহূর্তে কোনো নতুন উইথড্র রিকোয়েস্ট নেই।</div>";
+
+                if (statusContainer) {
+                    statusContainer.innerHTML = statusCount > 0
+                        ? statusHtml
+                        : "<div class='no-data'>এখনো কোনো রিকোয়েস্ট অ্যাপ্রুভ বা রিজেক্ট করা হয়নি।</div>";
+                }
+
             } catch (err) {
                 console.error("Error loading salary withdraw requests:", err);
-                container.innerHTML = "<div class='no-data'>উইথড্র রিকোয়েস্ট লোড করতে সমস্যা হয়েছে।</div>";
+                pendingContainer.innerHTML = "<div class='no-data'>উইথড্র রিকোয়েস্ট লোড করতে সমস্যা হয়েছে।</div>";
+                if (statusContainer) {
+                    statusContainer.innerHTML = "<div class='no-data'>স্ট্যাটাস লোড করতে সমস্যা হয়েছে।</div>";
+                }
             }
         }
 
