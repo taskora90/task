@@ -160,6 +160,49 @@
       let currentUser = null;
       let currentUserData = null;
 
+      const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+      const DAY_BN = {
+        sun: "রবিবার",
+        mon: "সোমবার",
+        tue: "মঙ্গলবার",
+        wed: "বুধবার",
+        thu: "বৃহস্পতিবার",
+        fri: "শুক্রবার",
+        sat: "শনিবার"
+      };
+
+      async function getWorkOpenDays() {
+        const defaultOpen = ["sun", "mon", "tue", "wed", "thu", "sat"];
+        try {
+          const snap = await getDoc(doc(db, "admin_settings", "holiday_rules"));
+          if (snap.exists() && snap.data().work && Array.isArray(snap.data().work.openDays)) {
+            return snap.data().work.openDays;
+          }
+        } catch (e) {
+          console.error("Work holiday rules load error:", e);
+        }
+        return defaultOpen;
+      }
+
+      async function getFreeTrialConfig() {
+        const defaultTrial = { dailyTasks: 2, totalDays: 3 };
+        try {
+          const snap = await getDoc(doc(db, "admin_settings", "free_trial"));
+          if (snap.exists()) {
+            const data = snap.data();
+            const dailyTasks = data.dailyTasks !== undefined ? Number(data.dailyTasks) : defaultTrial.dailyTasks;
+            const totalDays = data.totalDays !== undefined ? Number(data.totalDays) : defaultTrial.totalDays;
+            return {
+              dailyTasks: Number.isNaN(dailyTasks) || dailyTasks < 0 ? defaultTrial.dailyTasks : dailyTasks,
+              totalDays: Number.isNaN(totalDays) || totalDays < 0 ? defaultTrial.totalDays : totalDays
+            };
+          }
+        } catch (e) {
+          console.error("Free trial settings load error:", e);
+        }
+        return defaultTrial;
+      }
+
       // প্যাকেজ ID দিয়ে প্যাকেজের লেভেল বের করার সহায়ক ফাংশন
       async function getPackageLevel(pkgId) {
         if (!pkgId || pkgId === "free_trial" || pkgId === "none") return -1;
@@ -247,6 +290,7 @@
               let trialTextDisplay = "ফ্রি ট্রায়াল";
 
               if (!hasActivePaidPackage) {
+                const trialConfig = await getFreeTrialConfig();
                 let createdAt = currentUserData.createdAt;
                 let regDate = new Date();
 
@@ -263,17 +307,17 @@
 
                 const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                if (diffDays > 3) {
+                if (diffDays > trialConfig.totalDays) {
                   document.getElementById('taskCard').style.display = 'none';                  
                   document.getElementById('userInfoBox').style.display = 'none';
                   document.getElementById('dynamic-status-box').style.display = 'none';
                   document.getElementById('noPackageMsg').style.display = 'block';
-                  document.getElementById('noPackageText').innerText = "আপনার ৩ দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।";
+                  document.getElementById('noPackageText').innerText = `আপনার ${trialConfig.totalDays} দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।`;
                   return;
                 } else {
                   userPackage = "free_trial";
-                  pkgRule = { maxTasks: 2, reward: 10 }; 
-                  let remainingDays = 4 - diffDays;
+                  pkgRule = { maxTasks: trialConfig.dailyTasks, reward: 10 }; 
+                  let remainingDays = (trialConfig.totalDays + 1) - diffDays;
                   if (remainingDays < 1) remainingDays = 1;
                   trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
                 }
@@ -284,7 +328,11 @@
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
               document.getElementById('rewardText').innerText = activePackageRule.reward; 
 
-              if (new Date().getDay() === 0) {
+              const openWorkDays = await getWorkOpenDays();
+              const todayKey = DAY_KEYS[new Date().getDay()];
+              const todayBn = DAY_BN[todayKey];
+
+              if (!openWorkDays.includes(todayKey)) {
                 document.getElementById('userInfoBox').style.display = 'block';
                 document.getElementById('taskCard').style.display = 'block';
                 document.getElementById('noPackageMsg').style.display = 'none';
@@ -300,9 +348,9 @@
                     finishedBox.style.display = 'block';
                     finishedBox.innerHTML = `
                         <div style="font-size: 22px; margin-bottom: 5px;">🏖️</div>
-                        <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #dc3545; font-weight: bold;">আজকে (রবিবার) ছুটির দিন</h4>
+                        <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #dc3545; font-weight: bold;">আজকে (${todayBn}) ছুটির দিন</h4>
                         <p style="margin: 0; font-size: 11px; color: #aaaaaa; line-height: 1.4;">
-                            আজ রবিবার সাপ্তাহিক ছুটির কারণে কাজ বন্ধ রয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
+                            আজ ${todayBn} সাপ্তাহিক ছুটির কারণে কাজ বন্ধ রয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
                         </p>
                     `;
                 }
