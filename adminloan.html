@@ -12,6 +12,8 @@
 
         #adminDashboard { display: none; }
         #loanProfilePage { display: none; } /* আলাদা লোন প্রোফাইল পেজ */
+        #teamAdminPage { display: none; } /* আলাদা টিম ও মাসিক ভাতা পেজ */
+        #salaryAdminPage { display: none; } /* আলাদা স্যালারি কন্ট্রোল ও উইথড্র পেজ */
 
         .header { background: #2b2d42; color: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .header h2 { margin: 0; font-size: 20px; }
@@ -19,13 +21,19 @@
         .settings-card h3 { margin-top: 0; color: #2b2d42; font-size: 16px; margin-bottom: 15px; }
         .setting-row { display: flex; gap: 15px; margin-bottom: 10px; align-items: center; }
         .setting-row label { flex: 1; font-weight: 500; font-size: 14px; }
-        .setting-row input { flex: 2; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        .setting-row input, .setting-row select { flex: 2; padding: 8px; border: 1px solid #ccc; border-radius: 5px; background: #fff; }
         .save-settings-btn { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        /* লোন কন্ট্রোল প্রোফাইল বাটন স্টাইল */
+
+        /* লোন কন্ট্রোল প্রোফাইল ও নতুন টিম/স্যালারি বাটন স্টাইল */
         .admin-profile-btn-wrapper { margin-bottom: 15px; }
         .btn-admin-profile { background: #0284c7; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; transition: background 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: 100%; text-align: center; }
         .btn-admin-profile:hover { background: #0369a1; }
+
+        .extra-nav-grid { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-team-nav { flex: 1; background: #4f46e5; color: #fff; border: none; padding: 11px 14px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-team-nav:hover { background: #4338ca; }
+        .btn-salary-nav { flex: 1; background: #0d9488; color: #fff; border: none; padding: 11px 14px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-salary-nav:hover { background: #0f766e; }
 
         .request-card { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
         .request-info h4 { margin: 0 0 5px 0; color: #333; }
@@ -50,9 +58,19 @@
 
         .admin-loan-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
         .admin-loan-card p { margin: 4px 0; font-size: 14px; }
-        .admin-action-btn-group { margin-top: 10px; display: flex; gap: 8px; }
+        .admin-action-btn-group { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-edit-loan { background: #2563eb; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
         .btn-delete-loan { background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
+
+        /* টিম টেবিল ও স্যালারি কার্ড স্টাইল */
+        .tier-form-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .tier-form-row input { flex: 1; min-width: 140px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 5px; }
+        .btn-add-tier { background: #16a34a; color: #fff; border: none; padding: 8px 14px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .tier-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        .tier-table th, .tier-table td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+        .tier-table th { background: #f8fafc; color: #1e293b; }
+        .badge-active { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-pending { background: #fef9c3; color: #854d0e; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -70,6 +88,12 @@
             <div class="header">
                 <h2>📋 লোন রিকোয়েস্ট ও প্যাকেজ লোন সেটিংস</h2>
                 <button class="logout-btn" onclick="location.reload()">লগআউট</button>
+            </div>
+
+            <!-- নতুন টিম ও স্যালারি বাটন -->
+            <div class="extra-nav-grid">
+                <button class="btn-team-nav" onclick="openTeamAdminPage()">👥 টিম</button>
+                <button class="btn-salary-nav" onclick="openSalaryAdminPage()">💰 স্যালারি</button>
             </div>
 
             <!-- ডাইনামিক প্যাকেজ লোন সেটিংস -->
@@ -98,12 +122,92 @@
             <div class="header" style="margin-top: 5px;">
                 <h2>👤 চলমান ও পেন্ডিং লোন কন্ট্রোল পেজ</h2>
             </div>
-            
+
             <!-- সার্চ বক্স -->
             <input type="text" id="loanSearchInput" class="search-box" placeholder="🔍 নাম বা ফোন নম্বর দিয়ে সার্চ করুন..." onkeyup="filterLoanProfiles()">
 
             <div id="adminLoanListContainer">
                 <p style="text-align:center;">ডেটা লোড হচ্ছে...</p>
+            </div>
+        </div>
+
+        <!-- ৪. টিম ও মাসিক ভাতা ম্যানেজমেন্ট পেজ -->
+        <div id="teamAdminPage">
+            <button class="back-btn" onclick="backToDashboard()">← ড্যাশবোর্ডে ফিরে যান</button>
+            <div class="header" style="margin-top: 5px;">
+                <h2>👥 টিম ও মাসিক ভাতা সেটিংস</h2>
+            </div>
+
+            <!-- রেফার সংখ্যা বনাম মাসিক ভাতা টেবিল (যোগ ও এডিট অপশনসহ) -->
+            <div class="settings-card">
+                <h3>📊 রেফার সংখ্যা অনুযায়ী মাসিক ভাতা টেবিল (লেভেল ১ + প্যাকেজ সক্রিয়)</h3>
+                <div class="tier-form-row">
+                    <input type="number" id="tierMinRefInput" placeholder="প্যাকেজ রেফার সংখ্যা (যেমন: 12)">
+                    <input type="number" id="tierAmountInput" placeholder="মাসিক ভাতা টাকা (যেমন: 2000)">
+                    <button class="btn-add-tier" onclick="addOrUpdateSalaryTier()">+ যোগ / আপডেট</button>
+                </div>
+                <div id="salaryTiersTableContainer">
+                    <p>টেবিল লোড হচ্ছে...</p>
+                </div>
+            </div>
+
+            <!-- ইউজারের ডিটেলস (রেফার সংখ্যা ও মাসিক ভাতা এডিট/ডিলিট) -->
+            <div class="settings-card">
+                <h3>👤 ইউজারের ডিটেলস (রেফার ও মাসিক ভাতা)</h3>
+                <input type="text" id="teamUserSearchInput" class="search-box" placeholder="🔍 ইউজারের নাম বা ফোন দিয়ে খুঁজুন..." onkeyup="filterTeamUsers()">
+                <div id="teamUsersListContainer">
+                    <p style="text-align:center;">ইউজার তথ্য লোড হচ্ছে...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ৫. স্যালারি পেজ কন্ট্রোল ও উইথড্র রিকোয়েস্ট পেজ -->
+        <div id="salaryAdminPage">
+            <button class="back-btn" onclick="backToDashboard()">← ড্যাশবোর্ডে ফিরে যান</button>
+            <div class="header" style="margin-top: 5px;">
+                <h2>💰 স্যালারি কন্ট্রোল ও উইথড্র রিকোয়েস্ট</h2>
+            </div>
+
+            <!-- salary.html নিয়ন্ত্রণ সেটিংস -->
+            <div class="settings-card">
+                <h3>⚙️ salary.html কন্ট্রোল সেটিংস</h3>
+                <div class="setting-row">
+                    <label><strong>পেজ স্ট্যাটাস:</strong></label>
+                    <select id="salaryPageStatus">
+                        <option value="active">সক্রিয় (Active)</option>
+                        <option value="paused">বন্ধ / রক্ষণাবেক্ষণ (Paused)</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label><strong>উইথড্র / ক্লেইম অপশন:</strong></label>
+                    <select id="salaryClaimEnabled">
+                        <option value="true">চালু (Open)</option>
+                        <option value="false">বন্ধ (Closed)</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label><strong>পেমেন্ট তারিখ / নিয়ম:</strong></label>
+                    <input type="text" id="salaryScheduleNote" placeholder="যেমন: প্রতি মাসের ৫-১০ তারিখের মধ্যে পেমেন্ট দেওয়া হয়">
+                </div>
+                <div class="setting-row">
+                    <label><strong>salary.html নোটিশ বার্তা:</strong></label>
+                    <input type="text" id="salaryNoticeMsg" placeholder="ইউজারের জন্য স্যালারি পেজের নোটিশ">
+                </div>
+                <button class="save-settings-btn" onclick="saveSalaryPageConfig()">স্যালারি সেটিংস সেভ করুন</button>
+            </div>
+
+            <!-- মাসিক ভাতা উইথড্র রিকোয়েস্টসমূহ -->
+            <div class="settings-card">
+                <h3>📥 মাসিক ভাতা উইথড্র রিকোয়েস্ট</h3>
+                <div id="salaryWithdrawRequestsContainer">
+                    <p style="text-align:center;">উইথড্র রিকোয়েস্ট লোড হচ্ছে...</p>
+                </div>
+            </div>  <!-- শুধুমাত্র যারা মাসিক ভাতা পাবে তাদের ডিটেইলস -->
+            <div class="settings-card">
+                <h3>✅ মাসিক ভাতা প্রাপকদের ডিটেইলস</h3>
+                <div id="salaryEligibleUsersContainer">
+                    <p style="text-align:center;">তালিকা লোড হচ্ছে...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -123,6 +227,22 @@
             </div>
         </div>
     </div>
+
+    <!-- ইউজার মাসিক ভাতা এডিট মোডাল -->
+    <div id="userSalaryEditModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; font-size:16px;">ইউজারের মাসিক ভাতা এডিট করুন</h3>
+            <input type="hidden" id="editSalaryUserId">
+            <p id="editSalaryUserName" style="font-size:13px; color:#555; margin:4px 0;"></p>
+            <label style="font-size:13px; font-weight:bold; display:block; text-align:left;">মাসিক ভাতা (৳):</label>
+            <input type="number" id="editUserMonthlySalaryInput" placeholder="মাসিক ভাতার পরিমাণ">
+            <div class="modal-btn-group">
+                <button class="save-settings-btn" style="margin-top:0;" onclick="saveUserMonthlySalary()">সংরক্ষণ করুন</button>
+                <button class="btn-close" onclick="closeUserSalaryEditModal()">বাতিল</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -142,6 +262,31 @@
 
         let packageList = [];
         let allLoansCache = []; // সার্চ ও ফিল্টারের জন্য ক্যাশ ডেটা
+        let salaryTiersCache = []; // মাসিক ভাতা ধাপসমূহ
+        let teamUsersCache = []; // ইউজারদের রেফার ও ভাতা ক্যাশ
+
+        const defaultSalaryTiers = [
+            { minRef: 12, amount: 2000 },
+            { minRef: 20, amount: 4000 },
+            { minRef: 28, amount: 6200 },
+            { minRef: 40, amount: 8500 },
+            { minRef: 60, amount: 10000 },
+            { minRef: 80, amount: 15000 },
+            { minRef: 100, amount: 20000 }
+        ];
+
+        function isActivePackage(member) {
+            const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
+            if (!pkgVal) return false;
+            const inactiveValues = ["none", "free", "নিষ্ক্রিয়", "null", "undefined", "false", "0"];
+            return !inactiveValues.includes(pkgVal);
+        }
+
+        function calculateTierSalary(paidRefCount, tiersList) {
+            const sortedDesc = [...tiersList].sort((a, b) => Number(b.minRef) - Number(a.minRef));
+            const matched = sortedDesc.find(t => Number(paidRefCount) >= Number(t.minRef));
+            return matched ? Number(matched.amount) : 0;
+        }
 
         window.checkAdminLogin = function() {
             const pass = document.getElementById('adminPassword').value;
@@ -299,6 +444,8 @@
         // ==========================================
         window.openAdminLoanProfilePage = async function() {
             document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('teamAdminPage').style.display = 'none';
+            document.getElementById('salaryAdminPage').style.display = 'none';
             document.getElementById('loanProfilePage').style.display = 'block';
             document.getElementById('adminLoanListContainer').innerHTML = "<p style='text-align:center;'>ডেটা লোড হচ্ছে...</p>";
             document.getElementById('loanSearchInput').value = "";
@@ -320,20 +467,19 @@
 
         window.backToDashboard = function() {
             document.getElementById('loanProfilePage').style.display = 'none';
+            document.getElementById('teamAdminPage').style.display = 'none';
+            document.getElementById('salaryAdminPage').style.display = 'none';
             document.getElementById('adminDashboard').style.display = 'block';
             loadLoanRequests(); // ড্যাশবোর্ডে ফিরলে রিকোয়েস্ট রিফ্রেশ হবে
         };
 
-        // রেন্ডার ফাংশন (শুধুমাত্র pending, approved বা active লোন দেখাবে, paid বাদ দিবে)
         function renderLoanProfiles(loansArray) {
             let activeLoans = loansArray.filter(item => {
                 const status = item.data.status;
                 const due = item.data.dueAmount !== undefined ? Number(item.data.dueAmount) : Number(item.data.amount);
-                // যেগুলো পেইড নয় এবং স্ট্যাটাস paid নয়, শুধু সেগুলো দেখাবে
                 return status !== 'paid' && due > 0 && (status === 'approved' || status === 'active' || status === 'pending');
             });
 
-            // লেটেস্টগুলো উপরে দেখানোর জন্য সর্টিং
             activeLoans.sort((a, b) => {
                 let timeA = a.data.requestTime ? a.data.requestTime.toMillis() : 0;
                 let timeB = b.data.requestTime ? b.data.requestTime.toMillis() : 0;
@@ -375,17 +521,15 @@
                                 <button class="btn-edit-loan" onclick="openAdminEditModal('${loanId}', ${originalAmount}, ${dueAmount})">এডিট</button>
                                 <button class="btn-delete-loan" onclick="deleteLoanRecord('${loanId}')">ডিলিট</button>
                             </div>
-                        </div>
-                    `;
+                        </div> `;
                 });
             }
             document.getElementById('adminLoanListContainer').innerHTML = html;
         }
 
-        // সার্চ ফিল্টার ফাংশন
         window.filterLoanProfiles = function() {
             const queryText = document.getElementById('loanSearchInput').value.toLowerCase().trim();
-            
+
             const filtered = allLoansCache.filter(item => {
                 const name = (item.data.userName || "").toLowerCase();
                 const phone = (item.data.userPhone || "").toLowerCase();
@@ -431,7 +575,7 @@
                 await updateDoc(loanRef, updatePayload);
                 alert("লোন তথ্য সফলভাবে আপডেট করা হয়েছে!");
                 closeAdminEditModal();
-                openAdminLoanProfilePage(); // পেজ রিফ্রেশ করবে
+                openAdminLoanProfilePage();
             } catch (err) {
                 console.error("Error updating loan:", err);
                 alert("আপডেট করতে সমস্যা হয়েছে।");
@@ -444,10 +588,365 @@
             try {
                 await deleteDoc(doc(db, "loan_requests", loanId));
                 alert("লোন রেকর্ড সফলভাবে ডিলিট করা হয়েছে!");
-                openAdminLoanProfilePage(); // পেজ রিফ্রেশ করবে
+                openAdminLoanProfilePage();
             } catch (err) {
                 console.error("Error deleting loan:", err);
                 alert("ডিলিট করতে সমস্যা হয়েছে।");
+            }
+        };
+
+        // ==========================================
+        // টিম ও মাসিক ভাতা সেকশন ফাংশনসমূহ
+        // ==========================================
+        async function fetchSalaryTiersAndUsers() {
+            const tierDocRef = doc(db, "admin_settings", "monthly_salary_tiers");
+            const tierSnap = await getDoc(tierDocRef);
+            if (tierSnap.exists() && Array.isArray(tierSnap.data().tiers)) {
+                salaryTiersCache = tierSnap.data().tiers;
+            } else {
+                salaryTiersCache = [...defaultSalaryTiers];
+            }
+
+            const usersSnap = await getDocs(collection(db, "users"));
+            const allUsers = [];
+            usersSnap.forEach((d) => {
+                allUsers.push({ id: d.id, ...d.data() });
+            });
+
+            teamUsersCache = allUsers.map((u) => {
+                const directRefs = allUsers.filter(child => child.referredBy && u.referralCode && child.referredBy === u.referralCode);
+                const paidDirectRefs = directRefs.filter(child => isActivePackage(child));
+                const tierSalary = calculateTierSalary(paidDirectRefs.length, salaryTiersCache);
+                const customSalary = Number(u.monthlySalary || 0);
+                const effectiveSalary = customSalary > 0 ? customSalary : tierSalary;
+
+                return {
+                    id: u.id,
+                    name: u.name || "নামবিহীন",
+                    phone: u.phone || "নেই",
+                    totalDirectRefs: directRefs.length,
+                    paidDirectRefsCount: paidDirectRefs.length,
+                    customSalary: customSalary,
+                    effectiveSalary: effectiveSalary
+                };
+            });
+        }
+
+        window.openTeamAdminPage = async function() {
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('loanProfilePage').style.display = 'none';
+            document.getElementById('salaryAdminPage').style.display = 'none';
+            document.getElementById('teamAdminPage').style.display = 'block';
+
+            document.getElementById('salaryTiersTableContainer').innerHTML = "<p>টেবিল লোড হচ্ছে...</p>";
+            document.getElementById('teamUsersListContainer').innerHTML = "<p style='text-align:center;'>ইউজার তথ্য লোড হচ্ছে...</p>";
+            document.getElementById('teamUserSearchInput').value = "";
+
+            try {
+                await fetchSalaryTiersAndUsers();
+                renderSalaryTiersTable();
+                renderTeamUsersList(teamUsersCache);
+            } catch (err) {
+                console.error("Error loading team admin page:", err);
+                document.getElementById('teamUsersListContainer').innerHTML = "<p style='color:red; text-align:center;'>ডেটা লোড করতে সমস্যা হয়েছে।</p>";
+            }
+        };
+
+        function renderSalaryTiersTable() {
+            const container = document.getElementById('salaryTiersTableContainer');
+            const sorted = [...salaryTiersCache].sort((a, b) => Number(a.minRef) - Number(b.minRef));
+
+            if (sorted.length === 0) {
+                container.innerHTML = "<div class='no-data'>কোনো ধাপ যুক্ত করা হয়নি।</div>";
+                return;
+            }
+
+            let rowsHtml = "";
+            sorted.forEach((tier, index) => {
+                rowsHtml += `
+                    <tr>
+                        <td><strong>${tier.minRef} জন</strong> (লেভেল ১ প্যাকেজ)</td>
+                        <td><strong>৳ ${Number(tier.amount)}</strong></td>
+                        <td>
+                            <button class="btn-edit-loan" onclick="editSalaryTierRow(${tier.minRef}, ${tier.amount})">এডিট</button>
+                            <button class="btn-delete-loan" onclick="deleteSalaryTierRow(${index})">ডিলিট</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            container.innerHTML = `
+                <table class="tier-table">
+                    <thead>
+                        <tr>
+                            <th>প্যাকেজ রেফার</th>
+                            <th>মাসিক ভাতা</th>
+                            <th>অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            `;
+        }
+
+        window.editSalaryTierRow = function(minRef, amount) {
+            document.getElementById('tierMinRefInput').value = minRef;
+            document.getElementById('tierAmountInput').value = amount;
+        };
+
+        window.addOrUpdateSalaryTier = async function() {
+            const minRef = parseInt(document.getElementById('tierMinRefInput').value, 10);
+            const amount = parseFloat(document.getElementById('tierAmountInput').value);
+
+            if (isNaN(minRef) || minRef <= 0 || isNaN(amount) || amount < 0) {
+                alert("সঠিক রেফার সংখ্যা ও মাসিক ভাতার পরিমাণ দিন।");
+                return;
+            }
+
+            const existingIdx = salaryTiersCache.findIndex(t => Number(t.minRef) === minRef);
+            if (existingIdx >= 0) {
+                salaryTiersCache[existingIdx].amount = amount;
+            } else {
+                salaryTiersCache.push({ minRef, amount });
+            }
+
+            try {
+                await setDoc(doc(db, "admin_settings", "monthly_salary_tiers"), {
+                    tiers: salaryTiersCache
+                }, { merge: true });
+
+                document.getElementById('tierMinRefInput').value = "";
+                document.getElementById('tierAmountInput').value = "";
+                await fetchSalaryTiersAndUsers();
+                renderSalaryTiersTable();
+                renderTeamUsersList(teamUsersCache);
+                alert("মাসিক ভাতা ধাপ সেভ হয়েছে!");
+            } catch (err) {
+                console.error("Error saving tier:", err);
+                alert("ধাপ সেভ করতে সমস্যা হয়েছে।");
+            }
+        };
+
+        window.deleteSalaryTierRow = async function(index) {
+            if (!confirm("আপনি কি এই ধাপটি ডিলিট করতে চান?")) return;
+            const sorted = [...salaryTiersCache].sort((a, b) => Number(a.minRef) - Number(b.minRef));
+            sorted.splice(index, 1);
+            salaryTiersCache = sorted;
+
+            try {
+                await setDoc(doc(db, "admin_settings", "monthly_salary_tiers"), {
+                    tiers: salaryTiersCache
+                });
+                await fetchSalaryTiersAndUsers();
+                renderSalaryTiersTable();
+                renderTeamUsersList(teamUsersCache);
+                alert("ধাপ ডিলিট করা হয়েছে!");
+            } catch (err) {
+                console.error("Error deleting tier:", err);
+                alert("ডিলিট করতে সমস্যা হয়েছে।");
+            }
+        };
+
+        function renderTeamUsersList(usersArray) {
+            const container = document.getElementById('teamUsersListContainer');
+            if (!usersArray || usersArray.length === 0) {
+                container.innerHTML = "<div class='no-data'>কোনো ইউজার পাওয়া যায়নি।</div>";
+                return;
+            }
+
+            let html = "";
+            usersArray.forEach((u) => {
+                html += `
+                    <div class="admin-loan-card">
+                        <p><strong>নাম:</strong> ${u.name} | <strong>ফোন:</strong> ${u.phone}</p>
+                        <p><strong>লেভেল ১ রেফার:</strong> মোট ${u.totalDirectRefs} জন (প্যাকেজ সক্রিয়: <strong>${u.paidDirectRefsCount} জন</strong>)</p>
+                        <p><strong>মাসিক ভাতা:</strong> <span style="color:#0d9488; font-weight:bold;">৳ ${u.effectiveSalary}</span> ${u.customSalary > 0 ? '(কাস্টম সেট)' : '(ধাপ অনুযায়ী)'}</p>
+                        <div class="admin-action-btn-group">
+                            <button class="btn-edit-loan" onclick="openUserSalaryEditModal('${u.id}', '${u.name.replace(/'/g, "\\'")}', ${u.effectiveSalary})">ভাতা এডিট</button>
+                            <button class="btn-delete-loan" onclick="deleteUserCustomSalary('${u.id}')">ভাতা ডিলিট</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        window.filterTeamUsers = function() {
+            const qText = document.getElementById('teamUserSearchInput').value.toLowerCase().trim();
+            const filtered = teamUsersCache.filter(u =>
+                u.name.toLowerCase().includes(qText) || u.phone.toLowerCase().includes(qText)
+            );
+            renderTeamUsersList(filtered);
+        };
+
+        window.openUserSalaryEditModal = function(userId, userName, currentSalary) {
+            document.getElementById('editSalaryUserId').value = userId;
+            document.getElementById('editSalaryUserName').innerText = `ইউজার: ${userName}`;
+            document.getElementById('editUserMonthlySalaryInput').value = currentSalary;
+            document.getElementById('userSalaryEditModal').style.display = 'flex';
+        };
+
+        window.closeUserSalaryEditModal = function() {
+            document.getElementById('userSalaryEditModal').style.display = 'none';
+        };
+
+        window.saveUserMonthlySalary = async function() {
+            const userId = document.getElementById('editSalaryUserId').value;
+            const salaryVal = parseFloat(document.getElementById('editUserMonthlySalaryInput').value);
+
+            if (isNaN(salaryVal) || salaryVal < 0) {
+                alert("সঠিক মাসিক ভাতার পরিমাণ দিন।");
+                return;
+            }
+
+            try {
+                await updateDoc(doc(db, "users", userId), {
+                    monthlySalary: salaryVal
+                });
+                alert("ইউজারের মাসিক ভাতা আপডেট হয়েছে!");
+                closeUserSalaryEditModal();
+                await fetchSalaryTiersAndUsers();
+                renderTeamUsersList(teamUsersCache);
+            } catch (err) {
+                console.error("Error saving user salary:", err);
+                alert("আপডেট করতে সমস্যা হয়েছে।");
+            }
+        };
+
+        window.deleteUserCustomSalary = async function(userId) {
+            if (!confirm("এই ইউজারের কাস্টম মাসিক ভাতা মুছে (৳ 0 / ধাপ অনুযায়ী) রিসেট করতে চান?")) return;
+            try {
+                await updateDoc(doc(db, "users", userId), {
+                    monthlySalary: 0
+                });
+                alert("মাসিক ভাতা রিসেট করা হয়েছে!");
+                await fetchSalaryTiersAndUsers();
+                renderTeamUsersList(teamUsersCache);
+            } catch (err) {
+                console.error("Error resetting user salary:", err);
+                alert("রিসেট করতে সমস্যা হয়েছে।");
+            }
+        };
+
+        // ==========================================
+        // স্যালারি পেজ কন্ট্রোল ও উইথড্র রিকোয়েস্ট ফাংশনসমূহ
+        // ==========================================
+        window.openSalaryAdminPage = async function() {
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('loanProfilePage').style.display = 'none';
+            document.getElementById('teamAdminPage').style.display = 'none';
+            document.getElementById('salaryAdminPage').style.display = 'block';
+
+            try {
+                const cfgSnap = await getDoc(doc(db, "admin_settings", "salary_page_config"));
+                const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
+                document.getElementById('salaryPageStatus').value = cfg.pageStatus || "active";
+                document.getElementById('salaryClaimEnabled').value = cfg.claimEnabled === false ? "false" : "true";
+                document.getElementById('salaryScheduleNote').value = cfg.scheduleNote || "";
+                document.getElementById('salaryNoticeMsg').value = cfg.noticeMessage || "";
+
+                await fetchSalaryTiersAndUsers();
+                renderSalaryEligibleUsers();
+                await loadSalaryWithdrawRequests();
+            } catch (err) {
+                console.error("Error opening salary admin page:", err);
+            }
+        };
+
+        window.saveSalaryPageConfig = async function() {
+            try {
+                await setDoc(doc(db, "admin_settings", "salary_page_config"), {
+                    pageStatus: document.getElementById('salaryPageStatus').value,
+                    claimEnabled: document.getElementById('salaryClaimEnabled').value === "true",
+                    scheduleNote: document.getElementById('salaryScheduleNote').value.trim(),
+                    noticeMessage: document.getElementById('salaryNoticeMsg').value.trim()
+                }, { merge: true });
+                alert("salary.html কন্ট্রোল সেটিংস সেভ হয়েছে!");
+            } catch (err) {
+                console.error("Error saving salary page config:", err);
+                alert("সেটিংস সেভ করতে সমস্যা হয়েছে।");
+            }
+        };
+
+        function renderSalaryEligibleUsers() {
+            const container = document.getElementById('salaryEligibleUsersContainer');
+            const eligible = teamUsersCache.filter(u => Number(u.effectiveSalary) > 0);
+
+            if (eligible.length === 0) {
+                container.innerHTML = "<div class='no-data'>বর্তমানে কোনো ইউজারের মাসিক ভাতা সক্রিয় নেই।</div>";
+                return;
+            }
+
+            let html = "";
+            eligible.forEach((u) => {
+                html += `
+                    <div class="admin-loan-card">
+                        <p><strong>নাম:</strong> ${u.name} | <strong>ফোন:</strong> ${u.phone}</p>
+                        <p><strong>প্যাকেজ-সক্রিয় লেভেল ১ রেফার:</strong> ${u.paidDirectRefsCount} জন</p>
+                        <p><strong>মাসিক ভাতা:</strong> <span style="color:#0d9488; font-weight:bold;">৳ ${u.effectiveSalary}</span></p>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function loadSalaryWithdrawRequests() {
+            const container = document.getElementById('salaryWithdrawRequestsContainer');
+            container.innerHTML = "<p style='text-align:center;'>লোড হচ্ছে...</p>";
+
+            try {
+                const snap = await getDocs(collection(db, "salary_withdraw_requests"));
+                if (snap.empty) {
+                    container.innerHTML = "<div class='no-data'>কোনো মাসিক ভাতা উইথড্র রিকোয়েস্ট নেই।</div>";
+                    return;
+                }
+
+                let html = "";
+                snap.forEach((docSnap) => {
+                    const r = docSnap.data();
+                    const reqId = docSnap.id;
+                    const statusBadge = r.status === "approved"
+                        ? '<span class="badge-active">অ্যাপ্রুভড</span>'
+                        : r.status === "rejected"
+                        ? '<span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold;">রিজেক্টেড</span>'
+                        : '<span class="badge-pending">পেন্ডিং</span>';
+
+                    html += `
+                        <div class="request-card">
+                            <div class="request-info">
+                                <h4>${r.userName || "N/A"} (${r.userPhone || "N/A"}) — ${statusBadge}</h4>
+                                <p>মেথড: <strong>${r.method || "N/A"}</strong> | নম্বর: <strong>${r.accountNumber || "N/A"}</strong></p>
+                                <p>পরিমাণ: <strong>৳ ${r.amount || 0}</strong></p>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn-approve" onclick="handleSalaryWithdraw('${reqId}', 'approved')">অ্যাপ্রুভ</button>
+                                <button class="btn-reject" onclick="handleSalaryWithdraw('${reqId}', 'rejected')">রিজেক্ট</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                console.error("Error loading salary withdraw requests:", err);
+                container.innerHTML = "<div class='no-data'>উইথড্র রিকোয়েস্ট লোড করতে সমস্যা হয়েছে।</div>";
+            }
+        }
+
+        window.handleSalaryWithdraw = async function(reqId, action) {
+            const msg = action === "approved"
+                ? "আপনি কি এই মাসিক ভাতা উইথড্র রিকোয়েস্টটি অ্যাপ্রুভ করতে চান?"
+                : "আপনি কি এই উইথড্র রিকোয়েস্টটি রিজেক্ট করতে চান?";
+            if (!confirm(msg)) return;
+
+            try {
+                await updateDoc(doc(db, "salary_withdraw_requests", reqId), {
+                    status: action
+                });
+                alert(action === "approved" ? "উইথড্র রিকোয়েস্ট অ্যাপ্রুভ হয়েছে!" : "উইথড্র রিকোয়েস্ট রিজেক্ট হয়েছে!");
+                await loadSalaryWithdrawRequests();
+            } catch (err) {
+                console.error("Error updating salary withdraw:", err);
+                alert("আপডেট করতে সমস্যা হয়েছে।");
             }
         };
     </script>
