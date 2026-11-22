@@ -705,7 +705,7 @@
           let stateClass = "state-available";
           let statusLine = "ক্লিক করে কাজ শুরু করুন";
           let statusClass = "task-sub-status";
-          let iconHtml = `#${i}`;
+          let iconHtml = `<i class="fa-solid fa-play"></i>`;
           let disabled = false;
           let middleTimerHtml = "";
 
@@ -952,7 +952,7 @@
 
         try {
           const rewardAmount = activePackageRule.reward;
-          const nextTaskNumber = currentTaskCount + 1;
+          const completedTaskSerial = currentTaskCount + 1;
 
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
@@ -963,8 +963,8 @@
 
           await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
             type: "task_complete",
-            taskNumber: nextTaskNumber,
-            title: `টাস্ক #${nextTaskNumber}`,
+            taskNumber: completedTaskSerial,
+            title: `টাস্ক #${completedTaskSerial}`,
             desc: `ডেইলি বিজ্ঞাপন টাস্ক সম্পন্ন হয়েছে`,
             amount: rewardAmount,
             timestamp: serverTimestamp()
@@ -1060,7 +1060,7 @@
             }
           }
 
-          currentTaskCount = nextTaskNumber;
+          currentTaskCount = completedTaskSerial;
           activeTaskIndex = null;
           activeTaskPhase = "idle";
 
@@ -1068,7 +1068,7 @@
           updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
           renderSerialTaskButtons();
 
-          alert(`অভিনন্দন! টাস্ক #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
+          alert(`অভিনন্দন! ${completedTaskSerial} নম্বর টাস্ক কমপ্লিট হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
 
         } catch (error) {
           console.error("এরর:", error);
