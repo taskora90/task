@@ -180,7 +180,6 @@
         <a href="package.html" class="nav-item active"><i class="fa-solid fa-box"></i><span>প্যাকেজ</span></a>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></a>
     </nav>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -202,7 +201,81 @@
 
       let currentUser = null;
       let userData = null;
-      let allPackages = {}; 
+      let allPackages = {};
+
+      const BLOCKED_PKG_IDS = new Set([
+        "", "none", "free", "free_trial", "freetrial",
+        "null", "undefined", "false", "0", "no_package", "নিষ্ক্রিয়"
+      ]);
+
+      function normalizePkgId(rawId) {
+        return String(rawId || "").trim().toLowerCase().replace(/\s+/g, "_");
+      }
+
+      function getPkgKeyCandidates(rawId) {
+        const clean = String(rawId || "").trim();
+        const norm = normalizePkgId(clean);
+        if (!norm || BLOCKED_PKG_IDS.has(norm)) return [];
+        return Array.from(new Set([
+          clean,
+          norm,
+          norm.replace(/\./g, "_"),
+          norm.replace(/_/g, ".")
+        ])).filter(Boolean);
+      }
+
+      function findMatchedPackage(rawId) {
+        const candidates = getPkgKeyCandidates(rawId);
+        if (candidates.length === 0) return null;
+
+        for (const cand of candidates) {
+          if (allPackages[cand]) return allPackages[cand];
+        }
+        for (const key in allPackages) {
+          const p = allPackages[key];
+          const pNorm = normalizePkgId(p.packageId);
+          const idNorm = normalizePkgId(p.id);
+          const kNorm = normalizePkgId(key);
+          for (const cand of candidates) {
+            const cNorm = normalizePkgId(cand);
+            if (pNorm === cNorm || idNorm === cNorm || kNorm === cNorm) {
+              return p;
+            }
+          }
+        }
+        return null;
+      }
+
+      async function resolveVerifiedPkgFromDb(rawId, requirePaid = true) {
+        const matchedLocal = findMatchedPackage(rawId);
+        if (matchedLocal) {
+          const price = Number(matchedLocal.price ?? matchedLocal.amount ?? 0);
+          if (!requirePaid || price > 0) return { ...matchedLocal, price };
+        }
+
+        const candidates = getPkgKeyCandidates(rawId);
+        for (const cand of candidates) {
+          const snap = await getDoc(doc(db, "packages", cand));
+          if (snap.exists()) {
+            const d = snap.data() || {};
+            const price = Number(d.price ?? d.amount ?? 0);
+            if (!requirePaid || price > 0) {
+              return { id: snap.id, packageId: d.packageId || snap.id, ...d, price };
+            }
+          }
+          const q = query(collection(db, "packages"), where("packageId", "==", cand));
+          const qSnap = await getDocs(q);
+          if (!qSnap.empty) {
+            const docItem = qSnap.docs[0];
+            const d = docItem.data() || {};
+            const price = Number(d.price ?? d.amount ?? 0);
+            if (!requirePaid || price > 0) {
+              return { id: docItem.id, packageId: d.packageId || docItem.id, ...d, price };
+            }
+          }
+        }
+        return null;
+      }
 
       async function getPackageCommissionAndRefundConfig() {
         const defaultConfig = { packagePercent: 10, packageRefundPercent: 80 };
@@ -255,31 +328,42 @@
 
               allPackages[pId] = fullPkg;
               allPackages[docSnap.id] = fullPkg;
+              allPackages[normalizePkgId(pId)] = fullPkg;
+              allPackages[normalizePkgId(docSnap.id)] = fullPkg;
             });
 
             // মূল্য বা লেভেল অনুযায়ী ছোট থেকে বড় সাজানো
             packagesArray.sort((a, b) => (a.level || a.price) - (b.level || b.price));
 
             // সঠিক উপায়ে ইউজারের বর্তমান লেভেল খুঁজে বের করা
-            if (currentPkg) {
-              for (let key in allPackages) {
-                let p = allPackages[key];
-                if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
-                  currentPkgLevel = Number(p.level || 0);
-                  break;
-                }
-              }
-            }            packagesArray.forEach((pkg) => {
+            const matchedCurrentPkg = findMatchedPackage(currentPkg);
+            if (matchedCurrentPkg) {
+              currentPkgLevel = Number(matchedCurrentPkg.level || 0);
+            }
+
+            const matchedPrevPkg = findMatchedPackage(prevPkg);
+
+            packagesArray.forEach((pkg) => {
               const pkgLevel = Number(pkg.level || 0);
               let btnText = "প্যাকেজ কিনুন";
               let btnClass = "btn-buy";
               let isDisabled = "";
 
-              if (currentPkg === pkg.packageId || currentPkg === pkg.id) {
+              const isCurrent = Boolean(
+                matchedCurrentPkg &&
+                (matchedCurrentPkg.packageId === pkg.packageId || matchedCurrentPkg.id === pkg.id)
+              );
+              const isPrevious = Boolean(
+                !isCurrent &&
+                matchedPrevPkg &&
+                (matchedPrevPkg.packageId === pkg.packageId || matchedPrevPkg.id === pkg.id)
+              );
+
+              if (isCurrent) {
                 btnText = "সক্রিয় আছে";
                 btnClass = "btn-buy btn-active";
                 isDisabled = "disabled";
-              } else if (prevPkg && (prevPkg === pkg.packageId || prevPkg === pkg.id)) {
+              } else if (isPrevious) {
                 btnText = "পূর্বের প্যাকেজ";
                 btnClass = "btn-buy btn-old";
                 isDisabled = "disabled";
@@ -313,44 +397,48 @@
           window.location.href = "login.html";
         }
       });
+
       window.buyPackage = async function(packageId, price, targetLevel) {
         if (!currentUser || !userData) {
           alert("দয়া করে অপেক্ষা করুন, ইউজার ডাটা লোড হচ্ছে।");
           return;
         }
 
-        const pkgDetails = allPackages[packageId];
+        const pkgDetails = await resolveVerifiedPkgFromDb(packageId, false);
         if (!pkgDetails) {
           alert("প্যাকেজ তথ্য পাওয়া যায়নি!");
           return;
         }
 
+        const canonicalPkgId = pkgDetails.packageId || pkgDetails.id;
+        const verifiedPrice = Number(pkgDetails.price ?? price ?? 0);
+        const verifiedLevel = Number(pkgDetails.level ?? targetLevel ?? 0);
+
         const currentPkg = String(userData.package || "").trim();
         let currentPkgLevel = -1;
-
-        if (currentPkg) {
-          for (let key in allPackages) {
-            let p = allPackages[key];
-            if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
-              currentPkgLevel = Number(p.level || 0);
-              break;
-            }
-          }
+        const matchedCurrentPkg = findMatchedPackage(currentPkg);
+        if (matchedCurrentPkg) {
+          currentPkgLevel = Number(matchedCurrentPkg.level || 0);
         }
 
+        const isSameAsCurrent = Boolean(
+          matchedCurrentPkg &&
+          (matchedCurrentPkg.packageId === canonicalPkgId || matchedCurrentPkg.id === pkgDetails.id)
+        );
+
         // সিকিউরিটি চেক: যদি টার্গেট প্যাকেজের লেভেল বর্তমান প্যাকেজের কম হয়, তবে ওয়ার্নিং পপ-আপ দেখাবে
-        if (currentPkgLevel > -1 && targetLevel < currentPkgLevel && currentPkg !== packageId && currentPkg !== pkgDetails.packageId && currentPkg !== pkgDetails.id) {
+        if (currentPkgLevel > -1 && verifiedLevel < currentPkgLevel && !isSameAsCurrent) {
           alert("বড় প্যাকেজ থেকে ছোট প্যাকেজে আসা যাবে না।");
           return;
         }
 
         const currentMyCash = userData.myCash || 0;
-        if (currentMyCash < price) {
+        if (currentMyCash < verifiedPrice) {
           alert("আপনার রিচার্জ ক্যাশ' এ পর্যাপ্ত ব্যালেন্স নেই! দয়া করে রিচার্জ করুন।");
           return;
         }
 
-        if (!confirm(`আপনি কি নিশ্চিতভাবে ৳ ${price} দিয়ে এই প্যাকেজটি কিনতে চান?`)) {
+        if (!confirm(`আপনি কি নিশ্চিতভাবে ৳ ${verifiedPrice} দিয়ে এই প্যাকেজটি কিনতে চান?`)) {
           return;
         }
 
@@ -362,25 +450,19 @@
           const fixedCashBonus = Number(pkgDetails.fixedCashBonus || 0);
           let previousPackageRefund = 0;
 
-          if (currentPkg && targetLevel > currentPkgLevel) {
-            for (let key in allPackages) {
-              let p = allPackages[key];
-              if (p.packageId === currentPkg || p.id === currentPkg || key === currentPkg) {
-                previousPackageRefund = Number(p.price || 0) * (packageRefundPercent / 100);
-                break;
-              }
-            }
+          if (currentPkg && verifiedLevel > currentPkgLevel && matchedCurrentPkg) {
+            previousPackageRefund = Number(matchedCurrentPkg.price || 0) * (packageRefundPercent / 100);
           }
 
           const totalTaskCashBonus = fixedCashBonus + previousPackageRefund;
 
           await updateDoc(userDocRef, {
             previousPackage: currentPkg ? currentPkg : "",
-            package: packageId,
-            myCash: increment(-price),
-            taskCash: increment(totalTaskCashBonus),     
-            totalEarnings: increment(totalTaskCashBonus), 
-            luckySpinCount: increment(bonusSpins) 
+            package: canonicalPkgId,
+            myCash: increment(-verifiedPrice),
+            taskCash: increment(totalTaskCashBonus),
+            totalEarnings: increment(totalTaskCashBonus),
+            luckySpinCount: increment(bonusSpins)
           });
 
           if (fixedCashBonus > 0) {
@@ -415,7 +497,7 @@
 
           const referrerCode = userData.referredBy ? String(userData.referredBy).trim() : "";
 
-          if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
+          if (referrerCode && !BLOCKED_PKG_IDS.has(referrerCode.toLowerCase())) {
             let referrerRef = null;
             let referrerSnap = await getDoc(doc(db, "users", referrerCode));
             let referrerDocId = "";
@@ -435,16 +517,16 @@
 
             if (referrerRef && referrerSnap.exists()) {
               const referrerData = referrerSnap.data();
-              const referrerPackage = referrerData.package || 'none';
+              const verifiedReferrerPkg = await resolveVerifiedPkgFromDb(referrerData.package, true);
 
-              if (referrerPackage !== 'none') {
-                const commissionAmount = price * (packagePercent / 100);
+              if (verifiedReferrerPkg) {
+                const commissionAmount = verifiedPrice * (packagePercent / 100);
 
                 await updateDoc(referrerRef, {
-                  teamCommission: increment(commissionAmount),     
-                  taskCash: increment(commissionAmount),           
-                  totalEarnings: increment(commissionAmount),        
-                  luckySpinCount: increment(bonusSpins) 
+                  teamCommission: increment(commissionAmount),
+                  taskCash: increment(commissionAmount),
+                  totalEarnings: increment(commissionAmount),
+                  luckySpinCount: increment(bonusSpins)
                 });
 
                 await addDoc(collection(db, "users", referrerDocId, "referralHistory"), {
@@ -524,10 +606,8 @@
     });
     </script>
 
-
 <!-- Adsterra Popunder Script -->
 <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
-
 
 </body>
 </html>
