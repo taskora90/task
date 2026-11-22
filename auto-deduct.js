@@ -8,6 +8,22 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+async function getConfiguredLoanDays() {
+  try {
+    const cfgSnap = await db.collection("admin_settings").doc("loan_config").get();
+    if (cfgSnap.exists) {
+      const cfgData = cfgSnap.data() || {};
+      const parsedDays = parseInt(cfgData.durationDays, 10);
+      if (!Number.isNaN(parsedDays) && parsedDays > 0) {
+        return parsedDays;
+      }
+    }
+  } catch (err) {
+    console.warn("লোন কনফিগ থেকে মেয়াদ পড়া যায়নি, ডিফল্ট ১৫ দিন ব্যবহার করা হচ্ছে:", err.message || err);
+  }
+  return 15;
+}
+
 async function runAutoDeduct() {
   try {
     const loansRef = db.collection("loan_requests");
@@ -17,6 +33,8 @@ async function runAutoDeduct() {
       console.log("কোনো সক্রিয় লোন পাওয়া যায়নি।");
       return;
     }
+
+    const configuredDays = await getConfiguredLoanDays();
 
     const todayStr = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Dhaka',
@@ -33,9 +51,13 @@ async function runAutoDeduct() {
 
       if (dueAmount <= 0) continue;
 
-      // ১. পুরো লোনকে ১৫ ভাগে ভাগ করে প্রতি দিনের বা প্রতি ভাগের টার্গেট হিসাব করা (যেমন: ৪৫০ / ১৫ = ৩০ টাকা)
-      const dailyTarget = Math.ceil(totalLoanAmount / 15);
+      const rawLoanDays = (loanData.totalDays !== undefined && loanData.totalDays !== null)
+        ? parseInt(loanData.totalDays, 10)
+        : ((loanData.days !== undefined && loanData.days !== null) ? parseInt(loanData.days, 10) : NaN);
+      const loanDays = (!Number.isNaN(rawLoanDays) && rawLoanDays > 0) ? rawLoanDays : configuredDays;
 
+      // ১. পুরো লোনকে নির্ধারিত মেয়াদ (দিন) ভাগে ভাগ করে প্রতি দিনের বা প্রতি ভাগের টার্গেট হিসাব করা
+      const dailyTarget = Math.ceil(totalLoanAmount / loanDays);
 
       // ২. ইউজার আজকে ম্যানুয়ালি মোট কত টাকা পরিশোধ করেছে তা চেক করা
       let paidToday = 0;
@@ -47,16 +69,16 @@ async function runAutoDeduct() {
         });
       }
 
-      // ৩. যদি ইউজার আজকে ম্যানুয়ালি ১৫ ভাগের সমান বা তার বেশি পরিশোধ করে দেয়, তবে আর অটো কাটবে না
+      // ৩. যদি ইউজার আজকে ম্যানুয়ালি নির্ধারিত ভাগের সমান বা তার বেশি পরিশোধ করে দেয়, তবে আর অটো কাটবে না
       if (paidToday >= dailyTarget) {
-        console.log(`User ${userId} আজকে ইতিমধ্যে ৳${paidToday} পরিশোধ করেছেন (টার্গেট ছিল: ৳${dailyTarget})। তাই অটো কাটা হলো না।`);
+        console.log(`User ${userId} আজকে ইতিমধ্যে ৳${paidToday} পরিশোধ করেছেন (টার্গেট ছিল: ৳${dailyTarget}, মেয়াদ: ${loanDays} দিন)। তাই অটো কাটা হলো না।`);
         await docSnap.ref.update({ todayPaidAmount: 0 });
         continue;
       }
 
-      // ৪. ১৫ ভাগের এক ভাগ পূর্ণ হতে আর কত টাকা বাকি আছে তা বের করা (যেমন: ৩০ - ২০ = ১০ টাকা)
+      // ৪. নির্ধারিত ভাগের এক ভাগ পূর্ণ হতে আর কত টাকা বাকি আছে তা বের করা
       let remainingTarget = dailyTarget - paidToday;
-      
+
       // বকেয়া টাকার চেয়ে বেশি যেন না কাটে, তাই দুটোর মধ্যে যেটা কম সেটাই কাটবে
       let deductAmount = Math.min(dueAmount, remainingTarget);
 
@@ -82,12 +104,12 @@ async function runAutoDeduct() {
 
           if (currentBalance >= deductAmount && currentDue > 0) {
             const newDue = currentDue - deductAmount;
-            
+
             let history = freshLoanSnap.data().history || [];
             history.push({
               date: todayStr,
               amount: deductAmount,
-              type: "অটো ডিডাকশন (রাত ১০টা)"
+              type: "অটো ডিডাকশন"
             });
 
             let updateData = {
@@ -103,10 +125,10 @@ async function runAutoDeduct() {
             transaction.update(userRef, {
               [taskCashField]: admin.firestore.FieldValue.increment(-deductAmount)
             });
-            transaction.update(docSnap.ref, updateData); // এখানে docSnap.ref ব্যবহার করা হয়েছে
+            transaction.update(docSnap.ref, updateData);
           }
         });
-        console.log(`User ${userId} এর লোন থেকে বাকি ৳${deductAmount} অটো কাটা হয়েছে।`);
+        console.log(`User ${userId} এর লোন থেকে বাকি ৳${deductAmount} অটো কাটা হয়েছে (মেয়াদ: ${loanDays} দিন)।`);
       } else {
         console.log(`User ${userId} এর টাস্ক ক্যাশে পর্যাপ্ত ব্যালেন্স নেই।`);
         await docSnap.ref.update({ todayPaidAmount: 0 });
