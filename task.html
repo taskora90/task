@@ -157,8 +157,9 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
             gap: 8px;
-            padding: 13px 14px;
+            padding: 12px 13px;
             border-radius: 13px;
             border: 1.5px solid #86efac;
             background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%);
@@ -223,9 +224,9 @@
         .task-btn-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 9px;
             min-width: 0;
-            flex-shrink: 0;
+            flex: 1 1 auto;
         }
         .task-num-badge {
             width: 34px;
@@ -262,17 +263,30 @@
             font-size: 14px;
             font-weight: 800;
             line-height: 1.25;
+            white-space: nowrap;
         }
         .task-sub-status {
             font-size: 11px;
             margin-top: 2px;
-            opacity: 0.85;
-            font-weight: 600;
+            opacity: 0.9;
+            font-weight: 700;
+        }
+        .task-sub-status.claim-red-text {
+            display: inline-block;
+            opacity: 1;
+            color: #b91c1c;
+            background: #fff1f2;
+            border: 1px solid #fda4af;
+            padding: 2px 7px;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 800;
+            margin-top: 4px;
         }
 
-        /* ক্লিকের পর মাঝামাঝি স্লটে লাল কালারে টাইমার ও রিওয়ার্ড নেওয়ার লেখা */
-        .task-center-action {
-            display: flex;
+        /* ক্লিকের পর মাঝখানে লাল কালিতে টাইমার ব্যাজ */
+        .task-center-timer {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             text-align: center;
@@ -284,13 +298,8 @@
             background: #fef2f2;
             color: #dc2626;
             border: 1px solid #fca5a5;
-            max-width: 118px;
-        }
-        .state-claim .task-center-action {
-            background: #fff1f2;
-            color: #b91c1c;
-            border-color: #fda4af;
-            box-shadow: 0 2px 6px rgba(185, 28, 28, 0.18);
+            max-width: 115px;
+            flex-shrink: 0;
         }
 
         /* ডান পাশের ছোট তথ্য ব্যাজ (টাকা, প্যাকেজ, বরাদ্দ) */
@@ -332,7 +341,7 @@
             border-radius: 6px;
             background: rgba(15, 23, 42, 0.08);
             color: inherit;
-            max-width: 95px;
+            max-width: 82px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -695,9 +704,10 @@
 
           let stateClass = "state-available";
           let statusLine = "ক্লিক করে কাজ শুরু করুন";
+          let statusClass = "task-sub-status";
           let iconHtml = `#${i}`;
           let disabled = false;
-          let middleActionHtml = "";
+          let middleTimerHtml = "";
 
           if (isHolidayToday) {
             stateClass = "state-holiday";
@@ -711,25 +721,25 @@
             disabled = true;
           } else if (isThisRunning) {
             stateClass = "state-running";
-            statusLine = "বিজ্ঞাপন দেখা হচ্ছে";
+            statusLine = "ক্লিক করে কাজ শুরু করুন";
             iconHtml = `<i class="fa-solid fa-hourglass-half"></i>`;
             disabled = true;
-            middleActionHtml = `<div class="task-center-action">অপেক্ষা করুন ${activeCountdownLeft} সেকেন্ড</div>`;
+            middleTimerHtml = `<div class="task-center-timer">অপেক্ষা করুন ${activeCountdownLeft} সেকেন্ড</div>`;
           } else if (isThisClaim) {
             stateClass = "state-claim";
-            statusLine = "সময় শেষ";
+            statusLine = "রিওয়ার্ড নিতে ক্লিক করুন";
+            statusClass = "task-sub-status claim-red-text";
             iconHtml = `<i class="fa-solid fa-gift"></i>`;
             disabled = false;
-            middleActionHtml = `<div class="task-center-action">রিওয়ার্ড নিতে ক্লিক করুন</div>`;
           } else if (isThisProcessing) {
             stateClass = "state-running";
             statusLine = "প্রসেসিং হচ্ছে...";
             iconHtml = `<i class="fa-solid fa-spinner fa-spin"></i>`;
             disabled = true;
-            middleActionHtml = `<div class="task-center-action">অপেক্ষা করুন...</div>`;
+            middleTimerHtml = `<div class="task-center-timer">অপেক্ষা করুন...</div>`;
           } else if (isAnyTaskBusy) {
             stateClass = "state-available";
-            statusLine = "চলমান কাজটি আগে শেষ করুন";
+            statusLine = "ক্লিক করে কাজ শুরু করুন";
             disabled = true;
           }
 
@@ -743,10 +753,10 @@
               <div class="task-num-badge">${iconHtml}</div>
               <div class="task-main-info">
                 <span class="task-main-title">${mainTitleText}</span>
-                <span class="task-sub-status">${statusLine}</span>
+                <span class="${statusClass}">${statusLine}</span>
               </div>
             </div>
-            ${middleActionHtml}
+            ${middleTimerHtml}
             <div class="task-btn-right">
               <span class="reward-chip">৳ ${rewardAmount}</span>
               <div class="meta-mini-row">
