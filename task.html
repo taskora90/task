@@ -146,20 +146,20 @@
             font-weight: 700;
         }
 
-        /* সিরিয়াল টাস্ক বাটন কার্ড */
+        /* সিরিয়াল টাস্ক বাটন কার্ড (চিকন ও এক লাইনে) */
         .serial-task-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
         .serial-task-btn {
+            position: relative;
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
             gap: 8px;
-            padding: 12px 13px;
+            padding: 11px 12px;
             border-radius: 13px;
             border: 1.5px solid #86efac;
             background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%);
@@ -221,17 +221,36 @@
             opacity: 0.9;
         }
 
+        /* দ্বিতীয় ছবির লাল দাগের জায়গায় উপরের মাঝামাঝি ছোট লাল টাইমার */
+        .top-center-red-timer {
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            padding: 1px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1.35;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(220, 38, 38, 0.16);
+            z-index: 2;
+        }
+
         .task-btn-left {
             display: flex;
             align-items: center;
-            gap: 9px;
+            gap: 8px;
             min-width: 0;
-            flex: 1 1 auto;
+            flex: 1;
         }
         .task-num-badge {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -270,6 +289,7 @@
             margin-top: 2px;
             opacity: 0.9;
             font-weight: 700;
+            white-space: nowrap;
         }
         .task-sub-status.claim-red-text {
             display: inline-block;
@@ -277,46 +297,29 @@
             color: #b91c1c;
             background: #fff1f2;
             border: 1px solid #fda4af;
-            padding: 2px 7px;
-            border-radius: 7px;
-            font-size: 11px;
+            padding: 1px 6px;
+            border-radius: 6px;
+            font-size: 10px;
             font-weight: 800;
-            margin-top: 4px;
+            margin-top: 3px;
+            white-space: nowrap;
         }
 
-        /* ক্লিকের পর মাঝখানে লাল কালিতে টাইমার ব্যাজ */
-        .task-center-timer {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 5px 8px;
-            border-radius: 9px;
-            font-size: 11px;
-            font-weight: 800;
-            line-height: 1.25;
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fca5a5;
-            max-width: 115px;
-            flex-shrink: 0;
-        }
-
-        /* ডান পাশের ছোট তথ্য ব্যাজ (টাকা, প্যাকেজ, বরাদ্দ) */
+        /* ডান পাশের ঘরের ভেতরে টাকা ও বরাদ্দ */
         .task-btn-right {
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
+            align-items: center;
+            gap: 5px;
             flex-shrink: 0;
         }
         .reward-chip {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 8px;
+            padding: 3px 7px;
+            border-radius: 7px;
             background: rgba(255, 255, 255, 0.85);
             color: #15803d;
+            white-space: nowrap;
         }
         .state-claim .reward-chip {
             background: #ffffff;
@@ -327,23 +330,13 @@
             background: #2e3440;
             color: #a3be8c;
         }
-        .meta-mini-row {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
         .mini-tag {
             font-size: 10px;
             font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 6px;
+            padding: 3px 6px;
+            border-radius: 7px;
             background: rgba(15, 23, 42, 0.08);
             color: inherit;
-            max-width: 82px;
-            overflow: hidden;
-            text-overflow: ellipsis;
             white-space: nowrap;
         }
         .state-completed .mini-tag,
@@ -707,7 +700,7 @@
           let statusClass = "task-sub-status";
           let iconHtml = `<i class="fa-solid fa-play"></i>`;
           let disabled = false;
-          let middleTimerHtml = "";
+          let topTimerHtml = "";
 
           if (isHolidayToday) {
             stateClass = "state-holiday";
@@ -724,7 +717,7 @@
             statusLine = "ক্লিক করে কাজ শুরু করুন";
             iconHtml = `<i class="fa-solid fa-hourglass-half"></i>`;
             disabled = true;
-            middleTimerHtml = `<div class="task-center-timer">অপেক্ষা করুন ${activeCountdownLeft} সেকেন্ড</div>`;
+            topTimerHtml = `<span class="top-center-red-timer">অপেক্ষা করুন ${activeCountdownLeft} সেকেন্ড</span>`;
           } else if (isThisClaim) {
             stateClass = "state-claim";
             statusLine = "রিওয়ার্ড নিতে ক্লিক করুন";
@@ -736,7 +729,7 @@
             statusLine = "প্রসেসিং হচ্ছে...";
             iconHtml = `<i class="fa-solid fa-spinner fa-spin"></i>`;
             disabled = true;
-            middleTimerHtml = `<div class="task-center-timer">অপেক্ষা করুন...</div>`;
+            topTimerHtml = `<span class="top-center-red-timer">অপেক্ষা করুন...</span>`;
           } else if (isAnyTaskBusy) {
             stateClass = "state-available";
             statusLine = "ক্লিক করে কাজ শুরু করুন";
@@ -749,6 +742,7 @@
           const mainTitleText = isHolidayToday ? "ছুটির দিন" : "টাস্ক";
 
           btn.innerHTML = `
+            ${topTimerHtml}
             <div class="task-btn-left">
               <div class="task-num-badge">${iconHtml}</div>
               <div class="task-main-info">
@@ -756,13 +750,9 @@
                 <span class="${statusClass}">${statusLine}</span>
               </div>
             </div>
-            ${middleTimerHtml}
             <div class="task-btn-right">
               <span class="reward-chip">৳ ${rewardAmount}</span>
-              <div class="meta-mini-row">
-                <span class="mini-tag" title="${currentPackageLabel}">${currentPackageLabel}</span>
-                <span class="mini-tag">বরাদ্দ: ${totalTasks}টি</span>
-              </div>
+              <span class="mini-tag">বরাদ্দ: ${totalTasks}টি</span>
             </div>
           `;
 
@@ -1068,7 +1058,7 @@
           updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
           renderSerialTaskButtons();
 
-          alert(`অভিনন্দন! ${completedTaskSerial} নম্বর টাস্ক কমপ্লিট হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
+          alert(`অভিনন্দন! টাস্ক #${completedTaskSerial} কমপ্লিট হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
 
         } catch (error) {
           console.error("এরর:", error);
