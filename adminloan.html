@@ -379,8 +379,10 @@
             <label class="tk-field-label">লোনের স্ট্যাটাস:</label>
             <select id="tkEditLoanStatusSelect" class="tk-select">
                 <option value="active">active (চলমান)</option>
+                <option value="approved">approved (অনুমোদিত / চলমান)</option>
                 <option value="pending">pending (পেন্ডিং)</option>
                 <option value="paid">paid (পরিশোধিত)</option>
+                <option value="rejected">rejected (রিজেক্টেড)</option>
             </select>
             <div class="tk-modal-actions">
                 <button type="button" class="tk-btn-cancel" onclick="tkCloseLoanEditModal()">বাতিল</button>
@@ -670,17 +672,19 @@
                 let html = "";
                 querySnapshot.forEach((docSnap) => {
                     const d = docSnap.data();
-                    if (d.status === "pending") {
+                    const st = String(d.status || "").toLowerCase();
+                    if (st === "pending") {
                         const effectiveDays = (d.days !== undefined && d.days !== null && Number(d.days) > 0)
                             ? Number(d.days)
                             : configuredDays;
                         const effectiveDaily = (d.dailyInstallment !== undefined && d.dailyInstallment !== null && Number(d.dailyInstallment) > 0)
                             ? Number(d.dailyInstallment)
                             : Number(((Number(d.amount) || 0) / effectiveDays).toFixed(2));
+                        const pkgLabel = d.packageName || d.userPackage || "None";
                         html += `
                             <div class="tk-item-box">
                                 <p><strong>নাম:</strong> ${d.userName || 'নামবিহীন'} (${d.userPhone || ''})</p>
-                                <p><strong>প্যাকেজ:</strong> ${d.packageName || 'None'} | <strong>লোনের পরিমাণ:</strong> ৳ ${d.amount}</p>
+                                <p><strong>প্যাকেজ:</strong> ${pkgLabel} | <strong>লোনের পরিমাণ:</strong> ৳ ${d.amount}</p>
                                 <p><strong>মেয়াদ:</strong> ${effectiveDays} দিন (প্রতিদিন ৳ ${effectiveDaily} কাটা হবে)</p>
                                 <div style="margin-top:8px;">
                                     <button class="tk-btn-approve" onclick="tkApproveLoan('${docSnap.id}', '${d.userId}', ${d.amount}, ${effectiveDays}, ${effectiveDaily})">অ্যাপ্রুভ</button>
@@ -705,13 +709,15 @@
                 const totalDays = (Number(days) > 0) ? Number(days) : configuredDays;
                 const perDay = (Number(dailyInstallment) > 0) ? Number(dailyInstallment) : Number((loanAmt / totalDays).toFixed(2));
 
-                await updateDoc(doc(db, "users", userId), {
-                    myCash: increment(loanAmt),
-                    loan_status: "active"
-                });
+                if (userId) {
+                    await updateDoc(doc(db, "users", userId), {
+                        myCash: increment(loanAmt),
+                        loan_status: "active"
+                    });
+                }
 
                 await updateDoc(doc(db, "loan_requests", reqId), {
-                    status: "approved",
+                    status: "active",
                     dueAmount: loanAmt,
                     totalDays: totalDays,
                     dailyInstallment: perDay,
@@ -721,6 +727,7 @@
 
                 alert("লোন সফলভাবে অ্যাপ্রুভ করা হয়েছে!");
                 await loadLoanRequests();
+                await loadActiveLoansList();
             } catch (err) {
                 console.error("Error approving loan:", err);
                 alert("লোন অ্যাপ্রুভ করতে সমস্যা হয়েছে!");
@@ -730,9 +737,14 @@
         window.tkRejectLoan = async function(reqId) {
             if (!confirm("আপনি কি এই লোন রিকোয়েস্ট রিজেক্ট করতে চান?")) return;
             try {
-                await updateDoc(doc(db, "loan_requests", reqId), { status: "rejected" });
+                await updateDoc(doc(db, "loan_requests", reqId), {
+                    status: "rejected",
+                    dueAmount: 0,
+                    rejectedAt: new Date().toISOString()
+                });
                 alert("লোন রিকোয়েস্ট রিজেক্ট করা হয়েছে।");
                 await loadLoanRequests();
+                await loadActiveLoansList();
             } catch (err) {
                 console.error("Error rejecting loan:", err);
                 alert("রিজেক্ট করতে সমস্যা হয়েছে!");
@@ -824,7 +836,6 @@
                 alert("লোন সেটিংস সেভ করতে সমস্যা হয়েছে!");
             }
         };
-
         async function loadActiveLoansList() {
             const listEl = document.getElementById('tkActiveLoansList');
             if (!listEl) return;
@@ -835,9 +846,17 @@
                 const items = [];
                 snap.forEach((dSnap) => {
                     const d = dSnap.data();
-                    if (d.status === "active" || d.status === "pending") {
+                    const st = String(d.status || "").toLowerCase();
+                    const dueAmt = Number(d.dueAmount !== undefined ? d.dueAmount : d.amount);
+                    if (st === "active" || st === "approved" || st === "pending" || (st !== "rejected" && st !== "paid" && dueAmt > 0)) {
                         items.push({ id: dSnap.id, ...d });
                     }
+                });
+
+                items.sort((a, b) => {
+                    const tA = a.requestTime && typeof a.requestTime.toMillis === "function" ? a.requestTime.toMillis() : 0;
+                    const tB = b.requestTime && typeof b.requestTime.toMillis === "function" ? b.requestTime.toMillis() : 0;
+                    return tB - tA;
                 });
 
                 state.activeLoans = items;
@@ -862,27 +881,41 @@
                 const loanAmt = Number(item.amount || 0);
                 const dueAmt = Number(item.dueAmount !== undefined ? item.dueAmount : loanAmt);
                 const paidAmt = Math.max(0, Number((loanAmt - dueAmt).toFixed(2)));
-                const historyArr = Array.isArray(item.deductionHistory) ? item.deductionHistory : [];
+                const stRaw = String(item.status || "pending").toLowerCase();
+                const statusLabel = stRaw === "pending"
+                    ? "পেন্ডিং (pending)"
+                    : (stRaw === "approved" || stRaw === "active" ? `চলমান (${stRaw})` : stRaw);
+                const statusColor = stRaw === "pending" ? "#d97706" : "#16a34a";
+
+                const historyArr = Array.isArray(item.deductionHistory)
+                    ? item.deductionHistory
+                    : (Array.isArray(item.history) ? item.history : []);
 
                 let historyHtml = "";
                 if (historyArr.length > 0) {
-                    historyHtml = `<div style="margin-top:6px; background:#fff; border:1px solid #e4e4e7; padding:8px; border-radius:8px; font-size:12px;">
-                        <strong>কিস্তি কাটার হিস্ট্রি:</strong>
-                        <ul style="margin:4px 0 0 16px; padding:0;">
-                            ${historyArr.map(h => `<li>${h.date || h.deductedAt || 'তারিখ নেই'}: ৳ ${h.amount || 0} (${h.note || 'দৈনিক কিস্তি'})</li>`).join("")}
-                        </ul>
-                    </div>`;
+                    historyHtml = `
+                        <div style="margin-top:6px; background:#fff; border:1px solid #e4e4e7; padding:8px; border-radius:8px; font-size:12px;">
+                            <strong>কিস্তি কাটার হিস্ট্রি:</strong>
+                            <ul style="margin:4px 0 0 16px; padding:0;">
+                                ${historyArr.map(h => `<li>${h.date || h.deductedAt || 'তারিখ নেই'}: ৳ ${h.amount || 0} (${h.note || h.type || 'দৈনিক কিস্তি'})</li>`).join("")}
+                            </ul>
+                        </div>
+                    `;
                 }
 
-                const safeName = (item.userName || 'নামবিহীন').replace(/'/g, "\\'");
+                const safeName = String(item.userName || "নামবিহীন").replace(/'/g, "\\'");
+
                 html += `
                     <div class="tk-item-box">
-                        <p><strong>নাম:</strong> ${item.userName || 'নামবিহীন'} (${item.userPhone || 'ফোন নেই'})</p>
-                        <p><strong>স্ট্যাটাস:</strong> ${item.status} | <strong>মূল লোন:</strong> ৳ ${loanAmt} | <strong>বকেয়া (Due):</strong> <span style="color:#dc2626; font-weight:700;">৳ ${dueAmt}</span></p>
-                        <p><strong>পরিশোধিত টাকা:</strong> ৳ ${paidAmt}</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                            <strong>${item.userName || 'নামবিহীন'} (${item.userPhone || 'নেই'})</strong>
+                            <span style="color:${statusColor}; font-weight:700; font-size:12px;">${statusLabel}</span>
+                        </div>
+                        <p><strong>প্যাকেজ:</strong> ${item.userPackage || item.packageName || 'None'}</p>
+                        <p><strong>মোট লোন:</strong> ৳ ${loanAmt} | <strong>পরিশোধিত:</strong> ৳ ${paidAmt} | <strong>বকেয়া:</strong> <span style="color:#dc2626; font-weight:700;">৳ ${dueAmt}</span></p>
                         ${historyHtml}
                         <div style="margin-top:8px;">
-                            <button class="tk-btn-edit" onclick="tkOpenLoanEditModal('${item.id}', '${safeName}', ${loanAmt}, ${dueAmt}, '${item.status}')">এডিট</button>
+                            <button class="tk-btn-edit" onclick="tkOpenLoanEditModal('${item.id}', '${safeName}', ${loanAmt}, ${dueAmt}, '${stRaw}')">এডিট</button>
                             <button class="tk-btn-del" onclick="tkDeleteLoanRecord('${item.id}', '${item.userId || ''}')">ডিলিট</button>
                         </div>
                     </div>
@@ -923,7 +956,7 @@
                 alert("সঠিক লোন ও বকেয়ার পরিমাণ দিন।");
                 return;
             }
-            if (dueVal === 0) statusVal = "paid";
+            if (dueVal === 0 && statusVal !== "rejected") statusVal = "paid";
 
             try {
                 const targetLoan = state.activeLoans.find(x => x.id === loanId);
@@ -933,13 +966,14 @@
                     status: statusVal
                 });
 
-                if (targetLoan && targetLoan.userId && statusVal === "paid") {
+                if (targetLoan && targetLoan.userId && (statusVal === "paid" || statusVal === "rejected")) {
                     await updateDoc(doc(db, "users", targetLoan.userId), { loan_status: "none" });
                 }
 
                 alert("লোন তথ্য আপডেট হয়েছে!");
                 window.tkCloseLoanEditModal();
                 await loadActiveLoansList();
+                await loadLoanRequests();
             } catch (err) {
                 console.error("Error updating loan:", err);
                 alert("লোন আপডেট করতে সমস্যা হয়েছে।");
@@ -961,6 +995,7 @@
                 alert("লোন ডিলিট করতে সমস্যা হয়েছে।");
             }
         };
+
         function calculateTierSalary(paidRefCount, tiersList) {
             const sortedDesc = [...tiersList].sort((a, b) => Number(b.minRef) - Number(a.minRef));
             const matched = sortedDesc.find(t => Number(paidRefCount) >= Number(t.minRef));
