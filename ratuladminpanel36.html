@@ -2036,7 +2036,8 @@
 
 
 
-  <!-- ===== পার্ট ৬: ফ্রি ট্রায়াল (প্রতিদিন কাজ ও কয়দিন) - স্বতন্ত্র ব্লক ===== -->
+
+<!-- ===== পার্ট ৬: ফ্রি ট্রায়াল (প্রতিদিন কাজ ও কয়দিন) - স্বতন্ত্র ব্লক ===== -->
   <style>
     .tk-ft-card {
       background: #ffffff;
@@ -2077,14 +2078,68 @@
       cursor: pointer;
     }
     .tk-ft-save:hover { background: #26292e; }
+
+    .tk-ft-lock-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .tk-ft-lock-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: #141517;
+      margin: 0 0 6px;
+    }
+    .tk-ft-lock-desc {
+      font-size: 12px;
+      color: #4b5563;
+      margin: 0 0 12px;
+    }
+    .tk-ft-lock-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 14px;
+      background: #fafafa;
+      color: #18191b;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .tk-ft-unlock-btn {
+      width: 100%;
+      background: #141517;
+      color: #f5b942;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-ft-unlock-btn:hover { background: #26292e; }
+    .tk-ft-lock-error {
+      color: #dc2626;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+      min-height: 16px;
+    }
   </style>
 
   <script type="module">
     import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const { db } = window.tkFirebase;
+    const TK_FT_PASS = "Kawtha@36";
+    let tkFtUnlocked = false;
+    let tkFtRoot = null;
 
     async function loadFreeTrialSettings() {
+      if (!tkFtUnlocked) return;
       try {
         const snap = await getDoc(doc(db, "admin_settings", "free_trial"));
         if (!snap.exists()) return;
@@ -2098,57 +2153,105 @@
       }
     }
 
+    function renderFreeTrialForm(root) {
+      root.innerHTML = `
+        <h3 style="margin:0 0 12px;color:#141517;">ফ্রি ট্রায়াল সেটিংস</h3>
+        <div class="tk-ft-card">
+          <div class="tk-ft-group">
+            <label for="tkFtDailyTasks" class="tk-ft-label">প্রতিদিন কয়টা কাজ</label>
+            <input type="number" id="tkFtDailyTasks" class="tk-ft-input" min="0" placeholder="যেমন: 5">
+          </div>
+          <div class="tk-ft-group">
+            <label for="tkFtTotalDays" class="tk-ft-label">কয়দিন চলবে</label>
+            <input type="number" id="tkFtTotalDays" class="tk-ft-input" min="0" placeholder="যেমন: 3">
+          </div>
+          <button type="button" id="tkFtSaveBtn" class="tk-ft-save">
+            <i class="fa-solid fa-floppy-disk"></i> ফ্রি ট্রায়াল সেটিংস সেভ করুন
+          </button>
+        </div>
+      `;
+
+      document.getElementById("tkFtSaveBtn").addEventListener("click", async () => {
+        const dailyTasks = Number(document.getElementById("tkFtDailyTasks").value);
+        const totalDays = Number(document.getElementById("tkFtTotalDays").value);
+
+        if (Number.isNaN(dailyTasks) || dailyTasks < 0 || Number.isNaN(totalDays) || totalDays < 0) {
+          alert("অনুগ্রহ করে সঠিক সংখ্যা দিন!");
+          return;
+        }
+
+        try {
+          await setDoc(doc(db, "admin_settings", "free_trial"), {
+            dailyTasks,
+            totalDays
+          }, { merge: true });
+          alert("✅ ফ্রি ট্রায়ালের দৈনিক কাজ ও দিন সেভ হয়েছে!");
+        } catch (e) {
+          alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
+        }
+      });
+
+      loadFreeTrialSettings();
+    }
+
+    function renderFreeTrialLock(root) {
+      root.innerHTML = `
+        <h3 style="margin:0 0 12px;color:#141517;">ফ্রি ট্রায়াল সেটিংস</h3>
+        <div class="tk-ft-lock-box">
+          <div class="tk-ft-lock-title">🔒 পাসওয়ার্ড প্রয়োজন</div>
+          <div class="tk-ft-lock-desc">এই সেকশনে প্রবেশ করতে সঠিক পাসওয়ার্ড দিন।</div>
+          <input type="password" id="tkFtPassInput" class="tk-ft-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off">
+          <button type="button" id="tkFtUnlockBtn" class="tk-ft-unlock-btn">প্রবেশ করুন</button>
+          <div id="tkFtPassError" class="tk-ft-lock-error"></div>
+        </div>
+      `;
+
+      const inputEl = document.getElementById("tkFtPassInput");
+      const btnEl = document.getElementById("tkFtUnlockBtn");
+      const errEl = document.getElementById("tkFtPassError");
+
+      const verifyPass = () => {
+        if (inputEl.value === TK_FT_PASS) {
+          tkFtUnlocked = true;
+          renderFreeTrialForm(root);
+        } else {
+          errEl.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+        }
+      };
+
+      btnEl.addEventListener("click", verifyPass);
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") verifyPass();
+      });
+    }
+
     window.tkRegisterFeature({
       id: "freeTrial",
       title: "ফ্রি ট্রায়াল",
       icon: "fa-gift",
       badgeText: "নতুন",
       renderRoom: (root) => {
-        root.innerHTML = `
-          <h3 style="margin:0 0 12px;color:#141517;">ফ্রি ট্রায়াল সেটিংস</h3>
-          <div class="tk-ft-card">
-            <div class="tk-ft-group">
-              <label for="tkFtDailyTasks" class="tk-ft-label">প্রতিদিন কয়টা কাজ</label>
-              <input type="number" id="tkFtDailyTasks" class="tk-ft-input" min="0" placeholder="যেমন: 5">
-            </div>
-            <div class="tk-ft-group">
-              <label for="tkFtTotalDays" class="tk-ft-label">কয়দিন চলবে</label>
-              <input type="number" id="tkFtTotalDays" class="tk-ft-input" min="0" placeholder="যেমন: 3">
-            </div>
-            <button type="button" id="tkFtSaveBtn" class="tk-ft-save">
-              <i class="fa-solid fa-floppy-disk"></i> ফ্রি ট্রায়াল সেটিংস সেভ করুন
-            </button>
-          </div>
-        `;
-
-        document.getElementById("tkFtSaveBtn").addEventListener("click", async () => {
-          const dailyTasks = Number(document.getElementById("tkFtDailyTasks").value);
-          const totalDays = Number(document.getElementById("tkFtTotalDays").value);
-
-          if (Number.isNaN(dailyTasks) || dailyTasks < 0 || Number.isNaN(totalDays) || totalDays < 0) {
-            alert("অনুগ্রহ করে সঠিক সংখ্যা দিন!");
-            return;
-          }
-
-          try {
-            await setDoc(doc(db, "admin_settings", "free_trial"), {
-              dailyTasks,
-              totalDays
-            }, { merge: true });
-            alert("✅ ফ্রি ট্রায়ালের দৈনিক কাজ ও দিন সেভ হয়েছে!");
-          } catch (e) {
-            alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
-          }
-        });
+        tkFtRoot = root;
+        if (tkFtUnlocked) {
+          renderFreeTrialForm(root);
+        } else {
+          renderFreeTrialLock(root);
+        }
       },
-      onOpen: loadFreeTrialSettings
+      onOpen: () => {
+        if (tkFtUnlocked) {
+          loadFreeTrialSettings();
+        }
+      }
     });
   </script>
 
 
 
 
-   <!-- ===== রেফার কমিশন ও প্যাকেজ রিফান্ড কন্ট্রোল - স্বতন্ত্র ব্লক ===== -->
+
+
+<!-- ===== রেফার কমিশন ও প্যাকেজ রিফান্ড কন্ট্রোল - স্বতন্ত্র ব্লক ===== -->
   <style>
     .tk-rc-card {
       background: #ffffff;
@@ -2206,6 +2309,55 @@
       cursor: pointer;
     }
     .tk-rc-save-btn:hover { background: #15803d; }
+
+    .tk-rc-lock-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .tk-rc-lock-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: #141517;
+      margin: 0 0 6px;
+    }
+    .tk-rc-lock-desc {
+      font-size: 12px;
+      color: #4b5563;
+      margin: 0 0 12px;
+    }
+    .tk-rc-lock-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 14px;
+      background: #fafafa;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .tk-rc-unlock-btn {
+      width: 100%;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-rc-unlock-btn:hover { background: #1d4ed8; }
+    .tk-rc-lock-error {
+      color: #dc2626;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+      min-height: 16px;
+    }
   </style>
 
   <script type="module">
@@ -2213,6 +2365,9 @@
 
     const { db } = window.tkFirebase;
     const REF_DOC_REF = doc(db, "admin_settings", "referral_commission");
+    const TK_RC_PASS = "Kawtha@36";
+    let tkRcUnlocked = false;
+    let tkRcRoot = null;
 
     const DEFAULT_RC = {
       packagePercent: 10,
@@ -2222,6 +2377,7 @@
     };
 
     async function loadReferralCommissionSettings() {
+      if (!tkRcUnlocked) return;
       try {
         const snap = await getDoc(REF_DOC_REF);
         const data = snap.exists() ? snap.data() : {};
@@ -2256,77 +2412,123 @@
       }
     }
 
+    function renderReferralCommissionForm(root) {
+      root.innerHTML = `
+        <h3 style="margin:0 0 12px;color:#141517;">রেফার কমিশন ও রিফান্ড নিয়ন্ত্রণ (%)</h3>
+
+        <div class="tk-rc-card">
+          <div class="tk-rc-section-title">📦 প্যাকেজ রেফার কমিশন ও আপগ্রেড রিফান্ড</div>
+          <div class="tk-rc-grid">
+            <div class="tk-rc-field">
+              <label for="tkRcPkgPercent">প্যাকেজ রেফার কমিশন (%)</label>
+              <input type="number" id="tkRcPkgPercent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
+            </div>
+            <div class="tk-rc-field">
+              <label for="tkRcPkgRefundPercent">প্যাকেজ রিফান্ড (%)</label>
+              <input type="number" id="tkRcPkgRefundPercent" min="0" max="100" step="0.1" value="80" placeholder="যেমন: 80">
+            </div>
+          </div>
+        </div>
+
+        <div class="tk-rc-card">
+          <div class="tk-rc-section-title">⚙️ ডেইলি কাজের উপর রেফার কমিশন</div>
+          <div class="tk-rc-grid">
+            <div class="tk-rc-field">
+              <label for="tkRcTaskL1Percent">লেভেল ১ কমিশন (%)</label>
+              <input type="number" id="tkRcTaskL1Percent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
+            </div>
+            <div class="tk-rc-field">
+              <label for="tkRcTaskL2Percent">লেভেল ২ কমিশন (%)</label>
+              <input type="number" id="tkRcTaskL2Percent" min="0" max="100" step="0.1" value="4" placeholder="যেমন: 4">
+            </div>
+          </div>
+          <button type="button" id="tkSaveReferralCommissionBtn" class="tk-rc-save-btn">
+            <i class="fa-solid fa-check"></i> কমিশন ও রিফান্ড সেভ করুন
+          </button>
+        </div>
+      `;
+
+      document.getElementById("tkSaveReferralCommissionBtn").addEventListener("click", async () => {
+        const packagePercent = Number(document.getElementById("tkRcPkgPercent").value);
+        const packageRefundPercent = Number(document.getElementById("tkRcPkgRefundPercent").value);
+        const taskLevel1Percent = Number(document.getElementById("tkRcTaskL1Percent").value);
+        const taskLevel2Percent = Number(document.getElementById("tkRcTaskL2Percent").value);
+
+        if (
+          Number.isNaN(packagePercent) || packagePercent < 0 || packagePercent > 100 ||
+          Number.isNaN(packageRefundPercent) || packageRefundPercent < 0 || packageRefundPercent > 100 ||
+          Number.isNaN(taskLevel1Percent) || taskLevel1Percent < 0 || taskLevel1Percent > 100 ||
+          Number.isNaN(taskLevel2Percent) || taskLevel2Percent < 0 || taskLevel2Percent > 100
+        ) {
+          alert("দয়া করে ০ থেকে ১০০-এর মধ্যে সঠিক শতাংশ সংখ্যা দিন!");
+          return;
+        }
+
+        try {
+          await setDoc(REF_DOC_REF, {
+            packagePercent,
+            packageRefundPercent,
+            taskLevel1Percent,
+            taskLevel2Percent
+          }, { merge: true });
+          alert("✅ প্যাকেজ কমিশন, রিফান্ড ও কাজের রেফার কমিশন সেভ হয়েছে!");
+        } catch (e) {
+          alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
+        }
+      });
+
+      loadReferralCommissionSettings();
+    }
+
+    function renderReferralCommissionLock(root) {
+      root.innerHTML = `
+        <h3 style="margin:0 0 12px;color:#141517;">রেফার কমিশন ও রিফান্ড নিয়ন্ত্রণ (%)</h3>
+        <div class="tk-rc-lock-box">
+          <div class="tk-rc-lock-title">🔒 পাসওয়ার্ড প্রয়োজন</div>
+          <div class="tk-rc-lock-desc">এই সেকশনে প্রবেশ করতে সঠিক পাসওয়ার্ড দিন।</div>
+          <input type="password" id="tkRcPassInput" class="tk-rc-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off">
+          <button type="button" id="tkRcUnlockBtn" class="tk-rc-unlock-btn">প্রবেশ করুন</button>
+          <div id="tkRcPassError" class="tk-rc-lock-error"></div>
+        </div>
+      `;
+
+      const inputEl = document.getElementById("tkRcPassInput");
+      const btnEl = document.getElementById("tkRcUnlockBtn");
+      const errEl = document.getElementById("tkRcPassError");
+
+      const verifyPass = () => {
+        if (inputEl.value === TK_RC_PASS) {
+          tkRcUnlocked = true;
+          renderReferralCommissionForm(root);
+        } else {
+          errEl.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+        }
+      };
+
+      btnEl.addEventListener("click", verifyPass);
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") verifyPass();
+      });
+    }
+
     window.tkRegisterFeature({
       id: "referralCommission",
       title: "রেফার কমিশন ও রিফান্ড",
       icon: "fa-percent",
       badgeText: "নতুন",
       renderRoom: (root) => {
-        root.innerHTML = `
-          <h3 style="margin:0 0 12px;color:#141517;">রেফার কমিশন ও রিফান্ড নিয়ন্ত্রণ (%)</h3>
-
-          <div class="tk-rc-card">
-            <div class="tk-rc-section-title">📦 প্যাকেজ রেফার কমিশন ও আপগ্রেড রিফান্ড</div>
-            <div class="tk-rc-grid">
-              <div class="tk-rc-field">
-                <label for="tkRcPkgPercent">প্যাকেজ রেফার কমিশন (%)</label>
-                <input type="number" id="tkRcPkgPercent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
-              </div>
-              <div class="tk-rc-field">
-                <label for="tkRcPkgRefundPercent">প্যাকেজ রিফান্ড (%)</label>
-                <input type="number" id="tkRcPkgRefundPercent" min="0" max="100" step="0.1" value="80" placeholder="যেমন: 80">
-              </div>
-            </div>
-          </div>
-
-          <div class="tk-rc-card">
-            <div class="tk-rc-section-title">⚙️ ডেইলি কাজের উপর রেফার কমিশন</div>
-            <div class="tk-rc-grid">
-              <div class="tk-rc-field">
-                <label for="tkRcTaskL1Percent">লেভেল ১ কমিশন (%)</label>
-                <input type="number" id="tkRcTaskL1Percent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
-              </div>
-              <div class="tk-rc-field">
-                <label for="tkRcTaskL2Percent">লেভেল ২ কমিশন (%)</label>
-                <input type="number" id="tkRcTaskL2Percent" min="0" max="100" step="0.1" value="4" placeholder="যেমন: 4">
-              </div>
-            </div>
-            <button type="button" id="tkSaveReferralCommissionBtn" class="tk-rc-save-btn">
-              <i class="fa-solid fa-check"></i> কমিশন ও রিফান্ড সেভ করুন
-            </button>
-          </div>
-        `;
-
-        document.getElementById("tkSaveReferralCommissionBtn").addEventListener("click", async () => {
-          const packagePercent = Number(document.getElementById("tkRcPkgPercent").value);
-          const packageRefundPercent = Number(document.getElementById("tkRcPkgRefundPercent").value);
-          const taskLevel1Percent = Number(document.getElementById("tkRcTaskL1Percent").value);
-          const taskLevel2Percent = Number(document.getElementById("tkRcTaskL2Percent").value);
-
-          if (
-            Number.isNaN(packagePercent) || packagePercent < 0 || packagePercent > 100 ||
-            Number.isNaN(packageRefundPercent) || packageRefundPercent < 0 || packageRefundPercent > 100 ||
-            Number.isNaN(taskLevel1Percent) || taskLevel1Percent < 0 || taskLevel1Percent > 100 ||
-            Number.isNaN(taskLevel2Percent) || taskLevel2Percent < 0 || taskLevel2Percent > 100
-          ) {
-            alert("দয়া করে ০ থেকে ১০০-এর মধ্যে সঠিক শতাংশ সংখ্যা দিন!");
-            return;
-          }
-
-          try {
-            await setDoc(REF_DOC_REF, {
-              packagePercent,
-              packageRefundPercent,
-              taskLevel1Percent,
-              taskLevel2Percent
-            }, { merge: true });
-            alert("✅ প্যাকেজ কমিশন, রিফান্ড ও কাজের রেফার কমিশন সেভ হয়েছে!");
-          } catch (e) {
-            alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
-          }
-        });
+        tkRcRoot = root;
+        if (tkRcUnlocked) {
+          renderReferralCommissionForm(root);
+        } else {
+          renderReferralCommissionLock(root);
+        }
       },
-      onOpen: loadReferralCommissionSettings
+      onOpen: () => {
+        if (tkRcUnlocked) {
+          loadReferralCommissionSettings();
+        }
+      }
     });
   </script>
 
