@@ -171,10 +171,61 @@
         sat: "শনিবার"
       };
 
-      function hasActivePaidPkg(userObj) {
-        if (!userObj || !userObj.package) return false;
-        const pkg = String(userObj.package).trim();
-        return pkg !== "" && pkg !== "none" && pkg !== "free_trial";
+      const BLOCKED_PKG_IDS = new Set([
+        "", "none", "free", "free_trial", "freetrial",
+        "null", "undefined", "false", "0", "no_package", "নিষ্ক্রিয়"
+      ]);
+
+      function normalizePkgId(rawId) {
+        return String(rawId || "").trim().toLowerCase().replace(/\s+/g, "_");
+      }
+
+      function getPkgKeyCandidates(rawId) {
+        const clean = String(rawId || "").trim();
+        const norm = normalizePkgId(clean);
+        if (!norm || BLOCKED_PKG_IDS.has(norm)) return [];
+        return Array.from(new Set([
+          clean,
+          norm,
+          norm.replace(/\./g, "_"),
+          norm.replace(/_/g, ".")
+        ])).filter(Boolean);
+      }
+
+      function getRawUserPackageId(userObj) {
+        if (!userObj || typeof userObj !== "object") return "";
+        const raw = (userObj.package || userObj.packageId || userObj.activePackage || "").toString().trim();
+        const norm = normalizePkgId(raw);
+        if (!norm || BLOCKED_PKG_IDS.has(norm)) return "";
+        return raw;
+      }
+
+      async function resolveVerifiedPackageDoc(rawPkgId, requirePaid = true) {
+        const candidates = getPkgKeyCandidates(rawPkgId);
+        if (candidates.length === 0) return null;
+
+        for (const cand of candidates) {
+          const pkgSnap = await getDoc(doc(db, "packages", cand));
+          if (pkgSnap.exists()) {
+            const pData = pkgSnap.data() || {};
+            const price = Number(pData.price ?? pData.amount ?? 1);
+            if (!requirePaid || price > 0) {
+              return { id: pkgSnap.id, ...pData, price };
+            }
+          }
+
+          const q = query(collection(db, "packages"), where("packageId", "==", cand));
+          const querySnap = await getDocs(q);
+          if (!querySnap.empty) {
+            const d = querySnap.docs[0];
+            const pData = d.data() || {};
+            const price = Number(pData.price ?? pData.amount ?? 1);
+            if (!requirePaid || price > 0) {
+              return { id: d.id, ...pData, price };
+            }
+          }
+        }
+        return null;
       }
 
       async function getWorkOpenDays() {
@@ -228,22 +279,6 @@
         return defaultPercents;
       }
 
-      // প্যাকেজ ID দিয়ে প্যাকেজের লেভেল বের করার সহায়ক ফাংশন
-      async function getPackageLevel(pkgId) {
-        if (!pkgId || pkgId === "free_trial" || pkgId === "none") return -1;
-        const cleanId = String(pkgId).trim();
-        const pkgSnap = await getDoc(doc(db, "packages", cleanId));
-        if (pkgSnap.exists()) {
-          return Number(pkgSnap.data().level || 0);
-        }
-        const q = query(collection(db, "packages"), where("packageId", "==", cleanId));
-        const querySnap = await getDocs(q);
-        if (!querySnap.empty) {
-          return Number(querySnap.docs[0].data().level || 0);
-        }
-        return -1;
-      }
-
       function updateTaskStatusBox(completedTasks, totalPackageTasks) {
         const ongoingBox = document.getElementById('task-ongoing-box');
         const finishedBox = document.getElementById('task-finished-box');
@@ -286,28 +321,13 @@
               let pkgRule = null;
               let displayName = userPackage;
 
-              if (userPackage && userPackage !== "free_trial" && userPackage !== "none") {
-                let pkgDocRef = doc(db, "packages", userPackage);                
-                let pkgSnap = await getDoc(pkgDocRef);
-
-                if (pkgSnap.exists()) {
-                  let data = pkgSnap.data();
-                  pkgRule = {                     maxTasks: Number(data.tasksLimit || 10), 
-                    reward: Number(data.reward || 10) 
-                  };
-                  displayName = data.name || userPackage;
-                } else {
-                  const q = query(collection(db, "packages"), where("packageId", "==", userPackage));
-                  const querySnap = await getDocs(q);
-                  if (!querySnap.empty) {
-                    let data = querySnap.docs[0].data();
-                    pkgRule = { 
-                      maxTasks: Number(data.tasksLimit || 10), 
-                      reward: Number(data.reward || 10) 
-                    };
-                    displayName = data.name || userPackage;
-                  }
-                }
+              const verifiedUserPkg = await resolveVerifiedPackageDoc(getRawUserPackageId(currentUserData), true);
+              if (verifiedUserPkg) {
+                pkgRule = {
+                  maxTasks: Number(verifiedUserPkg.tasksLimit || 10),
+                  reward: Number(verifiedUserPkg.reward || 10)
+                };
+                displayName = verifiedUserPkg.name || verifiedUserPkg.title || userPackage;
               }
 
               let hasActivePaidPackage = pkgRule !== null;
@@ -332,7 +352,7 @@
                 const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 if (diffDays > trialConfig.totalDays) {
-                  document.getElementById('taskCard').style.display = 'none';                  
+                  document.getElementById('taskCard').style.display = 'none';
                   document.getElementById('userInfoBox').style.display = 'none';
                   document.getElementById('dynamic-status-box').style.display = 'none';
                   document.getElementById('noPackageMsg').style.display = 'block';
@@ -340,7 +360,7 @@
                   return;
                 } else {
                   userPackage = "free_trial";
-                  pkgRule = { maxTasks: trialConfig.dailyTasks, reward: 10 }; 
+                  pkgRule = { maxTasks: trialConfig.dailyTasks, reward: 10 };
                   let remainingDays = (trialConfig.totalDays + 1) - diffDays;
                   if (remainingDays < 1) remainingDays = 1;
                   trialTextDisplay = `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)`;
@@ -350,7 +370,7 @@
               activePackageRule = pkgRule;
               document.getElementById('userPackageText').innerText = (userPackage === "free_trial") ? trialTextDisplay : displayName;
               document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
-              document.getElementById('rewardText').innerText = activePackageRule.reward; 
+              document.getElementById('rewardText').innerText = activePackageRule.reward;
 
               const openWorkDays = await getWorkOpenDays();
               const todayKey = DAY_KEYS[new Date().getDay()];
@@ -453,7 +473,7 @@
 
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
-            dailyTaskIncome: increment(rewardAmount), 
+            dailyTaskIncome: increment(rewardAmount),
             taskCash: increment(rewardAmount),
             totalEarnings: increment(rewardAmount)
           });
@@ -470,7 +490,7 @@
           const { taskLevel1Percent, taskLevel2Percent } = await getTaskReferralPercents();
           const referrerCode = currentUserData && currentUserData.referredBy ? String(currentUserData.referredBy).trim() : "";
 
-          if (referrerCode && referrerCode !== "none" && referrerCode !== "undefined") {
+          if (referrerCode && !BLOCKED_PKG_IDS.has(referrerCode.toLowerCase())) {
             let level1Ref = null;
             let level1Data = null;
 
@@ -489,15 +509,13 @@
 
             if (level1Ref && level1Data) {
               // রেফারকারী প্যাকেজ না কিনলে কাজের কমিশন পাবে না; প্যাকেজ কিনলে লেভেল যাচাই হবে
-              const hasLevel1Pkg = hasActivePaidPkg(level1Data);
-              const userPkgId = currentUserData && currentUserData.package ? String(currentUserData.package).trim() : "";
-              const isPaidPackage = userPkgId !== "" && userPkgId !== "free_trial" && userPkgId !== "none";
-              let isEligibleForDailyBonus = hasLevel1Pkg;
+              const level1PkgDoc = await resolveVerifiedPackageDoc(getRawUserPackageId(level1Data), true);
+              const userPkgDoc = await resolveVerifiedPackageDoc(getRawUserPackageId(currentUserData), true);
+              let isEligibleForDailyBonus = Boolean(level1PkgDoc);
 
-              if (hasLevel1Pkg && isPaidPackage) {
-                const referrerPkgId = String(level1Data.package).trim();
-                const userPkgLevel = await getPackageLevel(userPkgId);
-                const referrerPkgLevel = await getPackageLevel(referrerPkgId);
+              if (isEligibleForDailyBonus && userPkgDoc) {
+                const userPkgLevel = Number(userPkgDoc.level || 0);
+                const referrerPkgLevel = Number(level1PkgDoc.level || 0);
                 isEligibleForDailyBonus = (userPkgLevel > -1 && referrerPkgLevel > -1 && userPkgLevel <= referrerPkgLevel);
               }
 
@@ -519,7 +537,7 @@
               }
 
               const level2Code = level1Data.referredBy ? String(level1Data.referredBy).trim() : "";
-              if (level2Code && level2Code !== "none" && level2Code !== "undefined") {
+              if (level2Code && !BLOCKED_PKG_IDS.has(level2Code.toLowerCase())) {
                 let level2Ref = null;
                 let level2Data = null;
                 const directL2Snap = await getDoc(doc(db, "users", level2Code));
@@ -536,28 +554,31 @@
                   }
                 }
 
-                if (level2Ref && level2Data && hasActivePaidPkg(level2Data)) {
-                  const level2Commission = rewardAmount * (taskLevel2Percent / 100);
-                  await updateDoc(level2Ref, {
-                    taskCash: increment(level2Commission),
-                    teamCommission: increment(level2Commission),
-                    todayTeamCommission: increment(level2Commission),
-                    totalEarnings: increment(level2Commission)
-                  });
+                if (level2Ref && level2Data) {
+                  const level2PkgDoc = await resolveVerifiedPackageDoc(getRawUserPackageId(level2Data), true);
+                  if (level2PkgDoc) {
+                    const level2Commission = rewardAmount * (taskLevel2Percent / 100);
+                    await updateDoc(level2Ref, {
+                      taskCash: increment(level2Commission),
+                      teamCommission: increment(level2Commission),
+                      todayTeamCommission: increment(level2Commission),
+                      totalEarnings: increment(level2Commission)
+                    });
 
-                  await addDoc(collection(db, "users", level2Ref.id, "referralHistory"), {
-                    title: "রেফার কমিশন (লেভেল ২)",
-                    desc: "সেকেন্ড লেভেল টিম মেম্বারের টাস্ক থেকে কমিশন অর্জিত হয়েছে",
-                    amount: Number(level2Commission),
-                    timestamp: serverTimestamp()
-                  });
+                    await addDoc(collection(db, "users", level2Ref.id, "referralHistory"), {
+                      title: "রেফার কমিশন (লেভেল ২)",
+                      desc: "সেকেন্ড লেভেল টিম মেম্বারের টাস্ক থেকে কমিশন অর্জিত হয়েছে",
+                      amount: Number(level2Commission),
+                      timestamp: serverTimestamp()
+                    });
+                  }
                 }
               }
             }
           }
 
           alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
-          location.reload(); 
+          location.reload();
 
         } catch (error) {
           console.error("এরর:", error);
@@ -568,7 +589,7 @@
       }
     </script>
 
-                <!-- ব্যানার স্লট ১ -->
+                   <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
         <script>
   atOptions = {
@@ -590,4 +611,4 @@
     <!-- Adsterra Popunder Script -->
     <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
 </body>
-</html>
+</html> 
