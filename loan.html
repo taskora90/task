@@ -35,11 +35,13 @@
         .loan-item.active { border-left: 4px solid #007bff; }
         .loan-item.paid { border-left: 4px solid #28a745; opacity: 0.9; background: #fdfdfd; }
         .loan-item.pending { border-left: 4px solid #ffc107; }
+        .loan-item.rejected { border-left: 4px solid #dc3545; opacity: 0.85; background: #fff5f5; }
         .loan-row-content { display: flex; justify-content: space-between; align-items: center; }
         .loan-info p { margin: 2px 0; font-size: 13px; }
         .status-badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-align: center; display: inline-block; cursor: pointer; background: #cce5ff; color: #004085; }
         .badge-pending { background: #fff3cd; color: #856404; cursor: default; }
         .badge-paid { background: #d4edda; color: #155724; cursor: default; }
+        .badge-rejected { background: #f8d7da; color: #721c24; cursor: default; }
 
         .loan-footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 6px; border-top: 1px dashed #eee; }
         .btn-details { background: #6c757d; color: #fff; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
@@ -140,7 +142,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, getDocs, query, where, serverTimestamp, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, getDocs, query, where, serverTimestamp, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -161,7 +163,6 @@
         let currentUser = null;
         let selectedLoanForPay = null;
 
-        // নিখুঁত বাংলাদেশ টাইমজোন (Asia/Dhaka) অনুযায়ী তারিখ বের করার ফাংশন
         function getBangladeshDateStr() {
             return new Intl.DateTimeFormat('en-CA', {
                 timeZone: 'Asia/Dhaka',
@@ -169,6 +170,23 @@
                 month: '2-digit',
                 day: '2-digit'
             }).format(new Date());
+        }
+
+        function normalizeStatus(rawStatus, dueAmount) {
+            const st = String(rawStatus || "").trim().toLowerCase();
+            if (st === "rejected" || st === "declined" || st === "cancelled" || st === "canceled") {
+                return "rejected";
+            }
+            if (st === "pending" || st === "requested") {
+                return "pending";
+            }
+            if (st === "paid" || st === "completed" || Number(dueAmount) <= 0) {
+                return "paid";
+            }
+            if (st === "approved" || st === "active" || st === "running") {
+                return "active";
+            }
+            return "unknown";
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -180,16 +198,12 @@
 
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
-
-                        // package বা packageId দুটোই নিখুঁতভাবে চেক করবে
                         const userPkgId = userData.package || userData.packageId || "none";
 
-                        // এডমিন সেটিংস থেকে লোন কনফিগারেশন ফেচ করা
                         const settingsRef = doc(db, "admin_settings", "loan_config");
                         const settingsSnap = await getDoc(settingsRef);
                         const loanConfig = settingsSnap.exists() ? settingsSnap.data() : {};
 
-                        // প্যাকেজের নাম বের করা
                         if (userPkgId !== "none" && userPkgId !== "") {
                             const pkgRef = doc(db, "packages", userPkgId);
                             const pkgSnap = await getDoc(pkgRef);
@@ -200,7 +214,6 @@
                                 userPackageName = userPkgId;
                             }
 
-                            // নিখুঁতভাবে লোন অ্যামাউন্ট ম্যাচ করার লজিক (Case-insensitive)
                             if (loanConfig[userPkgId] !== undefined) {
                                 userLoanAmount = Number(loanConfig[userPkgId]);
                             } else if (loanConfig[userPkgId.toLowerCase()] !== undefined) {
@@ -233,10 +246,6 @@
             }
         });
 
-        function getTaskCashBalance(userData) {
-            return Number(userData.taskCash !== undefined ? userData.taskCash : (userData.taskcash !== undefined ? userData.taskcash : 0));
-        }
-
         async function loadLoanHistory(userId, userData) {
             const q = query(collection(db, "loan_requests"), where("userId", "==", userId));
             const querySnapshot = await getDocs(q);
@@ -253,7 +262,6 @@
                     data: docSnap.data()
                 }));
 
-                // লেটেস্ট লোন সবার উপরে দেখানোর জন্য সর্টিং
                 docsArray.sort((a, b) => {
                     let timeA = a.data.requestTime ? a.data.requestTime.toMillis() : 0;
                     let timeB = b.data.requestTime ? b.data.requestTime.toMillis() : 0;
@@ -264,38 +272,49 @@
                     const loan = item.data;
                     const loanId = item.id;
                     const dueAmount = loan.dueAmount !== undefined ? Number(loan.dueAmount) : Number(loan.amount);
+                    const state = normalizeStatus(loan.status, dueAmount);
 
-                    if (loan.status === "pending") {
-                        if (dueAmount > 0) {
-                            isPendingLoan = true;
-                        }
-                    } else if (loan.status === "approved" || loan.status === "active") {
-                        if (dueAmount > 0) {
-                            hasUnpaidLoan = true;
-                        }
+                    if (state === "pending") {
+                        isPendingLoan = true;
+                    } else if (state === "active" && dueAmount > 0) {
+                        hasUnpaidLoan = true;
                     }
 
                     let statusBadge = "";
-                    let isPaid = (dueAmount <= 0 || loan.status === "paid");
+                    let itemClass = "";
+                    let showDetailsBtn = false;
 
-                    if (loan.status === "pending") {
+                    if (state === "rejected") {
+                        itemClass = "rejected";
+                        statusBadge = `<span class="status-badge badge-rejected">বাতিল (রিজেক্টেড)</span>`;
+                    } else if (state === "pending") {
+                        itemClass = "pending";
                         statusBadge = `<span class="status-badge badge-pending">পেন্ডিং</span>`;
-                    } else if (isPaid) {
+                    } else if (state === "paid" || dueAmount <= 0) {
+                        itemClass = "paid";
                         statusBadge = `<span class="status-badge badge-paid">পরিশোধিত</span>`;
-                    } else {
+                    } else if (state === "active") {
+                        itemClass = "active";
+                        showDetailsBtn = true;
                         statusBadge = `<span class="status-badge" onclick="openPayModal('${loanId}', ${dueAmount})">চলমান (পরিশোধ করুন)</span>`;
+                    } else {
+                        itemClass = "pending";
+                        statusBadge = `<span class="status-badge badge-pending">যাচাইাধীন</span>`;
                     }
 
+                    const dueDisplayColor = (state === "rejected" || state === "paid") ? "#6c757d" : "red";
+                    const dueDisplayAmount = (state === "rejected") ? 0 : dueAmount;
+
                     loanListHTML += `
-                        <div class="loan-item ${isPaid ? 'paid' : (loan.status === 'pending' ? 'pending' : 'active')}">
+                        <div class="loan-item ${itemClass}">
                             <div class="loan-row-content">
                                 <div class="loan-info">
                                     <p><strong>মূল লোন:</strong> ৳${loan.amount}</p>
-                                    <p><strong>বকেয়া:</strong> <span style="color:red; font-weight:bold;">৳${dueAmount}</span></p>
+                                    <p><strong>বকেয়া:</strong> <span style="color:${dueDisplayColor}; font-weight:bold;">৳${dueDisplayAmount}</span></p>
                                 </div>
                                 <div>${statusBadge}</div>
                             </div>
-                            ${!isPaid && loan.status !== 'pending' ? `
+                            ${showDetailsBtn ? `
                             <div class="loan-footer-row">
                                 <button class="btn-details" onclick="openDetailsModal('${loanId}')">বিবরণ</button>
                             </div>` : ''}
@@ -306,7 +325,6 @@
 
             document.getElementById('loanList').innerHTML = loanListHTML;
 
-            // অ্যাকশন এরিয়ার বাটন স্ট্যাটাস সেট করা
             if (isPendingLoan) {
                 document.getElementById('actionArea').innerHTML = `
                     <button class="loan-btn-pending" disabled>আপনার লোনটি পেন্ডিং আছে</button>
@@ -328,7 +346,6 @@
 
         window.sendLoanRequest = async function(userId, userName, userPhone, userPackage) {
             try {
-                // ডুপ্লিকেট রিকোয়েস্ট এড়াতে পুনরায় চেক করা
                 const q = query(collection(db, "loan_requests"), where("userId", "==", userId));
                 const querySnapshot = await getDocs(q);
                 let hasActiveOrPending = false;
@@ -336,7 +353,8 @@
                 querySnapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     const due = data.dueAmount !== undefined ? Number(data.dueAmount) : Number(data.amount);
-                    if ((data.status === "pending" || data.status === "approved" || data.status === "active") && due > 0) {
+                    const state = normalizeStatus(data.status, due);
+                    if (state === "pending" || (state === "active" && due > 0)) {
                         hasActiveOrPending = true;
                     }
                 });
@@ -410,7 +428,6 @@
             document.getElementById('detailsModal').style.display = 'none';
         };
 
-        // নিরাপদ ট্রানজেকশন ব্যবহার করে ম্যানুয়াল পেমেন্ট (রেস কন্ডিশন ও ব্যালেন্স সিকিউরিটি সুরক্ষিত)
         window.processPayment = async function() {
             const payAmount = parseFloat(document.getElementById('payInputAmount').value);
 
@@ -457,7 +474,6 @@
                     const currentTodayPaid = Number(loanData.todayPaidAmount || 0);
                     const newTodayPaid = currentTodayPaid + payAmount;
 
-                    // বাংলাদেশ সময় অনুযায়ী সঠিক ডেট স্ট্রিং ব্যবহার
                     const todayStr = getBangladeshDateStr();
 
                     let history = loanData.history || [];
@@ -477,7 +493,6 @@
                         updateData.status = "paid";
                     }
 
-                    // অ্যাটমিক রাইট (একসাথে ইউজার ব্যালেন্স ও লোন আপডেট হবে)
                     transaction.update(userRef, {
                         [taskCashField]: increment(-payAmount)
                     });
@@ -511,7 +526,6 @@
 
 <!-- Adsterra Popunder Script -->
 <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
-
 
 </body>
 </html>
