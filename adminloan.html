@@ -304,7 +304,6 @@
         </div>
         <button type="button" class="tk-logout-btn" onclick="tkAdminLogout()">↩ লগআউট</button>
     </div>
-
     <div class="tk-page-shell">
         <div id="loginBox" class="tk-login-card">
             <div class="tk-lock-icon-box">🔒</div>
@@ -449,7 +448,7 @@
         ];
 
         const state = {
-            loanConfig: { none: 500 },
+            loanConfig: { none: 500, durationDays: 15 },
             activeLoans: [],
             tiers: [...DEFAULT_TIERS],
             users: [],
@@ -526,7 +525,11 @@
                     <h2 class="tk-page-heading">⚙️ লোন সেটিংস</h2>
                 </div>
                 <div class="tk-card">
-                    <h3>⚙️ প্যাকেজ অনুযায়ী লোন অ্যামাউন্ট সেট করুন</h3>
+                    <h3>⚙️ প্যাকেজ অনুযায়ী লোন অ্যামাউন্ট ও মেয়াদ সেট করুন</h3>
+                    <div style="margin-bottom:10px;">
+                        <label class="tk-field-label">লোনের মেয়াদ (কতদিন ধরে লোন সম্পন্ন হবে):</label>
+                        <input type="number" id="tkLoanDurationDaysInput" class="tk-input" min="1" step="1" value="15" placeholder="যেমন: 15">
+                    </div>
                     <div id="tkPackageLoanConfigInputs"><div class="tk-no-data">প্যাকেজ লিস্ট লোড হচ্ছে...</div></div>
                     <button type="button" class="tk-btn-save" style="margin-top:10px;" onclick="tkSaveLoanConfig()">লোন সেটিংস সেভ করুন</button>
                 </div>
@@ -635,24 +638,52 @@
                 </div>
             `;
         }
+        async function getConfiguredLoanDays() {
+            const parsedStateDays = parseInt(state.loanConfig?.durationDays, 10);
+            if (!Number.isNaN(parsedStateDays) && parsedStateDays > 0) {
+                return parsedStateDays;
+            }
+            try {
+                const cfgSnap = await getDoc(doc(db, "admin_settings", "loan_config"));
+                if (cfgSnap.exists()) {
+                    const cfgData = cfgSnap.data();
+                    state.loanConfig = { ...state.loanConfig, ...cfgData };
+                    const parsedDays = parseInt(cfgData.durationDays, 10);
+                    if (!Number.isNaN(parsedDays) && parsedDays > 0) {
+                        return parsedDays;
+                    }
+                }
+            } catch (err) {
+                console.warn("Could not read configured loan durationDays:", err);
+            }
+            return 15;
+        }
+
         async function loadLoanRequests() {
             const listEl = document.getElementById('tkLoanRequestsList');
             if (!listEl) return;
             listEl.innerHTML = "<div class='tk-no-data'>লোড হচ্ছে...</div>";
 
             try {
+                const configuredDays = await getConfiguredLoanDays();
                 const querySnapshot = await getDocs(collection(db, "loan_requests"));
                 let html = "";
                 querySnapshot.forEach((docSnap) => {
                     const d = docSnap.data();
                     if (d.status === "pending") {
+                        const effectiveDays = (d.days !== undefined && d.days !== null && Number(d.days) > 0)
+                            ? Number(d.days)
+                            : configuredDays;
+                        const effectiveDaily = (d.dailyInstallment !== undefined && d.dailyInstallment !== null && Number(d.dailyInstallment) > 0)
+                            ? Number(d.dailyInstallment)
+                            : Number(((Number(d.amount) || 0) / effectiveDays).toFixed(2));
                         html += `
                             <div class="tk-item-box">
                                 <p><strong>নাম:</strong> ${d.userName || 'নামবিহীন'} (${d.userPhone || ''})</p>
                                 <p><strong>প্যাকেজ:</strong> ${d.packageName || 'None'} | <strong>লোনের পরিমাণ:</strong> ৳ ${d.amount}</p>
-                                <p><strong>মেয়াদ:</strong> ${d.days || 15} দিন (প্রতিদিন ৳ ${d.dailyInstallment || 0} কাটা হবে)</p>
+                                <p><strong>মেয়াদ:</strong> ${effectiveDays} দিন (প্রতিদিন ৳ ${effectiveDaily} কাটা হবে)</p>
                                 <div style="margin-top:8px;">
-                                    <button class="tk-btn-approve" onclick="tkApproveLoan('${docSnap.id}', '${d.userId}', ${d.amount}, ${d.days || 15}, ${d.dailyInstallment || 0})">অ্যাপ্রুভ</button>
+                                    <button class="tk-btn-approve" onclick="tkApproveLoan('${docSnap.id}', '${d.userId}', ${d.amount}, ${effectiveDays}, ${effectiveDaily})">অ্যাপ্রুভ</button>
                                     <button class="tk-btn-reject" onclick="tkRejectLoan('${docSnap.id}')">রিজেক্ট</button>
                                 </div>
                             </div>
@@ -669,9 +700,10 @@
         window.tkApproveLoan = async function(reqId, userId, amount, days, dailyInstallment) {
             if (!confirm(`আপনি কি ৳ ${amount} লোন অ্যাপ্রুভ করতে চান?`)) return;
             try {
+                const configuredDays = await getConfiguredLoanDays();
                 const loanAmt = Number(amount) || 0;
-                const totalDays = Number(days) || 15;
-                const perDay = Number(dailyInstallment) || Number((loanAmt / totalDays).toFixed(2));
+                const totalDays = (Number(days) > 0) ? Number(days) : configuredDays;
+                const perDay = (Number(dailyInstallment) > 0) ? Number(dailyInstallment) : Number((loanAmt / totalDays).toFixed(2));
 
                 await updateDoc(doc(db, "users", userId), {
                     myCash: increment(loanAmt),
@@ -713,7 +745,12 @@
 
             try {
                 const cfgSnap = await getDoc(doc(db, "admin_settings", "loan_config"));
-                state.loanConfig = cfgSnap.exists() ? cfgSnap.data() : { none: 500 };
+                state.loanConfig = cfgSnap.exists() ? cfgSnap.data() : { none: 500, durationDays: 15 };
+
+                const parsedDays = parseInt(state.loanConfig.durationDays, 10);
+                const durationDaysVal = (!Number.isNaN(parsedDays) && parsedDays > 0) ? parsedDays : 15;
+                const durationInputEl = document.getElementById('tkLoanDurationDaysInput');
+                if (durationInputEl) durationInputEl.value = durationDaysVal;
 
                 const pkgSnap = await getDocs(collection(db, "packages"));
                 const noneVal = state.loanConfig.none ?? 500;
@@ -755,8 +792,14 @@
         }
 
         window.tkSaveLoanConfig = async function() {
+            const rawDays = parseInt(document.getElementById('tkLoanDurationDaysInput')?.value, 10);
+            if (Number.isNaN(rawDays) || rawDays <= 0) {
+                alert("দয়া করে লোনের সঠিক মেয়াদ (দিন, ১ বা তার বেশি) দিন।");
+                return;
+            }
+
             const inputs = document.querySelectorAll('.tk-pkg-loan-input');
-            const newConfig = {};
+            const newConfig = { durationDays: rawDays };
             inputs.forEach((inp) => {
                 const key = inp.getAttribute('data-pkg-key');
                 const title = inp.getAttribute('data-pkg-title');
@@ -775,7 +818,7 @@
             try {
                 await setDoc(doc(db, "admin_settings", "loan_config"), newConfig, { merge: true });
                 state.loanConfig = { ...state.loanConfig, ...newConfig };
-                alert("প্যাকেজ অনুযায়ী লোন সেটিংস সেভ হয়েছে!");
+                alert("প্যাকেজ অনুযায়ী লোন ও মেয়াদ সেটিংস সেভ হয়েছে!");
             } catch (err) {
                 console.error("Error saving loan config:", err);
                 alert("লোন সেটিংস সেভ করতে সমস্যা হয়েছে!");
