@@ -7,18 +7,327 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f6f8fa; margin: 0; padding: 20px 20px 90px 20px; }
-        .task-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .task-header { text-align: center; margin-bottom: 20px; }
-        .user-info-box { background: #eef2f5; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: center; }
-        .task-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
-        .video-container { position: relative; min-height: 150px; border-radius: 6px; margin-bottom: 12px; background: #eef2f5; display: flex; align-items: center; justify-content: center; text-align: center; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .btn-start { background-color: #2d3748; color: white; }
-        .btn-start:disabled { background-color: #cbd5e1; cursor: not-allowed; }
-        .btn-claim { background-color: #28a745; color: white; }
-        .timer-text { font-weight: bold; color: #dc3545; text-align: center; margin-top: 10px; }
-        .no-package-box { text-align: center; padding: 30px 15px; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f3f6f4;
+            margin: 0;
+            padding: 16px 14px 96px 14px;
+            color: #1e293b;
+        }
+        .task-container {
+            max-width: 460px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Header */
+        .task-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #15803d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .task-header h2 {
+            margin: 0;
+            font-size: 19px;
+            color: #1e293b;
+            font-weight: 700;
+        }
+        .task-header p {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .pkg-badge-top {
+            background: #ecfdf5;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            max-width: 165px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ডায়নামিক স্ট্যাটাস ও নোটিশ বক্স (সবার উপরে) */
+        #dynamic-status-box {
+            background: #2a2d32;
+            border: 1px solid #3d4148;
+            border-radius: 12px;
+            padding: 14px 15px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.16);
+            color: #ffffff;
+        }
+
+        /* প্রোগ্রেস সামারি কার্ড (মোট, কমপ্লিট, বাকি) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .stat-box {
+            border-radius: 12px;
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+        .stat-total {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            color: #334155;
+        }
+        .stat-done {
+            background: #3b4252;
+            border-color: #4c566a;
+            color: #f8fafc;
+        }
+        .stat-left {
+            background: #ecfdf5;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-bottom: 3px;
+            display: block;
+        }
+        .stat-value {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        /* সিরিয়াল টাস্ক লিস্ট হেডার */
+        .list-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+        }
+        .list-section-header span.rate-pill {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* সিরিয়াল টাস্ক বাটন কার্ড */
+        .serial-task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .serial-task-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 13px 14px;
+            border-radius: 13px;
+            border: 1.5px solid #86efac;
+            background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%);
+            color: #14532d;
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+            box-shadow: 0 3px 10px rgba(22, 163, 74, 0.08);
+            font-family: inherit;
+        }
+        .serial-task-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(22, 163, 74, 0.14);
+        }
+        .serial-task-btn:active:not(:disabled) {
+            transform: scale(0.99);
+        }
+
+        /* চলমান বা অ্যাক্টিভ টাস্ক (হালকা কলাপাতা সবুজ) */
+        .serial-task-btn.state-available {
+            background: linear-gradient(135deg, #effdf3 0%, #d9f99d 100%);
+            border-color: #84cc16;
+            color: #1a2e05;
+        }
+        .serial-task-btn.state-running {
+            background: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%);
+            border-color: #f59e0b;
+            color: #78350f;
+            cursor: wait;
+        }
+        .serial-task-btn.state-claim {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #15803d;
+            color: #ffffff;
+            animation: pulseGlow 1.3s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45); }
+            50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+        }
+
+        /* সম্পন্ন হওয়া টাস্ক (অ্যাশ / স্লেট কালার) */
+        .serial-task-btn.state-completed {
+            background: #3b4252;
+            border-color: #4c566a;
+            color: #e2e8f0;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.94;
+        }
+
+        /* ছুটির দিন ব্লক বাটন */
+        .serial-task-btn.state-holiday {
+            background: #4c566a;
+            border-color: #64748b;
+            color: #f1f5f9;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        .task-btn-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .task-num-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.75);
+            color: #15803d;
+            border: 1px solid rgba(21, 128, 61, 0.2);
+        }
+        .state-claim .task-num-badge {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        .state-completed .task-num-badge,
+        .state-holiday .task-num-badge {
+            background: #2e3440;
+            color: #cbd5e1;
+            border-color: #4c566a;
+        }
+
+        .task-main-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .task-main-title {
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+        .task-sub-status {
+            font-size: 11px;
+            margin-top: 2px;
+            opacity: 0.85;
+            font-weight: 600;
+        }
+
+        /* ডান পাশের ছোট তথ্য ব্যাজ (টাকা, প্যাকেজ, বরাদ্দ) */
+        .task-btn-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .reward-chip {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #15803d;
+        }
+        .state-claim .reward-chip {
+            background: #ffffff;
+            color: #15803d;
+        }
+        .state-completed .reward-chip,
+        .state-holiday .reward-chip {
+            background: #2e3440;
+            color: #a3be8c;
+        }
+        .meta-mini-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .mini-tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: rgba(15, 23, 42, 0.08);
+            color: inherit;
+            max-width: 95px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .state-completed .mini-tag,
+        .state-holiday .mini-tag {
+            background: rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+        }
+
+        .no-package-box {
+            text-align: center;
+            padding: 30px 15px;
+        }
+        .ad-banner-container {
+            margin-top: 16px;
+            text-align: center;
+            overflow: hidden;
+        }
 
         /* Bottom Nav Fix */
         .bottom-nav {
@@ -57,33 +366,20 @@
 
     <div class="task-container">
         <div class="task-header">
-            <h2><i class="fa-solid fa-list-check"></i> টাস্ক</h2>
-            <p style="font-size: 13px; color: #64748b;">পয়েন্ট বা বোনাস আয় করুন</p>
-        </div>
-
-        <div class="user-info-box" id="userInfoBox" style="display: none;">
-            <p style="margin: 3px 0;">প্যাকেজ: <strong id="userPackageText">লোড হচ্ছে...</strong></p>
-            <p style="margin: 3px 0;">আজকের সম্পন্ন টাস্ক: <strong id="taskProgress">0 / 0</strong></p>
-        </div>
-
-        <div class="task-card" id="taskCard" style="display: none;">
-            <div class="task-title" style="font-weight: bold; margin-bottom: 5px;">সঠিকভাবে কাজ করুন</div>
-            <div class="task-reward" style="color: #28a745; font-weight: bold; margin-bottom: 10px;"><i class="fa-solid fa-coins"></i> রিওয়ার্ড: <span id="rewardText">10</span> টাকা</div>
-
-            <div class="video-container">
-                <div style="width: 100%; text-align: center; padding: 20px;">
-                    <div style="background: #3b82f6; color: #fff; padding: 15px; border-radius: 8px; font-weight: bold;">
-                        <i class="fa-solid fa-ad"></i> রিওয়ার্ড পেতে বিজ্ঞাপন দেখুন, ক্লিক করুন এবং ১০ সেকেন্ড অপেক্ষা করুন।
-                    </div>
+            <div class="header-left">
+                <div class="header-icon">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div>
+                    <h2>টাস্ক</h2>
+                    <p>পয়েন্ট বা বোনাস আয় করুন</p>
                 </div>
             </div>
-
-            <button class="btn btn-start" id="actionBtn">টাস্ক শুরু করুন</button>
-            <div class="timer-text" id="timerText" style="display: none;"></div>
+            <div class="pkg-badge-top" id="userPackageBadge" style="display: none;">লোড হচ্ছে...</div>
         </div>
 
-        <!-- ডায়নামিক স্ট্যাটাস ও নোটিশ বক্স -->
-        <div id="dynamic-status-box" style="background: #2a2d32; border: 1px solid #3d4148; border-radius: 12px; padding: 15px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); color: #ffffff;">
+        <!-- ডায়নামিক স্ট্যাটাস ও নোটিশ বক্স (সবার উপরে) -->
+        <div id="dynamic-status-box" style="display: none;">
             <div id="task-ongoing-box" style="display: block;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                     <span style="font-size: 16px;">💡</span>
@@ -107,12 +403,55 @@
             </div>
         </div>
 
+        <!-- কাজের হিসাব (মোট, কমপ্লিট, বাকি) -->
+        <div class="stats-grid" id="userInfoBox" style="display: none;">
+            <div class="stat-box stat-total">
+                <span class="stat-label">মোট বরাদ্দ</span>
+                <span class="stat-value" id="totalTaskStat">0 টি</span>
+            </div>
+            <div class="stat-box stat-done">
+                <span class="stat-label">কমপ্লিট হয়েছে</span>
+                <span class="stat-value" id="completedTaskStat">0 টি</span>
+            </div>
+            <div class="stat-box stat-left">
+                <span class="stat-label">বাকি আছে</span>
+                <span class="stat-value" id="remainingTaskStat">0 টি</span>
+            </div>
+        </div>
+
+        <!-- সিরিয়াল টাস্ক বাটন সেকশন -->
+        <div id="taskCard" style="display: none;">
+            <div class="list-section-header">
+                <span><i class="fa-solid fa-layer-group" style="color: #16a34a;"></i> আজকের টাস্ক তালিকা</span>
+                <span class="rate-pill">প্রতি টাস্ক: ৳ <span id="rewardText">10</span></span>
+            </div>
+
+            <div class="serial-task-list" id="serialTaskList"></div>
+        </div>
+
         <div id="noPackageMsg" class="no-package-box" style="display: none;">
             <p style="font-size: 18px; color: #dc3545; font-weight: bold; margin-bottom: 20px;" id="noPackageText">কোনো সক্রিয় প্যাকেজ নেই! কাজ করতে প্যাকেজ কিনুন।</p>
             <a href="package.html" style="display: inline-block; background-color: #2d3748; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
         </div>
-    </div>  
- <!-- Fixed Bottom Navigation -->
+
+        <!-- ব্যানার স্লট ১ -->
+        <div class="ad-banner-container">
+            <script>
+              atOptions = {
+                'key' : 'edb0510109f6c4d56e1c54025858881c',
+                'format' : 'iframe',
+                'height' : 50,
+                'width' : 320,
+                'params' : {}
+              };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/edb0510109f6c4d56e1c54025858881c/invoke.js"></script>
+            <script src="https://bauval.org/22/edb0510109f6c4d56e1c54025858881c"></script>
+            <span style="font-size: 11px; color: #a0aec0;"></span>
+        </div>
+    </div>
+
+    <!-- Fixed Bottom Navigation -->
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item">
             <i class="fa-solid fa-house"></i>
@@ -159,6 +498,11 @@
       let currentTaskCount = 0;
       let currentUser = null;
       let currentUserData = null;
+      let currentPackageLabel = "";
+      let isHolidayToday = false;
+      let activeTaskIndex = null;
+      let activeTaskPhase = "idle"; // "idle" | "running" | "claim" | "processing"
+      let activeCountdownLeft = 0;
 
       const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
       const DAY_BN = {
@@ -294,6 +638,109 @@
         }
       }
 
+      function updateCountersUI() {
+        if (!activePackageRule) return;
+        const total = Number(activePackageRule.maxTasks || 0);
+        const done = Math.min(currentTaskCount, total);
+        const left = Math.max(0, total - done);
+
+        document.getElementById('totalTaskStat').innerText = `${total} টি`;
+        document.getElementById('completedTaskStat').innerText = `${done} টি`;
+        document.getElementById('remainingTaskStat').innerText = `${left} টি`;
+      }
+
+      function renderSerialTaskButtons() {
+        const listEl = document.getElementById('serialTaskList');
+        if (!listEl || !activePackageRule) return;
+
+        const totalTasks = Number(activePackageRule.maxTasks || 0);
+        const rewardAmount = Number(activePackageRule.reward || 10);
+        listEl.innerHTML = "";
+
+        if (totalTasks <= 0) {
+          listEl.innerHTML = `<div style="text-align:center; padding:16px; color:#64748b; font-size:13px;">আজকের জন্য কোনো টাস্ক বরাদ্দ নেই।</div>`;
+          return;
+        }
+
+        for (let i = 1; i <= totalTasks; i++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+
+          const isDone = i <= currentTaskCount;
+          const isThisRunning = (activeTaskIndex === i && activeTaskPhase === "running");
+          const isThisClaim = (activeTaskIndex === i && activeTaskPhase === "claim");
+          const isThisProcessing = (activeTaskIndex === i && activeTaskPhase === "processing");
+          const isAnyTaskBusy = (activeTaskPhase !== "idle");
+
+          let stateClass = "state-available";
+          let statusLine = "ক্লিক করে কাজ শুরু করুন";
+          let iconHtml = `#${i}`;
+          let disabled = false;
+
+          if (isHolidayToday) {
+            stateClass = "state-holiday";
+            statusLine = "ছুটির দিন";
+            iconHtml = `<i class="fa-solid fa-lock"></i>`;
+            disabled = true;
+          } else if (isDone) {
+            stateClass = "state-completed";
+            statusLine = "সম্পন্ন হয়েছে";
+            iconHtml = `<i class="fa-solid fa-check"></i>`;
+            disabled = true;
+          } else if (isThisRunning) {
+            stateClass = "state-running";
+            statusLine = `অপেক্ষা করুন: ${activeCountdownLeft} সেকেন্ড`;
+            iconHtml = `<i class="fa-solid fa-hourglass-half"></i>`;
+            disabled = true;
+          } else if (isThisClaim) {
+            stateClass = "state-claim";
+            statusLine = "পুরস্কার সংগ্রহ করুন (Claim)";
+            iconHtml = `<i class="fa-solid fa-gift"></i>`;
+            disabled = false;
+          } else if (isThisProcessing) {
+            stateClass = "state-running";
+            statusLine = "প্রসেসিং হচ্ছে...";
+            iconHtml = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+            disabled = true;
+          } else if (isAnyTaskBusy) {
+            stateClass = "state-available";
+            statusLine = "চলমান কাজটি আগে শেষ করুন";
+            disabled = true;
+          }
+
+          btn.className = `serial-task-btn ${stateClass}`;
+          btn.disabled = disabled;
+
+          const mainTitleText = isHolidayToday ? "ছুটির দিন" : `টাস্ক #${i}`;
+
+          btn.innerHTML = `
+            <div class="task-btn-left">
+              <div class="task-num-badge">${iconHtml}</div>
+              <div class="task-main-info">
+                <span class="task-main-title">${mainTitleText}</span>
+                <span class="task-sub-status">${statusLine}</span>
+              </div>
+            </div>
+            <div class="task-btn-right">
+              <span class="reward-chip">৳ ${rewardAmount}</span>
+              <div class="meta-mini-row">
+                <span class="mini-tag" title="${currentPackageLabel}">${currentPackageLabel}</span>
+                <span class="mini-tag">বরাদ্দ: ${totalTasks}টি</span>
+              </div>
+            </div>
+          `;
+
+          if (!disabled) {
+            if (isThisClaim) {
+              btn.onclick = () => claimReward(i);
+            } else {
+              btn.onclick = () => startTimer(10, i);
+            }
+          }
+
+          listEl.appendChild(btn);
+        }
+      }
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
@@ -354,6 +801,7 @@
                 if (diffDays > trialConfig.totalDays) {
                   document.getElementById('taskCard').style.display = 'none';
                   document.getElementById('userInfoBox').style.display = 'none';
+                  document.getElementById('userPackageBadge').style.display = 'none';
                   document.getElementById('dynamic-status-box').style.display = 'none';
                   document.getElementById('noPackageMsg').style.display = 'block';
                   document.getElementById('noPackageText').innerText = `আপনার ${trialConfig.totalDays} দিনের ফ্রি ট্রায়াল মেয়াদ শেষ! অনুগ্রহ করে প্যাকেজ কিনে কাজ করুন।`;
@@ -368,22 +816,25 @@
               }
 
               activePackageRule = pkgRule;
-              document.getElementById('userPackageText').innerText = (userPackage === "free_trial") ? trialTextDisplay : displayName;
-              document.getElementById('taskProgress').innerText = `${currentTaskCount} / ${activePackageRule.maxTasks}`;
+              currentPackageLabel = (userPackage === "free_trial") ? trialTextDisplay : displayName;
+
+              const pkgBadge = document.getElementById('userPackageBadge');
+              pkgBadge.innerText = currentPackageLabel;
+              pkgBadge.style.display = 'inline-block';
+
               document.getElementById('rewardText').innerText = activePackageRule.reward;
+              updateCountersUI();
 
               const openWorkDays = await getWorkOpenDays();
               const todayKey = DAY_KEYS[new Date().getDay()];
               const todayBn = DAY_BN[todayKey];
 
               if (!openWorkDays.includes(todayKey)) {
-                document.getElementById('userInfoBox').style.display = 'block';
+                isHolidayToday = true;
+                document.getElementById('dynamic-status-box').style.display = 'block';
+                document.getElementById('userInfoBox').style.display = 'grid';
                 document.getElementById('taskCard').style.display = 'block';
                 document.getElementById('noPackageMsg').style.display = 'none';
-
-                const actionBtn = document.getElementById('actionBtn');
-                actionBtn.innerText = "ছুটির দিন";
-                actionBtn.disabled = true;
 
                 const ongoingBox = document.getElementById('task-ongoing-box');
                 const finishedBox = document.getElementById('task-finished-box');
@@ -398,22 +849,20 @@
                         </p>
                     `;
                 }
+
+                renderSerialTaskButtons();
                 return;
               }
 
+              isHolidayToday = false;
+              document.getElementById('dynamic-status-box').style.display = 'block';
               updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
 
-              document.getElementById('userInfoBox').style.display = 'block';
+              document.getElementById('userInfoBox').style.display = 'grid';
               document.getElementById('taskCard').style.display = 'block';
               document.getElementById('noPackageMsg').style.display = 'none';
 
-              if (currentTaskCount >= activePackageRule.maxTasks) {
-                document.getElementById('actionBtn').innerText = "আজকের সব টাস্ক সম্পন্ন!";
-                document.getElementById('actionBtn').disabled = true;
-              } else {
-                document.getElementById('actionBtn').innerText = `টাস্ক নম্বর ${currentTaskCount + 1} শুরু করুন`;
-                document.getElementById('actionBtn').onclick = () => startTimer(10);
-              }
+              renderSerialTaskButtons();
             }
           } catch (error) {
             console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
@@ -423,7 +872,9 @@
         }
       });
 
-      function startTimer(duration) {
+      function startTimer(duration, taskIndex) {
+        if (isHolidayToday || activeTaskPhase !== "idle") return;
+
         // ১. স্মার্ট লিংক ওপেন হবে
         window.open('https://araplhn.org/4/79054fb4b54830da5e0866e988a90081', '_blank');
 
@@ -438,34 +889,28 @@
           console.log("Interstitial ad error:", e);
         }
 
-        const actionBtn = document.getElementById('actionBtn');
-        const timerText = document.getElementById('timerText');
-
-        actionBtn.disabled = true;
-        timerText.style.display = 'block';
-
-        let timeLeft = duration;
+        activeTaskIndex = taskIndex;
+        activeTaskPhase = "running";
+        activeCountdownLeft = duration;
+        renderSerialTaskButtons();
 
         const countdown = setInterval(() => {
-          if (timeLeft <= 0) {
+          if (activeCountdownLeft <= 0) {
             clearInterval(countdown);
-            timerText.style.display = 'none';
-
-            actionBtn.innerText = 'পুরস্কার সংগ্রহ করুন (Claim)';
-            actionBtn.className = 'btn btn-claim';
-            actionBtn.disabled = false;
-            actionBtn.onclick = claimReward;
+            activeTaskPhase = "claim";
+            renderSerialTaskButtons();
           } else {
-            timerText.innerText = 'অপেক্ষা করুন: ' + timeLeft + ' সেকেন্ড';
-            timeLeft--;
+            activeCountdownLeft--;
+            renderSerialTaskButtons();
           }
         }, 1000);
       }
 
-      async function claimReward() {
-        const actionBtn = document.getElementById('actionBtn');
-        actionBtn.disabled = true;
-        actionBtn.innerText = "প্রসেসিং হচ্ছে...";
+      async function claimReward(clickedTaskIndex) {
+        if (activeTaskPhase !== "claim") return;
+
+        activeTaskPhase = "processing";
+        renderSerialTaskButtons();
 
         try {
           const rewardAmount = activePackageRule.reward;
@@ -577,38 +1022,26 @@
             }
           }
 
+          currentTaskCount = nextTaskNumber;
+          activeTaskIndex = null;
+          activeTaskPhase = "idle";
+
+          updateCountersUI();
+          updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
+          renderSerialTaskButtons();
+
           alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
-          location.reload();
 
         } catch (error) {
           console.error("এরর:", error);
           alert("সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।");
-          actionBtn.disabled = false;
-          actionBtn.innerText = "পুরস্কার সংগ্রহ করুন (Claim)";
+          activeTaskPhase = "claim";
+          renderSerialTaskButtons();
         }
       }
     </script>
 
-                   <!-- ব্যানার স্লট ১ -->
-      <div class="ad-banner-container">
-        <script>
-  atOptions = {
-    'key' : 'edb0510109f6c4d56e1c54025858881c',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/edb0510109f6c4d56e1c54025858881c/invoke.js"></script>
-<script src="https://bauval.org/22/edb0510109f6c4d56e1c54025858881c"></script>
-        <span style="font-size: 11px; color: #a0aec0;"></span>
-      </div>
-       </div>
-
-
-
     <!-- Adsterra Popunder Script -->
     <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
 </body>
-</html> 
+</html>
