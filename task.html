@@ -157,7 +157,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 8px;
             padding: 13px 14px;
             border-radius: 13px;
             border: 1.5px solid #86efac;
@@ -225,6 +225,7 @@
             align-items: center;
             gap: 10px;
             min-width: 0;
+            flex-shrink: 0;
         }
         .task-num-badge {
             width: 34px;
@@ -267,6 +268,29 @@
             margin-top: 2px;
             opacity: 0.85;
             font-weight: 600;
+        }
+
+        /* ক্লিকের পর মাঝামাঝি স্লটে লাল কালারে টাইমার ও রিওয়ার্ড নেওয়ার লেখা */
+        .task-center-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 5px 8px;
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.25;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            max-width: 118px;
+        }
+        .state-claim .task-center-action {
+            background: #fff1f2;
+            color: #b91c1c;
+            border-color: #fda4af;
+            box-shadow: 0 2px 6px rgba(185, 28, 28, 0.18);
         }
 
         /* ডান পাশের ছোট তথ্য ব্যাজ (টাকা, প্যাকেজ, বরাদ্দ) */
@@ -363,7 +387,6 @@
     </style>
 </head>
 <body>
-
     <div class="task-container">
         <div class="task-header">
             <div class="header-left">
@@ -434,20 +457,20 @@
             <a href="package.html" style="display: inline-block; background-color: #2d3748; color: white; padding: 12px 25px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">প্যাকেজ কিনুন</a>
         </div>
 
-      <!-- ৩২০x৫০ ব্যানার স্লট -->
-<div class="taskora-banner-320x50" style="width: 100%; max-width: 320px; height: 50px; margin: 12px auto; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
-  <script>
-    atOptions = {
-      'key' : 'ef70bb41c6b9c54cf3d9448db4f94f11',
-      'format' : 'iframe',
-      'height' : 50,
-      'width' : 320,
-      'params' : {}
-    };
-  </script>
-  <script src="https://bauval.org/22/ef70bb41c6b9c54cf3d9448db4f94f11"></script>
-</div>
-
+        <!-- ৩২০x৫০ ব্যানার স্লট -->
+        <div class="taskora-banner-320x50" style="width: 100%; max-width: 320px; height: 50px; margin: 12px auto; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
+          <script>
+            atOptions = {
+              'key' : 'ef70bb41c6b9c54cf3d9448db4f94f11',
+              'format' : 'iframe',
+              'height' : 50,
+              'width' : 320,
+              'params' : {}
+            };
+          </script>
+          <script src="https://bauval.org/22/ef70bb41c6b9c54cf3d9448db4f94f11"></script>
+        </div>
+    </div>
 
     <!-- Fixed Bottom Navigation -->
     <nav class="bottom-nav">
@@ -674,6 +697,7 @@
           let statusLine = "ক্লিক করে কাজ শুরু করুন";
           let iconHtml = `#${i}`;
           let disabled = false;
+          let middleActionHtml = "";
 
           if (isHolidayToday) {
             stateClass = "state-holiday";
@@ -687,19 +711,22 @@
             disabled = true;
           } else if (isThisRunning) {
             stateClass = "state-running";
-            statusLine = `অপেক্ষা করুন: ${activeCountdownLeft} সেকেন্ড`;
+            statusLine = "বিজ্ঞাপন দেখা হচ্ছে";
             iconHtml = `<i class="fa-solid fa-hourglass-half"></i>`;
             disabled = true;
+            middleActionHtml = `<div class="task-center-action">অপেক্ষা করুন ${activeCountdownLeft} সেকেন্ড</div>`;
           } else if (isThisClaim) {
             stateClass = "state-claim";
-            statusLine = "পুরস্কার সংগ্রহ করুন (Claim)";
+            statusLine = "সময় শেষ";
             iconHtml = `<i class="fa-solid fa-gift"></i>`;
             disabled = false;
+            middleActionHtml = `<div class="task-center-action">রিওয়ার্ড নিতে ক্লিক করুন</div>`;
           } else if (isThisProcessing) {
             stateClass = "state-running";
             statusLine = "প্রসেসিং হচ্ছে...";
             iconHtml = `<i class="fa-solid fa-spinner fa-spin"></i>`;
             disabled = true;
+            middleActionHtml = `<div class="task-center-action">অপেক্ষা করুন...</div>`;
           } else if (isAnyTaskBusy) {
             stateClass = "state-available";
             statusLine = "চলমান কাজটি আগে শেষ করুন";
@@ -709,7 +736,7 @@
           btn.className = `serial-task-btn ${stateClass}`;
           btn.disabled = disabled;
 
-          const mainTitleText = isHolidayToday ? "ছুটির দিন" : `টাস্ক #${i}`;
+          const mainTitleText = isHolidayToday ? "ছুটির দিন" : "টাস্ক";
 
           btn.innerHTML = `
             <div class="task-btn-left">
@@ -719,6 +746,7 @@
                 <span class="task-sub-status">${statusLine}</span>
               </div>
             </div>
+            ${middleActionHtml}
             <div class="task-btn-right">
               <span class="reward-chip">৳ ${rewardAmount}</span>
               <div class="meta-mini-row">
@@ -796,6 +824,7 @@
 
                 const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
                 if (diffDays > trialConfig.totalDays) {
                   document.getElementById('taskCard').style.display = 'none';
                   document.getElementById('userInfoBox').style.display = 'none';
@@ -893,8 +922,9 @@
         renderSerialTaskButtons();
 
         const countdown = setInterval(() => {
-          if (activeCountdownLeft <= 0) {
+          if (activeCountdownLeft <= 1) {
             clearInterval(countdown);
+            activeCountdownLeft = 0;
             activeTaskPhase = "claim";
             renderSerialTaskButtons();
           } else {
@@ -1028,7 +1058,7 @@
           updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
           renderSerialTaskButtons();
 
-          alert(`অভিনন্দন! কাজ #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
+          alert(`অভিনন্দন! টাস্ক #${nextTaskNumber} সম্পন্ন হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
 
         } catch (error) {
           console.error("এরর:", error);
