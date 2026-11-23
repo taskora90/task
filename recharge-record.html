@@ -34,16 +34,16 @@
             background: var(--page-bg);
             color: var(--text-main);
             margin: 0;
-            padding: 16px;
+            padding: 14px;
             min-height: 100vh;
         }
 
         .container {
-            max-width: 620px;
+            max-width: 600px;
             margin: 0 auto;
             background: var(--panel-bg);
             border: 1px solid var(--ash-border);
-            padding: 20px;
+            padding: 16px;
             border-radius: 14px;
             box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
         }
@@ -51,15 +51,15 @@
         .back-btn {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            margin-bottom: 14px;
-            padding: 7px 12px;
+            gap: 6px;
+            margin-bottom: 12px;
+            padding: 6px 11px;
             border-radius: 8px;
             background: var(--ash-box);
             border: 1px solid var(--ash-border);
             text-decoration: none;
             color: var(--text-soft);
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 600;
             transition: background 0.2s ease, color 0.2s ease;
         }
@@ -72,90 +72,90 @@
         h2 {
             text-align: center;
             color: var(--text-main);
-            margin: 4px 0 20px;
-            font-size: 20px;
+            margin: 2px 0 16px;
+            font-size: 19px;
             font-weight: 700;
         }
 
         #rechargeHistoryList {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 10px;
         }
 
+        /* প্রতিটি রেকর্ডের জন্য আলাদা কমপ্যাক্ট অ্যাশ কার্ড */
         .record-card {
             background: var(--ash-box);
             border: 1px solid var(--ash-border);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
-            transition: transform 0.18s ease, background 0.18s ease;
+            padding: 12px 14px;
+            border-radius: 11px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+            transition: background 0.18s ease;
         }
 
         .record-card:hover {
             background: var(--ash-box-hover);
-            transform: translateY(-1px);
         }
 
         .card-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
-            padding-bottom: 11px;
-            margin-bottom: 12px;
-            border-bottom: 1px solid var(--ash-border);
+            padding-bottom: 8px;
+            margin-bottom: 9px;
+            border-bottom: 1px solid rgba(216, 222, 233, 0.14);
         }
 
-        .time-pill {
+        .time-text {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            background: var(--ash-inner);
-            border: 1px solid var(--ash-border);
-            color: var(--text-soft);
-            font-size: 12.5px;
+            gap: 6px;
+            color: var(--text-muted);
+            font-size: 12px;
             font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 8px;
         }
 
-        .time-pill i {
+        .time-text i {
             color: var(--accent);
         }
 
-        .details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .card-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13.5px;
+        }
+
+        .info-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             gap: 10px;
         }
 
-        .detail-box {
-            background: var(--ash-inner);
-            border: 1px solid rgba(216, 222, 233, 0.1);
-            border-radius: 9px;
-            padding: 10px 12px;
-        }
-
-        .detail-label {
-            display: block;
-            font-size: 11.5px;
+        .info-label {
             color: var(--text-muted);
-            margin-bottom: 4px;
+            font-size: 12.5px;
         }
 
-        .detail-value {
-            font-size: 14px;
-            font-weight: 700;
+        .info-val {
             color: var(--text-main);
+            font-weight: 700;
+            text-align: right;
             word-break: break-word;
         }
 
-        .trx-value {
+        .amount-val {
+            color: #eceff4;
+            font-size: 14px;
+        }
+
+        .trx-val {
             color: var(--accent);
             font-family: monospace;
-            font-size: 13.5px;
+            font-size: 13px;
         }
 
         .status-pending {
@@ -163,8 +163,8 @@
             background: var(--pending-bg);
             border: 1px solid rgba(235, 203, 139, 0.35);
             font-weight: 700;
-            font-size: 12px;
-            padding: 4px 10px;
+            font-size: 11.5px;
+            padding: 3px 9px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
@@ -176,8 +176,8 @@
             background: var(--approved-bg);
             border: 1px solid rgba(163, 190, 140, 0.35);
             font-weight: 700;
-            font-size: 12px;
-            padding: 4px 10px;
+            font-size: 11.5px;
+            padding: 3px 9px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
@@ -189,8 +189,8 @@
             background: var(--rejected-bg);
             border: 1px solid rgba(191, 97, 106, 0.35);
             font-weight: 700;
-            font-size: 12px;
-            padding: 4px 10px;
+            font-size: 11.5px;
+            padding: 3px 9px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
@@ -202,9 +202,9 @@
             color: var(--text-muted);
             background: var(--ash-box);
             border: 1px dashed var(--ash-border);
-            padding: 24px 16px;
+            padding: 20px 14px;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
         .error-msg {
@@ -212,17 +212,14 @@
             color: var(--rejected-text);
             background: var(--rejected-bg);
             border: 1px solid rgba(191, 97, 106, 0.35);
-            padding: 18px 14px;
+            padding: 16px 14px;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
         @media (max-width: 480px) {
             .container {
-                padding: 15px;
-            }
-            .details-grid {
-                grid-template-columns: 1fr;
+                padding: 13px;
             }
         }
     </style>
@@ -331,27 +328,27 @@
               return `
                 <div class="record-card">
                   <div class="card-top">
-                    <div class="time-pill">
+                    <span class="time-text">
                       <i class="fa-regular fa-clock"></i>
-                      <span>${formattedDate}</span>
-                    </div>
+                      ${formattedDate}
+                    </span>
                     <span class="${statusClass}">
                       <i class="fa-solid ${statusIcon}"></i> ${statusText}
                     </span>
                   </div>
 
-                  <div class="details-grid">
-                    <div class="detail-box">
-                      <span class="detail-label">পরিমাণ</span>
-                      <span class="detail-value">${amountText}</span>
+                  <div class="card-rows">
+                    <div class="info-line">
+                      <span class="info-label">পরিমাণ</span>
+                      <span class="info-val amount-val">${amountText}</span>
                     </div>
-                    <div class="detail-box">
-                      <span class="detail-label">মেথড</span>
-                      <span class="detail-value">${methodText}</span>
+                    <div class="info-line">
+                      <span class="info-label">মেথড</span>
+                      <span class="info-val">${methodText}</span>
                     </div>
-                    <div class="detail-box" style="grid-column: 1 / -1;">
-                      <span class="detail-label">TrxID</span>
-                      <span class="detail-value trx-value">${trxText}</span>
+                    <div class="info-line">
+                      <span class="info-label">TrxID</span>
+                      <span class="info-val trx-val">${trxText}</span>
                     </div>
                   </div>
                 </div>
