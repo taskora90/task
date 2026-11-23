@@ -46,7 +46,7 @@
         .team-salary-chart-card { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0; border-radius: 11px; padding: 12px; margin-bottom: 16px; box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04); }
         .team-chart-promo { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: linear-gradient(135deg, #3b4252 0%, #4c566a 100%); color: #ffffff; padding: 8px 11px; border-radius: 8px; margin-bottom: 10px; font-size: 12.5px; font-weight: bold; }
         .team-chart-promo-badge { background: #16a34a; color: #ffffff; font-size: 10.5px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
-        .team-chart-holder { position: relative; height: 155px; width: 100%; }
+        .team-chart-holder { position: relative; height: 172px; width: 100%; }
         .team-chart-footer { margin-top: 8px; font-size: 11.5px; color: #64748b; text-align: center; }
     </style>
 </head>
@@ -147,6 +147,30 @@
       let level2MembersCache = [];
       let teamSalaryChartInstance = null;
 
+      // প্রতিটি বারের মাথায় টাকার অ্যামাউন্ট লেখার Chart.js প্লাগইন
+      const barValueLabelsPlugin = {
+        id: "barValueLabelsPlugin",
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          const dataset = chart.data.datasets[0];
+          const meta = chart.getDatasetMeta(0);
+          if (!dataset || !meta || !meta.data) return;
+
+          ctx.save();
+          ctx.font = "bold 9.5px Arial, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.fillStyle = "#1e293b";
+
+          meta.data.forEach((barElement, index) => {
+            const val = Number(dataset.data[index] || 0);
+            ctx.fillText(`৳${val}`, barElement.x, barElement.y - 3);
+          });
+
+          ctx.restore();
+        }
+      };
+
       // ইউজার প্যাকেজ কিনেছে কি না তা যাচাই করার হেল্পার ফাংশন ("none" থাকলে নিষ্ক্রিয় ধরা হবে)
       function hasActivePackage(member) {
         const pkgVal = (member.package || member.packageId || "").toString().trim().toLowerCase();
@@ -246,6 +270,9 @@
 
         const labels = tiersAsc.map(t => `${t.minRef} জন`);
         const amounts = tiersAsc.map(t => Number(t.amount));
+        const maxAmount = Math.max(...amounts, 0);
+        const suggestedMax = maxAmount > 0 ? Math.ceil((maxAmount * 1.18) / 1000) * 1000 : 5000;
+
         const bgColors = tiersAsc.map(t => {
           if (paidDirectReferCount >= Number(t.minRef) && Number(t.amount) === Number(currentAmount) && Number(currentAmount) > 0) {
             return "#3b4252";
@@ -267,9 +294,15 @@
               borderRadius: 5
             }]
           },
+          plugins: [barValueLabelsPlugin],
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+              padding: {
+                top: 14
+              }
+            },
             plugins: {
               legend: { display: false }
             },
@@ -279,6 +312,7 @@
               },
               y: {
                 beginAtZero: true,
+                suggestedMax: suggestedMax,
                 ticks: {
                   font: { size: 10 },
                   callback: (val) => `৳ ${val}`
