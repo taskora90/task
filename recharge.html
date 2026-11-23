@@ -86,7 +86,7 @@
                         <div class="amount-chip" onclick="selectAmount(15000, this)">১৫০০০</div>
                         <div class="amount-chip" onclick="selectAmount('custom', this)">অন্যান্য</div>
                     </div>
-                    <input type="number" id="amountInput" placeholder="সর্বনিম্ন ১০০ টাকা" min="100" style="display:none; margin-top: 5px;">
+                    <input type="text" inputmode="numeric" id="amountInput" placeholder="সর্বনিম্ন ১০০ টাকা" style="display:none; margin-top: 5px;">
                 </div>
 
                 <button type="button" class="next-btn" onclick="goToDetailsSection()">পরবর্তী ধাপে যান</button>
@@ -96,7 +96,7 @@
             <div id="rechargeDetailsSection" class="section-box">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h3 id="selectedTitle" style="margin: 0; color: #2b2d42; font-size: 16px;">বিকাশ পার্সোনাল নম্বরসমূহ</h3>
-                    <button onclick="goBackToDropdown()" style="background: none; border: none; color: #007bff; cursor: pointer; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-rotate-left"></i> পরিবর্তন করুন</button>
+                    <button type="button" onclick="goBackToDropdown()" style="background: none; border: none; color: #007bff; cursor: pointer; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-rotate-left"></i> পরিবর্তন করুন</button>
                 </div>
 
                 <!-- নোটিশ বক্স -->
@@ -110,7 +110,7 @@
                         <small style="display: block; color: #666; font-size: 11px;">নম্বর ১ (পার্সোনাল)</small>
                         <span id="agentNum1Display">017**-******1</span>
                     </div>
-                    <button class="copy-btn" onclick="copyNum('agentNum1Real')"><i class="fa-regular fa-copy"></i> কপি</button>
+                    <button type="button" class="copy-btn" onclick="copyNum('agentNum1Real')"><i class="fa-regular fa-copy"></i> কপি</button>
                 </div>
                 <!-- আসল হিডেন নাম্বার ১ -->
                 <span id="agentNum1Real" style="display:none;">01711223344</span>
@@ -121,7 +121,7 @@
                         <small style="display: block; color: #666; font-size: 11px;">নম্বর ২ (পার্সোনাল)</small>
                         <span id="agentNum2Display">018**-******2</span>
                     </div>
-                    <button class="copy-btn" onclick="copyNum('agentNum2Real')"><i class="fa-regular fa-copy"></i> কপি</button>
+                    <button type="button" class="copy-btn" onclick="copyNum('agentNum2Real')"><i class="fa-regular fa-copy"></i> কপি</button>
                 </div>
                 <!-- আসল হিডেন নাম্বার ২ -->
                 <span id="agentNum2Real" style="display:none;">01811223344</span>
@@ -150,6 +150,11 @@
         let currentMethod = '';
         let selectedFinalAmount = 0;
 
+        function normalizeDigitsToEnglish(val) {
+            const bengaliDigits = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+            return String(val || "").replace(/[০-৯]/g, ch => bengaliDigits[ch]);
+        }
+
         function selectAmount(val, element) {
             document.querySelectorAll('.amount-chip').forEach(el => el.classList.remove('active'));
             element.classList.add('active');
@@ -163,7 +168,7 @@
             } else {
                 customInput.style.display = 'none';
                 customInput.value = val;
-                selectedFinalAmount = val;
+                selectedFinalAmount = Number(val);
             }
         }
 
@@ -177,10 +182,13 @@
             }
 
             const activeChip = document.querySelector('.amount-chip.active');
+            const rawInputVal = normalizeDigitsToEnglish(document.getElementById('amountInput').value).replace(/[^0-9.]/g, '');
+            const parsedInputAmount = Number(rawInputVal);
+
             if (activeChip && activeChip.innerText === 'অন্যান্য') {
-                selectedFinalAmount = Number(document.getElementById('amountInput').value);
+                selectedFinalAmount = Number.isNaN(parsedInputAmount) ? 0 : parsedInputAmount;
             } else if (!selectedFinalAmount) {
-                selectedFinalAmount = Number(document.getElementById('amountInput').value);
+                selectedFinalAmount = Number.isNaN(parsedInputAmount) ? 0 : parsedInputAmount;
             }
 
             if (!selectedFinalAmount || selectedFinalAmount < 100) {
@@ -214,10 +222,33 @@
             document.getElementById('rechargeDetailsSection').style.display = 'none';
         }
 
-        function copyNum(elementId) {
-            let num = document.getElementById(elementId).innerText;
-            navigator.clipboard.writeText(num);
-            alert('সম্পূর্ণ নম্বর কপি হয়েছে: ' + num);
+        function resetRechargeSelection() {
+            selectedFinalAmount = 0;
+            currentMethod = '';
+            document.querySelectorAll('.amount-chip').forEach(el => el.classList.remove('active'));
+            const customInput = document.getElementById('amountInput');
+            customInput.value = '';
+            customInput.style.display = 'none';
+            document.getElementById('paymentDropdown').selectedIndex = 0;
+        }
+
+        async function copyNum(elementId) {
+            const num = document.getElementById(elementId).innerText.trim();
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(num);
+                } else {
+                    const tempInput = document.createElement("textarea");
+                    tempInput.value = num;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(tempInput);
+                }
+                alert('সম্পূর্ণ নম্বর কপি হয়েছে: ' + num);
+            } catch (_) {
+                alert('নম্বর: ' + num);
+            }
         }
     </script>
 
@@ -225,7 +256,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -244,17 +275,23 @@
       let currentUser = null;
       let userData = null;
 
+      async function ensureUserProfileLoaded(uid) {
+        if (userData) return userData;
+        try {
+          const userSnap = await getDoc(doc(db, "users", uid));
+          if (userSnap.exists()) {
+            userData = userSnap.data();
+          }
+        } catch (e) {
+          console.error("ইউজার ডাটা লোড করতে ব্যর্থ:", e);
+        }
+        return userData;
+      }
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           currentUser = user;
-          try {
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists()) {
-              userData = userDoc.data();
-            }
-          } catch (e) {
-            console.error("ইউজার ডাটা লোড করতে ব্যর্থ:", e);
-          }
+          await ensureUserProfileLoaded(user.uid);
         } else {
           alert("রিচার্জ করার জন্য অনুগ্রহ করে প্রথমে লগইন করুন।");
           window.location.href = "login.html";
@@ -274,7 +311,12 @@
 
         const trxId = document.getElementById('trxId').value.trim();
 
-        if (selectedFinalAmount < 100) {
+        if (!trxId || trxId.length < 4) {
+          alert("দয়া করে সঠিক ট্রানজেকশন আইডি (TrxID) লিখুন।");
+          return;
+        }
+
+        if (!selectedFinalAmount || selectedFinalAmount < 100) {
           alert("সর্বনিম্ন রিচার্জ পরিমাণ ১০০ টাকা।");
           return;
         }
@@ -283,12 +325,23 @@
         submitBtn.innerText = "প্রসেসিং হচ্ছে...";
 
         try {
+          const dupQuery = query(collection(db, "recharge_requests"), where("trxId", "==", trxId));
+          const dupSnap = await getDocs(dupQuery);
+          if (!dupSnap.empty) {
+            alert("এই ট্রানজেকশন আইডি দিয়ে ইতিমধ্যে একটি আবেদন জমা হয়েছে।");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "জমা দিন";
+            return;
+          }
+
+          const latestUser = await ensureUserProfileLoaded(currentUser.uid);
+
           await addDoc(collection(db, "recharge_requests"), {
             userId: currentUser.uid,
-            userName: userData ? (userData.name || "N/A") : "N/A",
-            userPhone: userData ? (userData.phone || "N/A") : "N/A",
+            userName: latestUser ? (latestUser.name || latestUser.fullName || "N/A") : "N/A",
+            userPhone: latestUser ? (latestUser.phone || latestUser.mobile || "N/A") : "N/A",
             userEmail: currentUser.email || "",
-            amount: selectedFinalAmount,
+            amount: Number(selectedFinalAmount),
             trxId: trxId,
             method: currentMethod,
             status: "pending",
@@ -298,6 +351,7 @@
 
           alert("আপনার রিচার্জের আবেদনটি সফলভাবে জমা হয়েছে। অ্যাডমিন ভেরিফাই করে অ্যাপ্রুভ করার সাথে সাথেই টাকা আপনার রিচার্জ ক্যাশে যোগ হয়ে যাবে।");
           rechargeForm.reset();
+          resetRechargeSelection();
           goBackToDropdown();
         } catch (error) {
           console.error("রিচার্জ আবেদন জমা দিতে ত্রুটি:", error);
