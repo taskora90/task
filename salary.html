@@ -230,6 +230,8 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      const SALARY_COLLECTION = "salary_withdrawals";
+
       const defaultTiers = [
         { minRef: 12, amount: 2000 },
         { minRef: 20, amount: 4000 },
@@ -277,7 +279,6 @@
         } else if (endBn) {
           dateLine = `${endBn} পর্যন্ত টাকা তোলা যাবে।`;
         }
-
         return `${dateLine ? dateLine + " " : ""}মাসে সর্বোচ্চ ${limitBn} বার টাকা তোলা যাবে।`.trim();
       }
 
@@ -422,7 +423,7 @@
         updateSubmitButtonState();
 
         try {
-          const q = query(collection(db, "salary_withdraw_requests"), where("userId", "==", uid));
+          const q = query(collection(db, SALARY_COLLECTION), where("userId", "==", uid));
           const snap = await getDocs(q);
 
           if (snap.empty) {
@@ -503,7 +504,7 @@
           }
 
           const monthKey = getCurrentMonthKeyDhaka();
-          const existingSnap = await getDocs(query(collection(db, "salary_withdraw_requests"), where("userId", "==", currentAuthUser.uid)));
+          const existingSnap = await getDocs(query(collection(db, SALARY_COLLECTION), where("userId", "==", currentAuthUser.uid)));
           let monthCount = 0;
           existingSnap.forEach((docSnap) => {
             const d = docSnap.data();
@@ -522,7 +523,7 @@
           currentMonthWithdrawCount = monthCount + 1;
           updateSubmitButtonState();
 
-          await addDoc(collection(db, "salary_withdraw_requests"), {
+          await addDoc(collection(db, SALARY_COLLECTION), {
             userId: currentAuthUser.uid,
             userName: currentUserData.name || "নামবিহীন",
             userPhone: currentUserData.phone || "",
@@ -617,7 +618,7 @@
             : defaultTiers;
 
           const tiersAsc = [...rawTiers].sort((a, b) => Number(a.minRef) - Number(b.minRef));
-          const tiersDesc = [...rawTiers].sort((a, b) => Number(a.minRef) - Number(b.minRef));
+          const tiersDesc = [...rawTiers].sort((a, b) => Number(b.minRef) - Number(a.minRef));
 
           let totalRef = 0;
           let activePkgRef = 0;
@@ -673,16 +674,6 @@
       });
     </script>
 
-
-
-
-  <script type="module" src="./freeze-guard.js"></script>
-</body>
-
-
-
-
-
-
+    <script type="module" src="./freeze-guard.js"></script>
 </body>
 </html>
