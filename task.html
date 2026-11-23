@@ -894,7 +894,7 @@
           let iconHtml = `<i class="fa-solid fa-play"></i>`;
           let disabled = false;
           let topTimerHtml = "";
-          let mainTitleText = "টাস্ক";
+          let mainTitleText = `টাস্ক #${toBnNum(i)}`;
 
           if (isHolidayToday) {
             stateClass = "state-holiday";
@@ -910,21 +910,21 @@
             disabled = true;
           } else if (phase === "running") {
             stateClass = "state-running";
-            mainTitleText = "টাস্ক";
+            mainTitleText = `টাস্ক #${toBnNum(i)}`;
             statusLine = "কাজ চলছে...";
             iconHtml = `<i class="fa-solid fa-hourglass-half"></i>`;
             disabled = true;
             topTimerHtml = `<span class="top-center-red-timer">অপেক্ষা করুন ${remSec} সেকেন্ড</span>`;
           } else if (phase === "claim") {
             stateClass = "state-claim";
-            mainTitleText = "টাস্ক";
+            mainTitleText = `টাস্ক #${toBnNum(i)}`;
             statusLine = "রিওয়ার্ড নিতে ক্লিক করুন";
             statusClass = "task-sub-status claim-red-text";
             iconHtml = `<i class="fa-solid fa-gift"></i>`;
             disabled = false;
           } else if (phase === "processing") {
             stateClass = "state-running";
-            mainTitleText = "টাস্ক";
+            mainTitleText = `টাস্ক #${toBnNum(i)}`;
             statusLine = "প্রসেসিং হচ্ছে...";
             iconHtml = `<i class="fa-solid fa-spinner fa-spin"></i>`;
             disabled = true;
