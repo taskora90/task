@@ -153,22 +153,30 @@
     .tk-tabs-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .tk-tab-col {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      align-items: stretch;
     }
 
     .tk-tab-btn {
+      width: 100%;
       background: var(--bg-soft);
       color: var(--text-main);
       border: 1px solid var(--border-light);
-      padding: 12px 14px;
+      padding: 11px 12px;
       border-radius: 10px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 7px;
       transition: 0.2s ease;
     }
 
@@ -177,6 +185,32 @@
       border-color: var(--primary);
       color: #ffffff;
       box-shadow: 0 4px 10px rgba(37, 99, 235, 0.22);
+    }
+
+    .tk-history-btn {
+      align-self: flex-start;
+      background: #f1f5f9;
+      color: var(--text-main);
+      border: 1px solid var(--border-light);
+      padding: 5px 11px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: 0.15s ease;
+    }
+
+    .tk-history-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .tk-history-btn.active {
+      background: var(--header-dark);
+      border-color: var(--header-dark);
+      color: #ffffff;
     }
 
     .tk-list-header {
@@ -260,7 +294,7 @@
       font-size: 13px;
       line-height: 1.65;
       color: #374151;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       word-break: break-word;
     }
 
@@ -326,7 +360,7 @@
 <body>
   <div id="tkLockScreen" class="tk-lock-card">
     <h2 class="tk-lock-title">🔒 রিকোয়েস্ট প্যানেল লক</h2>
-    <p class="tk-lock-desc">রিচার্জ ও উইথড্রো রিকোয়েস্ট দেখতে পাসওয়ার্ড দিন।</p>
+    <p class="tk-lock-desc">পেন্ডিং রিচার্জ ও উইথড্রো রিকোয়েস্ট ম্যানেজ করতে পাসওয়ার্ড দিন।</p>
     <input type="password" id="tkStaffPassInput" class="tk-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off" />
     <button type="button" id="tkStaffUnlockBtn" class="tk-lock-btn">প্রবেশ করুন</button>
     <div id="tkStaffPassErr" class="tk-lock-err"></div>
@@ -338,7 +372,7 @@
         <h2 class="tk-banner-title">
           <i class="fa-solid fa-list-check"></i> রিকোয়েস্ট কন্ট্রোল প্যানেল
         </h2>
-        <p class="tk-banner-sub">রিচার্জ ও উইথড্রো রিকোয়েস্ট সিরিয়ালে দেখুন এবং এখান থেকেই অ্যাপ্রুভ বা রিজেক্ট করুন</p>
+        <p class="tk-banner-sub">শুধু রানিং পেন্ডিং রিকোয়েস্ট দেখুন; অ্যাপ্রুভ বা রিজেক্ট করলেই লিস্ট থেকে সরে যাবে</p>
       </div>
       <button type="button" id="tkRefreshBtn" class="tk-refresh-btn">
         <i class="fa-solid fa-rotate-right"></i> রিফ্রেশ
@@ -347,12 +381,23 @@
 
     <div class="tk-card">
       <div class="tk-tabs-grid">
-        <button type="button" id="btnRechargeTab" class="tk-tab-btn active">
-          <i class="fa-solid fa-mobile-screen-button"></i> রিচার্জ রিকোয়েস্ট
-        </button>
-        <button type="button" id="btnWithdrawTab" class="tk-tab-btn">
-          <i class="fa-solid fa-money-bill-transfer"></i> উইথড্রো রিকোয়েস্ট
-        </button>
+        <div class="tk-tab-col">
+          <button type="button" id="btnRechargeTab" class="tk-tab-btn active">
+            <i class="fa-solid fa-mobile-screen-button"></i> রিচার্জ রিকোয়েস্ট
+          </button>
+          <button type="button" id="btnRechargeHistory" class="tk-history-btn">
+            <i class="fa-solid fa-clock-rotate-left"></i> হিস্টোরি
+          </button>
+        </div>
+
+        <div class="tk-tab-col">
+          <button type="button" id="btnWithdrawTab" class="tk-tab-btn">
+            <i class="fa-solid fa-money-bill-transfer"></i> উইথড্রো রিকোয়েস্ট
+          </button>
+          <button type="button" id="btnWithdrawHistory" class="tk-history-btn">
+            <i class="fa-solid fa-clock-rotate-left"></i> হিস্টোরি
+          </button>
+        </div>
       </div>
     </div>
 
@@ -360,7 +405,7 @@
 
     <div class="tk-card">
       <div class="tk-list-header">
-        <h3 id="tkSectionTitle" class="tk-list-title">রিচার্জ রিকোয়েস্ট সিরিয়াল</h3>
+        <h3 id="tkSectionTitle" class="tk-list-title">রিচার্জ রিকোয়েস্ট (পেন্ডিং)</h3>
         <span id="tkTotalBadge" class="tk-badge-count">০টি রিকোয়েস্ট</span>
       </div>
 
@@ -380,8 +425,7 @@
       updateDoc
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // প্রয়োজনে এখানে নিজের পাসওয়ার্ড দিন
-    const STAFF_PASS = "TarekHasan@36";
+    const STAFF_PASS = "Kawtha@36";
     const VAT_RATE = 0.10; // উইথড্রতে ১০% ভ্যাট
 
     const firebaseConfig = {
@@ -402,7 +446,8 @@
       withdraw: "withdrawals"
     };
 
-    let currentTab = "recharge";
+    // viewMode: "recharge_pending" | "withdraw_pending" | "recharge_history" | "withdraw_history"
+    let viewMode = "recharge_pending";
     let cachedItems = [];
     let isUnlocked = false;
 
@@ -414,6 +459,9 @@
 
     const btnRechargeTab = document.getElementById("btnRechargeTab");
     const btnWithdrawTab = document.getElementById("btnWithdrawTab");
+    const btnRechargeHistory = document.getElementById("btnRechargeHistory");
+    const btnWithdrawHistory = document.getElementById("btnWithdrawHistory");
+
     const refreshBtn = document.getElementById("tkRefreshBtn");
     const sectionTitle = document.getElementById("tkSectionTitle");
     const totalBadge = document.getElementById("tkTotalBadge");
@@ -425,7 +473,7 @@
         isUnlocked = true;
         lockScreen.style.display = "none";
         mainPanel.style.display = "block";
-        loadTabData(currentTab);
+        loadViewData(viewMode);
       } else {
         passErr.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
       }
@@ -466,7 +514,7 @@
     }
 
     function getTimestampMs(row) {
-      const val = row.timestamp || row.createdAt || 0;
+      const val = row.reviewedAt || row.timestamp || row.createdAt || 0;
       if (typeof val === "number") return val;
       if (val && typeof val.toMillis === "function") return val.toMillis();
       if (val && typeof val.seconds === "number") return val.seconds * 1000;
@@ -487,27 +535,48 @@
       return { deducted, payable, vatCut };
     }
 
-    async function loadTabData(tabType) {
+    function updateModeUI(mode) {
+      btnRechargeTab.classList.toggle("active", mode === "recharge_pending");
+      btnWithdrawTab.classList.toggle("active", mode === "withdraw_pending");
+      btnRechargeHistory.classList.toggle("active", mode === "recharge_history");
+      btnWithdrawHistory.classList.toggle("active", mode === "withdraw_history");
+
+      if (mode === "recharge_pending") {
+        sectionTitle.textContent = "রিচার্জ রিকোয়েস্ট (পেন্ডিং)";
+      } else if (mode === "withdraw_pending") {
+        sectionTitle.textContent = "উইথড্রো রিকোয়েস্ট (পেন্ডিং)";
+      } else if (mode === "recharge_history") {
+        sectionTitle.textContent = "রিচার্জ হিস্টোরি (অ্যাপ্রুভড ও রিজেক্টেড)";
+      } else {
+        sectionTitle.textContent = "উইথড্রো হিস্টোরি (অ্যাপ্রুভড ও রিজেক্টেড)";
+      }
+    }
+
+    async function loadViewData(mode = viewMode) {
       if (!isUnlocked) return;
-      currentTab = tabType;
-      btnRechargeTab.classList.toggle("active", tabType === "recharge");
-      btnWithdrawTab.classList.toggle("active", tabType === "withdraw");
-      sectionTitle.textContent = tabType === "recharge"
-        ? "রিচার্জ রিকোয়েস্ট সিরিয়াল"
-        : "উইথড্রো রিকোয়েস্ট সিরিয়াল";
+      viewMode = mode;
+      updateModeUI(mode);
+
+      const isRecharge = mode === "recharge_pending" || mode === "recharge_history";
+      const isHistory = mode === "recharge_history" || mode === "withdraw_history";
+      const colName = isRecharge ? COLLECTIONS.recharge : COLLECTIONS.withdraw;
 
       serialContainer.innerHTML = `<div class="tk-empty-box">তথ্য লোড হচ্ছে...</div>`;
 
       try {
-        const colName = COLLECTIONS[tabType];
         const snap = await getDocs(collection(db, colName));
         const list = [];
 
         snap.forEach((docSnap) => {
-          list.push({
-            id: docSnap.id,
-            ...docSnap.data()
-          });
+          const data = docSnap.data() || {};
+          const status = normalizeStatus(data.status);
+          const matchesMode = isHistory ? status !== "pending" : status === "pending";
+          if (matchesMode) {
+            list.push({
+              id: docSnap.id,
+              ...data
+            });
+          }
         });
 
         list.sort((a, b) => getTimestampMs(b) - getTimestampMs(a));
@@ -515,7 +584,9 @@
         totalBadge.textContent = `${list.length}টি রিকোয়েস্ট`;
 
         if (!list.length) {
-          serialContainer.innerHTML = `<div class="tk-empty-box">কোনো রিকোয়েস্ট পাওয়া যায়নি।</div>`;
+          serialContainer.innerHTML = isHistory
+            ? `<div class="tk-empty-box">কোনো হিস্টোরি রেকর্ড পাওয়া যায়নি।</div>`
+            : `<div class="tk-empty-box">কোনো পেন্ডিং রিকোয়েস্ট নেই।</div>`;
           return;
         }
 
@@ -527,7 +598,7 @@
           const amount = item.amount ?? 0;
 
           let extraLines = "";
-          if (tabType === "recharge") {
+          if (isRecharge) {
             extraLines = `
               <strong>পরিমাণ:</strong> ৳${amount}<br>
               <strong>মাধ্যম:</strong> ${method}<br>
@@ -544,6 +615,29 @@
             `;
           }
 
+          const actionButtons = !isHistory
+            ? `
+              <div class="tk-btn-pair">
+                <button
+                  type="button"
+                  class="tk-btn-approve"
+                  data-decision="approved"
+                  data-doc-id="${item.id}"
+                >
+                  <i class="fa-solid fa-check"></i> অ্যাপ্রুভ
+                </button>
+                <button
+                  type="button"
+                  class="tk-btn-reject"
+                  data-decision="rejected"
+                  data-doc-id="${item.id}"
+                >
+                  <i class="fa-solid fa-xmark"></i> রিজেক্ট
+                </button>
+              </div>
+            `
+            : "";
+
           return `
             <div class="tk-req-row" data-id="${item.id}">
               <div class="tk-req-top">
@@ -554,26 +648,7 @@
                 ${extraLines}<br>
                 <strong>ID:</strong> <code>${item.id}</code>
               </div>
-              <div class="tk-btn-pair">
-                <button
-                  type="button"
-                  class="tk-btn-approve"
-                  data-decision="approved"
-                  data-doc-id="${item.id}"
-                  ${status !== "pending" ? "disabled" : ""}
-                >
-                  <i class="fa-solid fa-check"></i> অ্যাপ্রুভ
-                </button>
-                <button
-                  type="button"
-                  class="tk-btn-reject"
-                  data-decision="rejected"
-                  data-doc-id="${item.id}"
-                  ${status !== "pending" ? "disabled" : ""}
-                >
-                  <i class="fa-solid fa-xmark"></i> রিজেক্ট
-                </button>
-              </div>
+              ${actionButtons}
             </div>
           `;
         }).join("");
@@ -596,8 +671,10 @@
       const rowBtns = rowEl ? rowEl.querySelectorAll("button") : [];
       rowBtns.forEach((b) => (b.disabled = true));
 
+      const isRecharge = viewMode === "recharge_pending";
+
       try {
-        if (currentTab === "recharge") {
+        if (isRecharge) {
           await updateDoc(doc(db, COLLECTIONS.recharge, docId), {
             status: decision,
             reviewedAt: new Date().toISOString()
@@ -639,22 +716,32 @@
           }
         }
 
+        // সাথে সাথে পেন্ডিং লিস্ট থেকে কার্ডটি সরিয়ে দেওয়া
+        cachedItems = cachedItems.filter((r) => r.id !== docId);
+        if (rowEl) {
+          rowEl.remove();
+        }
+        totalBadge.textContent = `${cachedItems.length}টি রিকোয়েস্ট`;
+        if (!cachedItems.length) {
+          serialContainer.innerHTML = `<div class="tk-empty-box">কোনো পেন্ডিং রিকোয়েস্ট নেই।</div>`;
+        }
+
         showBanner(
           decision === "approved"
             ? "✅ রিকোয়েস্টটি সফলভাবে অ্যাপ্রুভ করা হয়েছে!"
             : "❌ রিকোয়েস্টটি রিজেক্ট করা হয়েছে!"
         );
-
-        await loadTabData(currentTab);
       } catch (err) {
         showBanner("আপডেট করতে সমস্যা হয়েছে: " + err.message, true);
         rowBtns.forEach((b) => (b.disabled = false));
       }
     });
 
-    btnRechargeTab.addEventListener("click", () => loadTabData("recharge"));
-    btnWithdrawTab.addEventListener("click", () => loadTabData("withdraw"));
-    refreshBtn.addEventListener("click", () => loadTabData(currentTab));
+    btnRechargeTab.addEventListener("click", () => loadViewData("recharge_pending"));
+    btnWithdrawTab.addEventListener("click", () => loadViewData("withdraw_pending"));
+    btnRechargeHistory.addEventListener("click", () => loadViewData("recharge_history"));
+    btnWithdrawHistory.addEventListener("click", () => loadViewData("withdraw_history"));
+    refreshBtn.addEventListener("click", () => loadViewData(viewMode));
   </script>
 </body>
 </html>
