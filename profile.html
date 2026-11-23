@@ -350,11 +350,134 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  const BLOCKED_PKG_IDS = new Set([
+    "", "none", "free", "free_trial", "freetrial",
+    "null", "undefined", "false", "0", "no_package", "নিষ্ক্রিয়"
+  ]);
+
+  function normalizePkgId(rawId) {
+    return String(rawId || "").trim().toLowerCase().replace(/\s+/g, "_");
+  }
+
+  function getPkgKeyCandidates(rawId) {
+    const clean = String(rawId || "").trim();
+    const norm = normalizePkgId(clean);
+    if (!norm || BLOCKED_PKG_IDS.has(norm)) return [];
+    return Array.from(new Set([
+      clean,
+      norm,
+      norm.replace(/\./g, "_"),
+      norm.replace(/_/g, ".")
+    ])).filter(Boolean);
+  }
+
+  async function getTrustedNowDate() {
+    let baseMs = Date.now();
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const resp = await fetch(window.location.href, {
+        method: "HEAD",
+        cache: "no-store",
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      const dateHeader = resp.headers.get("date");
+      if (dateHeader) {
+        const parsedMs = Date.parse(dateHeader);
+        if (!Number.isNaN(parsedMs)) {
+          baseMs = parsedMs;
+        }
+      }
+    } catch (_) {}
+    return new Date(baseMs);
+  }
+
+  function getDhakaDayKey(dateObj) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Dhaka",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(dateObj);
+
+    const y = parts.find(p => p.type === "year")?.value || "1970";
+    const m = parts.find(p => p.type === "month")?.value || "01";
+    const d = parts.find(p => p.type === "day")?.value || "01";
+    return `${y}-${m}-${d}`;
+  }
+  async function resolvePackageInfo(rawPkgId) {
+    const candidates = getPkgKeyCandidates(rawPkgId);
+    for (const cand of candidates) {
+      const pkgSnap = await getDoc(doc(db, "packages", cand));
+      if (pkgSnap.exists()) {
+        const pData = pkgSnap.data() || {};
+        const price = Number(pData.price ?? pData.amount ?? 0);
+        if (price > 0) {
+          return {
+            name: pData.name || pData.title || rawPkgId,
+            price: String(price)
+          };
+        }
+      }
+
+      const q = query(collection(db, "packages"), where("packageId", "==", cand));
+      const querySnap = await getDocs(q);
+      if (!querySnap.empty) {
+        const pData = querySnap.docs[0].data() || {};
+        const price = Number(pData.price ?? pData.amount ?? 0);
+        if (price > 0) {
+          return {
+            name: pData.name || pData.title || rawPkgId,
+            price: String(price)
+          };
+        }
+      }
+    }
+    return null;
+  }
+
+  async function getFreeTrialStatus(userObj, trustedNow, todayDhakaKey) {
+    let totalDays = 3;
+    try {
+      const snap = await getDoc(doc(db, "admin_settings", "free_trial"));
+      if (snap.exists() && snap.data().totalDays !== undefined) {
+        const parsed = Number(snap.data().totalDays);
+        if (!Number.isNaN(parsed) && parsed >= 0) totalDays = parsed;
+      }
+    } catch (_) {}
+
+    let regDate = trustedNow;
+    if (userObj.createdAt && typeof userObj.createdAt.toDate === "function") {
+      regDate = userObj.createdAt.toDate();
+    } else if (userObj.createdAt) {
+      regDate = new Date(userObj.createdAt);
+    } else if (auth.currentUser && auth.currentUser.metadata && auth.currentUser.metadata.creationTime) {
+      regDate = new Date(auth.currentUser.metadata.creationTime);
+    }
+
+    const regKey = getDhakaDayKey(regDate);
+    const regParts = regKey.split("-").map(Number);
+    const nowParts = todayDhakaKey.split("-").map(Number);
+    const regUtc = Date.UTC(regParts[0], regParts[1] - 1, regParts[2]);
+    const nowUtc = Date.UTC(nowParts[0], nowParts[1] - 1, nowParts[2]);
+    const diffDays = Math.floor((nowUtc - regUtc) / (1000 * 60 * 60 * 24)) + 1;
+
+    if (diffDays > totalDays) {
+      return { active: false, label: "কোনো প্যাকেজ নেই" };
+    }
+    const remainingDays = Math.max(1, (totalDays + 1) - diffDays);
+    return { active: true, label: `ফ্রি ট্রায়াল (${remainingDays} দিন বাকি)` };
+  }
+
   onAuthStateChanged(auth, async (user) => {
 
     if (user) {
 
       try {
+
+        const trustedNow = await getTrustedNowDate();
+        const todayDhakaKey = getDhakaDayKey(trustedNow);
 
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
@@ -371,40 +494,32 @@
             data.phone || data.mobile || user.phoneNumber || "---";
 
           // ফায়ারবেস থেকে ডাইনামিকালি প্যাকেজ তথ্য ফেচ করা
-          let userPackage = data.package;
+          const rawPkg = (data.package || data.packageId || data.activePackage || "").toString().trim();
           let pkgName = "কোনো প্যাকেজ নেই";
           let pkgPrice = "0";
 
-          if (userPackage && userPackage !== "free_trial" && userPackage !== "none") {
-            // ১. ডকুমেন্ট আইডি দিয়ে খোঁজার চেষ্টা
-            let pkgDocRef = doc(db, "packages", userPackage);
-            let pkgSnap = await getDoc(pkgDocRef);
-
-            if (pkgSnap.exists()) {
-              let pkgData = pkgSnap.data();
-              pkgName = pkgData.name || userPackage;
-              pkgPrice = pkgData.price || "0";
-            } else {
-              // ২. packageId ফিল্ড দিয়ে খোঁজার চেষ্টা
-              const q = query(collection(db, "packages"), where("packageId", "==", userPackage));
-              const querySnap = await getDocs(q);
-              if (!querySnap.empty) {
-                let pkgData = querySnap.docs[0].data();
-                pkgName = pkgData.name || userPackage;
-                pkgPrice = pkgData.price || "0";
-              }
+          const paidPkg = await resolvePackageInfo(rawPkg);
+          if (paidPkg) {
+            pkgName = paidPkg.name;
+            pkgPrice = paidPkg.price;
+          } else {
+            const norm = normalizePkgId(rawPkg);
+            if (!norm || norm === "free_trial" || norm === "freetrial" || norm === "free") {
+              const trialStatus = await getFreeTrialStatus(data, trustedNow, todayDhakaKey);
+              pkgName = trialStatus.label;
+              pkgPrice = "0";
             }
-          } else if (userPackage === "free_trial") {
-            pkgName = "ফ্রি ট্রায়াল";
-            pkgPrice = "0";
           }
 
           document.getElementById('packageName').innerText = pkgName;
           document.getElementById('packagePrice').innerText = pkgPrice;
 
           // Firebase থেকে সঠিক আয়ের তথ্য ফেচ করা
+          const prevDayKey = data.lastTaskDayKey || "";
+          const isNewDay = prevDayKey && prevDayKey !== todayDhakaKey;
+
           const teamComm = Number(data.teamCommission || 0);
-          const dailyTsk = Number(data.dailyTaskIncome || data.dailyTask || 0);
+          const dailyTsk = isNewDay ? 0 : Number(data.dailyTaskIncome || data.dailyTask || 0);
           const myCsh = Number(data.myCash || 0);
           const taskCsh = Number(data.taskCash || 0);
 
