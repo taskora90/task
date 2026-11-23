@@ -999,18 +999,21 @@
           });
 
           if (decision === "approved" && item.userId) {
-            const userRef = doc(db, "users", item.userId);
-            await runTransaction(db, async (tx) => {
-              const uSnap = await tx.get(userRef);
-              if (uSnap.exists()) {
-                const uData = uSnap.data() || {};
-                const prevRechargeCash = Number(uData.rechargeCash || uData.balance || 0);
-                tx.update(userRef, {
-                  rechargeCash: prevRechargeCash + Number(item.amount || 0)
-                });
-              }
-            });
-          }
+  const userRef = doc(db, "users", item.userId);
+  await runTransaction(db, async (tx) => {
+    const uSnap = await tx.get(userRef);
+    if (uSnap.exists()) {
+      const uData = uSnap.data() || {};
+      const addAmt = Number(item.amount || 0);
+      const prevMyCash = Number(uData.myCash || 0);
+
+      tx.update(userRef, {
+        myCash: prevMyCash + addAmt
+      });
+    }
+  });
+}
+
         } else {
           await updateDoc(doc(db, COLLECTIONS.withdraw, docId), {
             status: decision,
