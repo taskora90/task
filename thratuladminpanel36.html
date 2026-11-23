@@ -1,249 +1,374 @@
-  <!-- ===== পার্ট ১.১: রিচার্জ রিকোয়েস্ট (স্বতন্ত্র ব্লক) ===== -->
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taskora — রিচার্জ ও উইথড্রো রিকোয়েস্ট</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    .tk-rc-card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-left: 4px solid #2563eb;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    :root {
+      --bg-page: #eef2f5;
+      --bg-card: #ffffff;
+      --bg-soft: #f8fafc;
+      --header-dark: #2b2d42;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border-light: #d1d8e0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --success-hover: #15803d;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .tk-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .tk-lock-card {
+      max-width: 420px;
+      margin: 40px auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 22px 18px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+      text-align: center;
+    }
+
+    .tk-lock-title {
+      margin: 0 0 6px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--header-dark);
+    }
+
+    .tk-lock-desc {
+      margin: 0 0 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .tk-lock-input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border-light);
+      border-radius: 9px;
       font-size: 14px;
+      background: var(--bg-soft);
+      margin-bottom: 10px;
+    }
+
+    .tk-lock-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 11px 14px;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tk-lock-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .tk-lock-err {
+      min-height: 18px;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--danger);
+    }
+
+    .tk-banner {
+      background: var(--header-dark);
+      color: #ffffff;
+      padding: 14px 18px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tk-banner-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tk-banner-sub {
+      margin: 3px 0 0;
+      font-size: 12px;
+      color: #d1d5db;
+    }
+
+    .tk-refresh-btn {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tk-refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .tk-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 14px;
+    }
+
+    .tk-tabs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tk-tab-btn {
+      background: var(--bg-soft);
+      color: var(--text-main);
+      border: 1px solid var(--border-light);
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.2s ease;
+    }
+
+    .tk-tab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.22);
+    }
+
+    .tk-list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      flex-wrap: wrap;
+    }
+
+    .tk-list-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--header-dark);
+    }
+
+    .tk-badge-count {
+      background: #e0e7ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .tk-serial-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tk-req-row {
+      background: var(--bg-soft);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 13px 14px;
+    }
+
+    .tk-req-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tk-serial-num {
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--header-dark);
+    }
+
+    .tk-status-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+
+    .st-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .st-approved {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .st-rejected {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .tk-req-details {
+      font-size: 13px;
+      line-height: 1.65;
+      color: #374151;
+      margin-bottom: 12px;
       word-break: break-word;
     }
-    .tk-rc-card p { margin: 5px 0; color: #374151; }
-    .tk-rc-btn-ok {
-      background: #16a34a;
+
+    .tk-btn-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tk-btn-approve {
+      background: var(--success);
       color: #ffffff;
       border: none;
-      padding: 8px 14px;
+      padding: 10px 12px;
       border-radius: 8px;
-      font-weight: 700;
       font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
-      margin-top: 8px;
     }
-    .tk-rc-btn-no {
-      background: #dc2626;
+
+    .tk-btn-approve:hover:not(:disabled) {
+      background: var(--success-hover);
+    }
+
+    .tk-btn-reject {
+      background: var(--danger);
       color: #ffffff;
       border: none;
-      padding: 8px 14px;
+      padding: 10px 12px;
       border-radius: 8px;
-      font-weight: 700;
       font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
-      margin-top: 8px;
-      margin-left: 6px;
-    }
-  </style>
-
-  <script type="module">
-    import { collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const { db } = window.tkFirebase;
-
-    async function loadRechargeList() {
-      const box = document.getElementById("tkRechargeListBox");
-      if (!box) return;
-      box.innerHTML = "লোড হচ্ছে...";
-      try {
-        const snap = await getDocs(collection(db, "recharge_requests"));
-        if (snap.empty) {
-          box.innerHTML = `<div class="tk-rc-card">কোনো রিচার্জ রিকোয়েস্ট নেই।</div>`;
-          return;
-        }
-        let html = "";
-        let pendingCount = 0;
-        snap.forEach((d) => {
-          const data = d.data();
-          if (!data.status || data.status === "pending") {
-            pendingCount++;
-            html += `
-              <div class="tk-rc-card">
-                <p>ইউজার নাম: <strong>${data.userName || "N/A"}</strong></p>
-                <p>ফোন/ইমেইল: <strong>${data.userPhone || data.userEmail || "N/A"}</strong></p>
-                <p>পরিমাণ: <strong style="color:#16a34a;">৳ ${data.amount}</strong></p>
-                <p>মেথড: <strong>${data.method || ""}</strong></p>
-                <p>TrxID: <strong style="color:#2563eb;">${data.trxId || ""}</strong></p>
-                <p>স্ট্যাটাস: <em>${data.status || "pending"}</em></p>
-                <button type="button" class="tk-rc-btn-ok" data-rc-approve="${d.id}" data-uid="${data.userId}" data-amt="${data.amount}">এপ্রুভ</button>
-                <button type="button" class="tk-rc-btn-no" data-rc-reject="${d.id}">রিজেক্ট</button>
-              </div>
-            `;
-          }
-        });
-        box.innerHTML = pendingCount ? html : `<div class="tk-rc-card">কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।</div>`;
-
-        box.querySelectorAll("[data-rc-approve]").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const id = btn.getAttribute("data-rc-approve");
-            const uid = btn.getAttribute("data-uid");
-            const amt = Number(btn.getAttribute("data-amt") || 0);
-            try {
-              await updateDoc(doc(db, "users", uid), { myCash: increment(amt) });
-              await updateDoc(doc(db, "recharge_requests", id), { status: "approved" });
-              alert("রিচার্জ সফলভাবে অনুমোদিত হয়েছে!");
-              loadRechargeList();
-            } catch (e) {
-              alert("সমস্যা হয়েছে!");
-            }
-          });
-        });
-
-        box.querySelectorAll("[data-rc-reject]").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const id = btn.getAttribute("data-rc-reject");
-            try {
-              await updateDoc(doc(db, "recharge_requests", id), { status: "rejected" });
-              alert("রিচার্জ রিকোয়েস্ট বাতিল করা হয়েছে।");
-              loadRechargeList();
-            } catch (e) {
-              alert("সমস্যা হয়েছে!");
-            }
-          });
-        });
-      } catch (e) {
-        box.innerHTML = `<div class="tk-rc-card" style="color:#dc2626;">ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
-      }
     }
 
-    window.tkRegisterFeature({
-      id: "recharge",
-      title: "রিচার্জ রিকোয়েস্ট",
-      icon: "fa-wallet",
-      renderRoom: (root) => {
-        root.innerHTML = `
-          <h3 style="margin:0 0 12px;color:#141517;">রিচার্জ রিকোয়েস্ট তালিকা</h3>
-          <div id="tkRechargeListBox">লোড হচ্ছে...</div>
-        `;
-      },
-      onOpen: loadRechargeList
-    });
-  </script>
+    .tk-btn-reject:hover:not(:disabled) {
+      background: var(--danger-hover);
+    }
 
-  <!-- ===== পার্ট ১.২: উত্তোলন রিকোয়েস্ট (স্বতন্ত্র ব্লক) ===== -->
-  <style>
-    .tk-wd-card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-left: 4px solid #d97706;
-      border-radius: 12px;
-      padding: 14px;
+    .tk-btn-approve:disabled,
+    .tk-btn-reject:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .tk-empty-box {
+      text-align: center;
+      padding: 26px 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .tk-alert-banner {
+      display: none;
       margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      font-size: 14px;
-      word-break: break-word;
-    }
-    .tk-wd-card p { margin: 5px 0; color: #374151; }
-    .tk-wd-btn-ok {
-      background: #16a34a;
-      color: #ffffff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 10px;
       font-size: 13px;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    .tk-wd-btn-no {
-      background: #dc2626;
-      color: #ffffff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      margin-top: 8px;
-      margin-left: 6px;
+      font-weight: 600;
     }
   </style>
+</head>
+<body>
+  <div id="tkLockScreen" class="tk-lock-card">
+    <h2 class="tk-lock-title">🔒 রিকোয়েস্ট প্যানেল লক</h2>
+    <p class="tk-lock-desc">রিচার্জ ও উইথড্রো রিকোয়েস্ট দেখতে পাসওয়ার্ড দিন।</p>
+    <input type="password" id="tkStaffPassInput" class="tk-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off" />
+    <button type="button" id="tkStaffUnlockBtn" class="tk-lock-btn">প্রবেশ করুন</button>
+    <div id="tkStaffPassErr" class="tk-lock-err"></div>
+  </div>
 
-  <script type="module">
-    import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <div id="tkMainPanel" class="tk-wrap" style="display: none;">
+    <div class="tk-banner">
+      <div>
+        <h2 class="tk-banner-title">
+          <i class="fa-solid fa-list-check"></i> রিকোয়েস্ট কন্ট্রোল প্যানেল
+        </h2>
+        <p class="tk-banner-sub">রিচার্জ ও উইথড্রো রিকোয়েস্ট সিরিয়ালে দেখুন এবং এখান থেকেই অ্যাপ্রুভ বা রিজেক্ট করুন</p>
+      </div>
+      <button type="button" id="tkRefreshBtn" class="tk-refresh-btn">
+        <i class="fa-solid fa-rotate-right"></i> রিফ্রেশ
+      </button>
+    </div>
 
-    const { db } = window.tkFirebase;
+    <div class="tk-card">
+      <div class="tk-tabs-grid">
+        <button type="button" id="btnRechargeTab" class="tk-tab-btn active">
+          <i class="fa-solid fa-mobile-screen-button"></i> রিচার্জ রিকোয়েস্ট
+        </button>
+        <button type="button" id="btnWithdrawTab" class="tk-tab-btn">
+          <i class="fa-solid fa-money-bill-transfer"></i> উইথড্রো রিকোয়েস্ট
+        </button>
+      </div>
+    </div>
 
-    async function loadWithdrawList() {
-      const box = document.getElementById("tkWithdrawListBox");
-      if (!box) return;
-      box.innerHTML = "লোড হচ্ছে...";
-      try {
-        const snap = await getDocs(collection(db, "withdrawals"));
-        if (snap.empty) {
-          box.innerHTML = `<div class="tk-wd-card">কোনো উত্তোলন রিকোয়েস্ট নেই।</div>`;
-          return;
-        }
-        let html = "";
-        let pendingCount = 0;
-        snap.forEach((d) => {
-          const data = d.data();
-          if (!data.status || data.status === "waiting" || data.status === "processing") {
-            pendingCount++;
-            const refundAmt = data.deductedAmount || data.amount;
-            html += `
-              <div class="tk-wd-card">
-                <p>ইউজার: <strong>${data.userEmail || data.userName || "N/A"}</strong></p>
-                <p>রিকোয়েস্ট পরিমাণ (ভ্যাট বাদে): <strong>৳ ${data.amount}</strong></p>
-                <p>কাটা হয়েছিল: <strong style="color:#d97706;">৳ ${refundAmt}</strong></p>
-                <p>মেথড: <strong>${data.method || ""}</strong> (${data.account || ""})</p>
-                <p>স্ট্যাটাস: <em>${data.status || "waiting"}</em></p>
-                <button type="button" class="tk-wd-btn-ok" data-wd-id="${d.id}" data-uid="${data.userId}" data-amt="${refundAmt}" data-act="approve">এপ্রুভ</button>
-                <button type="button" class="tk-wd-btn-no" data-wd-id="${d.id}" data-uid="${data.userId}" data-amt="${refundAmt}" data-act="reject">রিজেক্ট</button>
-              </div>
-            `;
-          }
-        });
-        box.innerHTML = pendingCount ? html : `<div class="tk-wd-card">কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।</div>`;
+    <div id="tkStatusAlert" class="tk-alert-banner"></div>
 
-        box.querySelectorAll("[data-wd-id]").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const wid = btn.getAttribute("data-wd-id");
-            const uid = btn.getAttribute("data-uid");
-            const amt = Number(btn.getAttribute("data-amt") || 0);
-            const act = btn.getAttribute("data-act");
-            try {
-              const wRef = doc(db, "withdrawals", wid);
-              const uRef = doc(db, "users", uid);
-              if (act === "approve") {
-                await updateDoc(wRef, { status: "approved" });
-                alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
-              } else {
-                const uSnap = await getDoc(uRef);
-                if (!uSnap.exists()) {
-                  alert("ইউজার ডাটা পাওয়া যায়নি!");
-                  return;
-                }
-                const currentCash = uSnap.data().taskCash || 0;
-                await updateDoc(wRef, { status: "rejected" });
-                await updateDoc(uRef, { taskCash: currentCash + amt });
-                alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে এবং টাকা ইউজারের অ্যাকাউন্টে ফেরত দেওয়া হয়েছে।");
-              }
-              loadWithdrawList();
-            } catch (e) {
-              alert("সমস্যা হয়েছে: " + (e.message || "আবার চেষ্টা করুন।"));
-            }
-          });
-        });
-      } catch (e) {
-        box.innerHTML = `<div class="tk-wd-card" style="color:#dc2626;">ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
-      }
-    }
+    <div class="tk-card">
+      <div class="tk-list-header">
+        <h3 id="tkSectionTitle" class="tk-list-title">রিচার্জ রিকোয়েস্ট সিরিয়াল</h3>
+        <span id="tkTotalBadge" class="tk-badge-count">০টি রিকোয়েস্ট</span>
+      </div>
 
-    window.tkRegisterFeature({
-      id: "withdraw",
-      title: "উত্তোলন রিকোয়েস্ট",
-      icon: "fa-money-bill-transfer",
-      renderRoom: (root) => {
-        root.innerHTML = `
-          <h3 style="margin:0 0 12px;color:#141517;">উত্তোলন রিকোয়েস্ট তালিকা</h3>
-          <div id="tkWithdrawListBox">লোড হচ্ছে...</div>
-        `;
-      },
-      onOpen: loadWithdrawList
-    });
-  </script>
+      <div id="tkSerialContainer" class="tk-serial-stack">
+        <div class="tk-empty-box">লোড হচ্ছে...</div>
+      </div>
+    </div>
+  </div>
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import {
@@ -256,7 +381,7 @@
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // প্রয়োজনে এখানে নিজের পাসওয়ার্ড দিন
-    const STAFF_PASS = "TarekHasan@36";
+    const STAFF_PASS = "Kawtha@36";
     const VAT_RATE = 0.10; // উইথড্রতে ১০% ভ্যাট
 
     const firebaseConfig = {
