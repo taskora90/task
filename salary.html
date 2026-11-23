@@ -94,7 +94,8 @@
         .submit-btn:hover { background: #2e3440; }
         .submit-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 
-        .history-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .history-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; }
+        .history-meta { color: #475569; font-size: 12px; margin-top: 4px; line-height: 1.45; }
         .empty-msg { text-align: center; color: #64748b; font-size: 13px; padding: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; }
     </style>
 </head>
@@ -282,6 +283,74 @@
         return `${dateLine ? dateLine + " " : ""}মাসে সর্বোচ্চ ${limitBn} বার টাকা তোলা যাবে।`.trim();
       }
 
+      function getDhakaPartsFromDate(dateObj) {
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Dhaka",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).formatToParts(dateObj);
+
+        const year = parts.find(p => p.type === "year")?.value || "";
+        const month = parts.find(p => p.type === "month")?.value || "";
+        const day = parts.find(p => p.type === "day")?.value || "";
+        return { year, month, day };
+      }
+
+      function formatMonthYearLabelFromKey(monthKey) {
+        if (!monthKey) return "";
+        const match = String(monthKey).trim().match(/^(\d{4})-(\d{1,2})$/);
+        if (!match) return String(monthKey);
+        const yearBn = toBanglaDigits(match[1]);
+        const monthIdx = parseInt(match[2], 10) - 1;
+        const monthName = BN_MONTHS[monthIdx] || toBanglaDigits(match[2]);
+        return `${monthName} ${yearBn}`;
+      }
+
+      function extractHistoryDateInfo(docData) {
+        let dateObj = null;
+        const rawTs = docData.createdAt || docData.requestedAt || docData.approvedAt;
+
+        if (rawTs && typeof rawTs.toDate === "function") {
+          dateObj = rawTs.toDate();
+        } else if (rawTs) {
+          const parsed = new Date(rawTs);
+          if (!isNaN(parsed.getTime())) dateObj = parsed;
+        }
+
+        const monthKey = getDocMonthKeyDhaka(docData);
+        let monthYearText = formatMonthYearLabelFromKey(monthKey);
+        let fullDateText = "";
+
+        if (dateObj) {
+          const p = getDhakaPartsFromDate(dateObj);
+          const dayBn = toBanglaDigits(parseInt(p.day, 10));
+          const monthIdx = parseInt(p.month, 10) - 1;
+          const monthName = BN_MONTHS[monthIdx] || toBanglaDigits(p.month);
+          const yearBn = toBanglaDigits(p.year);
+
+          if (!monthYearText && monthName && yearBn) {
+            monthYearText = `${monthName} ${yearBn}`;
+          }
+          if (dayBn && monthName && yearBn) {
+            fullDateText = `${dayBn} ${monthName}, ${yearBn}`;
+          }
+        }
+
+        if (!monthYearText) {
+          monthYearText = "অজানা মাস";
+        }
+        if (!fullDateText) {
+          fullDateText = monthYearText;
+        }
+
+        return {
+          monthYearText,
+          fullDateText,
+          sortTime: dateObj ? dateObj.getTime() : 0
+        };
+      }
+
       let currentAuthUser = null;
       let currentUserData = null;
       let withdrawProfileMethod = "";
@@ -297,37 +366,20 @@
       let tierChartInstance = null;
 
       function getCurrentMonthKeyDhaka() {
-        const parts = new Intl.DateTimeFormat("en-CA", {
-          timeZone: "Asia/Dhaka",
-          year: "numeric",
-          month: "2-digit"
-        }).formatToParts(new Date());
-        const year = parts.find(p => p.type === "year")?.value || "2026";
-        const month = parts.find(p => p.type === "month")?.value || "01";
-        return `${year}-${month}`;
+        const p = getDhakaPartsFromDate(new Date());
+        return `${p.year || "2026"}-${p.month || "01"}`;
       }
 
       function getTodayDhakaIsoDate() {
-        return new Intl.DateTimeFormat("en-CA", {
-          timeZone: "Asia/Dhaka",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit"
-        }).format(new Date());
+        const p = getDhakaPartsFromDate(new Date());
+        return `${p.year}-${p.month}-${p.day}`;
       }
 
       function getDocMonthKeyDhaka(docData) {
         if (docData.withdrawMonth) return String(docData.withdrawMonth);
         if (docData.createdAt && typeof docData.createdAt.toDate === "function") {
-          const dt = docData.createdAt.toDate();
-          const parts = new Intl.DateTimeFormat("en-CA", {
-            timeZone: "Asia/Dhaka",
-            year: "numeric",
-            month: "2-digit"
-          }).formatToParts(dt);
-          const year = parts.find(p => p.type === "year")?.value || "";
-          const month = parts.find(p => p.type === "month")?.value || "";
-          if (year && month) return `${year}-${month}`;
+          const p = getDhakaPartsFromDate(docData.createdAt.toDate());
+          if (p.year && p.month) return `${p.year}-${p.month}`;
         }
         return "";
       }
@@ -433,14 +485,21 @@
             return;
           }
 
-          let html = "";
+          const rows = [];
           snap.forEach((docSnap) => {
             const d = docSnap.data();
             const reqMonthKey = getDocMonthKeyDhaka(d);
             if (reqMonthKey === currentMonthKey && d.status !== "rejected") {
               currentMonthWithdrawCount++;
             }
+            const dateInfo = extractHistoryDateInfo(d);
+            rows.push({ data: d, dateInfo });
+          });
 
+          rows.sort((a, b) => b.dateInfo.sortTime - a.dateInfo.sortTime);
+
+          let html = "";
+          rows.forEach(({ data: d, dateInfo }) => {
             const badge = d.status === "approved"
               ? '<strong style="color:#16a34a;">অ্যাপ্রুভড</strong>'
               : d.status === "rejected"
@@ -450,8 +509,11 @@
             html += `
               <div class="history-item">
                 <div>
-                  <strong>৳ ${Number(d.amount || 0)}</strong> (${d.method || ""})<br>
-                  <span style="color:#64748b; font-size:12px;">নম্বর: ${d.account || d.accountNumber || ""}</span>
+                  <strong>৳ ${Number(d.amount || 0)}</strong> (${d.method || ""}) — <strong>${dateInfo.monthYearText}</strong>
+                  <div class="history-meta">
+                    ভাতার মাস: <strong>${dateInfo.monthYearText}</strong> | তারিখ: <strong>${dateInfo.fullDateText}</strong><br>
+                    নম্বর: ${d.account || d.accountNumber || ""}
+                  </div>
                 </div>
                 <div>${badge}</div>
               </div>
@@ -467,7 +529,6 @@
           updateSubmitButtonState();
         }
       }
-
       document.getElementById("salaryWithdrawForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         if (!currentAuthUser || !currentUserData) return;
@@ -504,6 +565,7 @@
           }
 
           const monthKey = getCurrentMonthKeyDhaka();
+          const monthLabelBn = formatMonthYearLabelFromKey(monthKey);
           const existingSnap = await getDocs(query(collection(db, SALARY_COLLECTION), where("userId", "==", currentAuthUser.uid)));
           let monthCount = 0;
           existingSnap.forEach((docSnap) => {
@@ -532,6 +594,7 @@
             accountNumber: withdrawProfileAccount,
             amount: payableSalaryAmount,
             withdrawMonth: monthKey,
+            salaryMonth: monthLabelBn,
             status: "pending",
             createdAt: serverTimestamp()
           });
