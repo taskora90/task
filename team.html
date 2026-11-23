@@ -311,12 +311,9 @@
                 ticks: { font: { size: 10 } }
               },
               y: {
+                display: false,
                 beginAtZero: true,
-                suggestedMax: suggestedMax,
-                ticks: {
-                  font: { size: 10 },
-                  callback: (val) => `৳ ${val}`
-                }
+                suggestedMax: suggestedMax
               }
             }
           }
