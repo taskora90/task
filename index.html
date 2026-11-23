@@ -19,44 +19,83 @@
 </header>
 
 
+
 <!-- অতি সরু ও চিকন লাইভ সময়, বার ও তারিখ বার -->
 <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; color: #2e3440; padding: 4px 12px; margin-bottom: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.03); border: 1px solid #e5e9f0;">
-    <span id="tickerTime"><i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ০২:১৫:৪৫ এএম</span>
-    <span id="tickerDay" style="color: #2e3440;">শনিবার</span>
-    <span id="tickerDate"><i class="fa-solid fa-calendar-days" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> ১৭ নভেম্বর, ২০২৬</span>
+<span id="tickerTime"><i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ১২:০০:০০ AM</span>
+<span id="tickerDay" style="color: #2e3440;">---</span>
+<span id="tickerDate"><i class="fa-solid fa-calendar-days" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> ---</span>
 </div>
-
-<script>
-function updateLiveDateTime() {
-    const now = new Date();
-    const bnDigits = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
-    const toBn = (val) => String(val).replace(/[0-9]/g, d => bnDigits[d]);
-
-    let hours = now.getHours();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12; // 0-কে 12 বানিয়ে নেওয়া
-
-    let hoursStr = String(hours).padStart(2, '0');
-    let mins = String(now.getMinutes()).padStart(2, '0');
-    let secs = String(now.getSeconds()).padStart(2, '0');
-
-    let day = now.getDate();
-    let monthIndex = now.getMonth();
-    let year = now.getFullYear();
-    let dayIndex = now.getDay();
-
-    const bnMonths = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
-    const bnDays = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
-
-    document.getElementById('tickerTime').innerHTML = `<i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ${toBn(hoursStr)}:${toBn(mins)}:${toBn(secs)} ${ampm}`;
-    document.getElementById('tickerDay').innerText = bnDays[dayIndex];
-    document.getElementById('tickerDate').innerHTML = `<i class="fa-solid fa-calendar-days" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> ${toBn(day)} ${bnMonths[monthIndex]}, ${toBn(year)}`;
+​<script>
+let serverOffsetMs = 0;
+​async function syncRealTimeFromNetwork() {
+try {
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 2500);
+const resp = await fetch(window.location.href, {
+method: "HEAD",
+cache: "no-store",
+signal: controller.signal
+});
+clearTimeout(timeoutId);
+const dateHeader = resp.headers.get("date");
+if (dateHeader) {
+const serverMs = Date.parse(dateHeader);
+if (!Number.isNaN(serverMs)) {
+serverOffsetMs = serverMs - Date.now();
 }
+}
+} catch (_) {}
+}
+​function getRealNowDate() {
+return new Date(Date.now() + serverOffsetMs);
+}
+​function updateLiveDateTime() {
+const now = getRealNowDate();
+const bnDigits = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
+const toBn = (val) => String(val).replace(/[0-9]/g, d => bnDigits[d]);
+​const dhakaParts = new Intl.DateTimeFormat("en-GB", {
+timeZone: "Asia/Dhaka",
+hour: "2-digit",
+minute: "2-digit",
+second: "2-digit",
+hour12: false,
+day: "2-digit",
+month: "2-digit",
+year: "numeric",
+weekday: "short"
+}).formatToParts(now);
+​const getPart = (type) => dhakaParts.find(p => p.type === type)?.value || "";
+​const hours24 = Number(getPart("hour") || 0);
+const ampm = hours24 >= 12 ? 'PM' : 'AM';
+let hours12 = hours24 % 12;
+hours12 = hours12 ? hours12 : 12;
+​const hoursStr = String(hours12).padStart(2, '0');
+const minsStr = String(Number(getPart("minute") || 0)).padStart(2, '0');
+const secsStr = String(Number(getPart("second") || 0)).padStart(2, '0');
+​const dayNum = Number(getPart("day") || 1);
+const monthIndex = Math.max(0, Math.min(11, Number(getPart("month") || 1) - 1));
+const yearNum = Number(getPart("year") || 2026);
+​const weekdayMap = {
+"Sun": "রবিবার",
+"Mon": "সোমবার",
+"Tue": "মঙ্গলবার",
+"Wed": "বুধবার",
+"Thu": "বৃহস্পতিবার",
+"Fri": "শুক্রবার",
+"Sat": "শনিবার"
+};
+​const bnMonths = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+const dayName = weekdayMap[getPart("weekday")] || "---";
+​document.getElementById('tickerTime').innerHTML = <i class="fa-solid fa-clock" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> সময়: ${toBn(hoursStr)}:${toBn(minsStr)}:${toBn(secsStr)} ${ampm};
+document.getElementById('tickerDay').innerText = dayName;
+document.getElementById('tickerDate').innerHTML = <i class="fa-solid fa-calendar-days" style="color: #4c566a; margin-right: 4px; font-size: 10px;"></i> ${toBn(dayNum)} ${bnMonths[monthIndex]}, ${toBn(yearNum)};
+}
+​syncRealTimeFromNetwork().finally(updateLiveDateTime);
 setInterval(updateLiveDateTime, 1000);
+setInterval(syncRealTimeFromNetwork, 60000);
 updateLiveDateTime();
 </script>
-
 
 
 <!-- ২. নোটিশ বোর্ড -->
