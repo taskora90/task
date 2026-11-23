@@ -158,6 +158,60 @@
         maxPerDay: 1
       };
 
+      // ডিভাইসের ঘড়ি বদলালে সুরক্ষার জন্য নেটওয়ার্ক/সার্ভার রেফারেন্স সময় সংগ্রহ
+      async function getTrustedNowDate() {
+        let baseMs = Date.now();
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2500);
+          const resp = await fetch(window.location.href, {
+            method: "HEAD",
+            cache: "no-store",
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          const dateHeader = resp.headers.get("date");
+          if (dateHeader) {
+            const parsedMs = Date.parse(dateHeader);
+            if (!Number.isNaN(parsedMs)) {
+              baseMs = parsedMs;
+            }
+          }
+        } catch (_) {
+          // নেটওয়ার্ক হেডার না পাওয়া গেলে ফলব্যাক সময় ব্যবহৃত হবে
+        }
+        return new Date(baseMs);
+      }
+
+      // এশিয়া/ঢাকা টাইমজোন অনুযায়ী তারিখ, বার ও মিনিট বের করা
+      function getDhakaScheduleParts(dateObj) {
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Dhaka",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          weekday: "short",
+          hour12: false
+        }).formatToParts(dateObj);
+
+        const y = parts.find(p => p.type === "year")?.value || "1970";
+        const m = parts.find(p => p.type === "month")?.value || "01";
+        const d = parts.find(p => p.type === "day")?.value || "01";
+        const rawHour = Number(parts.find(p => p.type === "hour")?.value || 0);
+        const hour = rawHour === 24 ? 0 : rawHour;
+        const minute = Number(parts.find(p => p.type === "minute")?.value || 0);
+        const wd = (parts.find(p => p.type === "weekday")?.value || "sun").toLowerCase().slice(0, 3);
+        const dayIndex = DAY_KEYS.indexOf(wd);
+
+        return {
+          todayStr: `${y}-${m}-${d}`,
+          dayKey: DAY_KEYS[dayIndex >= 0 ? dayIndex : 0],
+          currentMinutes: hour * 60 + minute
+        };
+      }
+
       function timeToMinutes(hhmm) {
         if (!hhmm || !hhmm.includes(":")) return null;
         const [h, m] = hhmm.split(":").map(Number);
@@ -172,7 +226,6 @@
         const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
         return `${h12}:${String(mins).padStart(2, "0")} ${period}`;
       }
-
       async function loadWithdrawScheduleFromAdmin() {
         try {
           const snap = await getDoc(doc(db, "admin_settings", "holiday_rules"));
@@ -300,10 +353,8 @@
 
         await loadWithdrawScheduleFromAdmin();
 
-        const now = new Date();
-        const dayKey = DAY_KEYS[now.getDay()];
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const todayStr = now.toISOString().split('T')[0]; // আজকের তারিখ (YYYY-MM-DD)
+        const trustedNow = await getTrustedNowDate();
+        const { todayStr, dayKey, currentMinutes } = getDhakaScheduleParts(trustedNow);
 
         if (!withdrawScheduleConfig.openDays.includes(dayKey)) {
           alert(`দুঃখিত 😶 আজ (${DAY_BN[dayKey]}) উত্তোলন প্রক্রিয়া বন্ধ!`);
@@ -341,9 +392,9 @@
             const data = docSnap.data();
             let reqDateStr = "";
             if (data.timestamp && data.timestamp.toDate) {
-              reqDateStr = data.timestamp.toDate().toISOString().split('T')[0];
+              reqDateStr = getDhakaScheduleParts(data.timestamp.toDate()).todayStr;
             } else if (data.createdAt && data.createdAt.toDate) {
-              reqDateStr = data.createdAt.toDate().toISOString().split('T')[0];
+              reqDateStr = getDhakaScheduleParts(data.createdAt.toDate()).todayStr;
             }
 
             if (reqDateStr === todayStr) {
@@ -450,10 +501,5 @@
 
 
   <script type="module" src="./freeze-guard.js"></script>
-</body>
-
-
-
-
 </body>
 </html>
