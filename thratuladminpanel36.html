@@ -2953,6 +2953,369 @@
 </script>
 
 
+<!-- ===== স্বতন্ত্র ব্লক: স্মার্ট লিংক ম্যানেজার (পাসওয়ার্ড লকসহ) ===== -->
+<style>
+  .tk-sl-box {
+    background: #3b4252;
+    border: 1px solid #4c566a;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 14px;
+    color: #eceff4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  }
+
+  .tk-sl-title {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #eceff4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tk-sl-sub {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: #cbd5e1;
+  }
+
+  .tk-sl-lock-wrap {
+    background: #2b303b;
+    border: 1px solid #4c566a;
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .tk-sl-lock-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tk-sl-pass-input {
+    flex: 1;
+    min-width: 180px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    border: 1px solid #4c566a;
+    background: #252a34;
+    color: #ffffff;
+    font-size: 13px;
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  .tk-sl-pass-input:focus {
+    border-color: #81a1c1;
+  }
+
+  .tk-sl-unlock-btn {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tk-sl-unlock-btn:hover {
+    background: #1d4ed8;
+  }
+
+  .tk-sl-lock-msg {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 16px;
+    color: #ff9aa4;
+  }
+
+  .tk-sl-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .tk-sl-preset-btn {
+    background: #2e3440;
+    color: #d8dee9;
+    border: 1px solid #4c566a;
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.15s ease;
+  }
+
+  .tk-sl-preset-btn:hover {
+    background: #434c5e;
+    color: #ffffff;
+  }
+
+  .tk-sl-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 9px;
+    border: 1px solid #4c566a;
+    background: #2b303b;
+    color: #ffffff;
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+  }
+
+  .tk-sl-input:focus {
+    border-color: #81a1c1;
+  }
+
+  .tk-sl-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tk-sl-save-btn {
+    background: #16a34a;
+    color: #ffffff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tk-sl-save-btn:hover {
+    background: #15803d;
+  }
+
+  .tk-sl-test-btn {
+    background: #2e3440;
+    color: #eceff4;
+    border: 1px solid #4c566a;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tk-sl-status {
+    margin-top: 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    min-height: 18px;
+  }
+</style>
+
+<script type="module">
+  import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const SMART_LINK_PASS = "Kawtha@36";
+  const { db } = window.tkFirebase;
+  const smartLinkDocRef = doc(db, "settings", "smartLink");
+  let isSmartLinkUnlocked = false;
+
+  function isValidHttpUrl(rawUrl) {
+    try {
+      const parsed = new URL(rawUrl.trim());
+      return parsed.protocol === "https:" || parsed.protocol === "http:";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function loadCurrentSmartLink(inputEl, statusEl, testLinkEl) {
+    statusEl.style.color = "#cbd5e1";
+    statusEl.textContent = "বর্তমান লিংক লোড হচ্ছে...";
+    try {
+      const snap = await getDoc(smartLinkDocRef);
+      if (snap.exists() && snap.data().url) {
+        const currentUrl = snap.data().url;
+        inputEl.value = currentUrl;
+        if (testLinkEl) testLinkEl.href = currentUrl;
+        statusEl.style.color = "#b7d79b";
+        statusEl.textContent = "বর্তমান লিংক সক্রিয় আছে।";
+      } else {
+        statusEl.style.color = "#ebcb8b";
+        statusEl.textContent = "এখনো কোনো স্মার্ট লিংক সেভ করা হয়নি।";
+      }
+    } catch (err) {
+      statusEl.style.color = "#ff9aa4";
+      statusEl.textContent = "লিংক লোড করতে সমস্যা হয়েছে: " + err.message;
+    }
+  }
+
+  window.tkRegisterFeature({
+    id: "smartLinkManager",
+    title: "স্মার্ট লিংক",
+    icon: "fa-link",
+    badgeText: "Ad",
+    renderRoom: (root) => {
+      root.innerHTML = `
+        <div class="tk-sl-box">
+          <h3 class="tk-sl-title"><i class="fa-solid fa-link"></i> টাস্ক পেজ স্মার্ট লিংক</h3>
+          <p class="tk-sl-sub">নিরাপত্তার জন্য পাসওয়ার্ড দিয়ে স্মার্ট লিংক ম্যানেজার আনলক করুন।</p>
+
+          <div id="tkSlLockBox" class="tk-sl-lock-wrap" style="${isSmartLinkUnlocked ? "display:none;" : "display:block;"}">
+            <div class="tk-sl-lock-row">
+              <input
+                type="password"
+                id="tkSlPassInput"
+                class="tk-sl-pass-input"
+                placeholder="পাসওয়ার্ড লিখুন"
+                autocomplete="off"
+              />
+              <button type="button" id="tkSlUnlockBtn" class="tk-sl-unlock-btn">
+                <i class="fa-solid fa-lock-open"></i> আনলক
+              </button>
+            </div>
+            <div id="tkSlLockMsg" class="tk-sl-lock-msg"></div>
+          </div>
+
+          <div id="tkSlContentBox" style="${isSmartLinkUnlocked ? "display:block;" : "display:none;"}">
+            <div class="tk-sl-presets">
+              <button type="button" class="tk-sl-preset-btn" data-net="Adsterra">Adsterra</button>
+              <button type="button" class="tk-sl-preset-btn" data-net="Monetag">Monetag</button>
+              <button type="button" class="tk-sl-preset-btn" data-net="Adcash">Adcash</button>
+            </div>
+
+            <input
+              type="url"
+              id="tkSmartLinkInput"
+              class="tk-sl-input"
+              placeholder="https://example.com/smartlink..."
+              autocomplete="off"
+            />
+
+            <div class="tk-sl-actions">
+              <button type="button" id="tkSaveSmartLinkBtn" class="tk-sl-save-btn">
+                <i class="fa-solid fa-floppy-disk"></i> সেভ করুন
+              </button>
+              <a id="tkTestSmartLinkBtn" href="#" target="_blank" rel="noopener noreferrer" class="tk-sl-test-btn">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> ওপেন টেস্ট
+              </a>
+            </div>
+
+            <div id="tkSmartLinkStatus" class="tk-sl-status"></div>
+          </div>
+        </div>
+      `;
+
+      const lockBox = document.getElementById("tkSlLockBox");
+      const contentBox = document.getElementById("tkSlContentBox");
+      const passInput = document.getElementById("tkSlPassInput");
+      const unlockBtn = document.getElementById("tkSlUnlockBtn");
+      const lockMsg = document.getElementById("tkSlLockMsg");
+
+      const inputEl = document.getElementById("tkSmartLinkInput");
+      const saveBtn = document.getElementById("tkSaveSmartLinkBtn");
+      const testLinkEl = document.getElementById("tkTestSmartLinkBtn");
+      const statusEl = document.getElementById("tkSmartLinkStatus");
+      let selectedNetwork = "Custom";
+
+      const tryUnlock = () => {
+        if (passInput.value === SMART_LINK_PASS) {
+          isSmartLinkUnlocked = true;
+          lockBox.style.display = "none";
+          contentBox.style.display = "block";
+          lockMsg.textContent = "";
+          loadCurrentSmartLink(inputEl, statusEl, testLinkEl);
+        } else {
+          lockMsg.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+        }
+      };
+
+      unlockBtn.addEventListener("click", tryUnlock);
+      passInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") tryUnlock();
+      });
+
+      root.querySelectorAll(".tk-sl-preset-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          selectedNetwork = btn.getAttribute("data-net");
+          root.querySelectorAll(".tk-sl-preset-btn").forEach((b) => {
+            b.style.borderColor = "#4c566a";
+            b.style.color = "#d8dee9";
+          });
+          btn.style.borderColor = "#81a1c1";
+          btn.style.color = "#ffffff";
+          statusEl.style.color = "#cbd5e1";
+          statusEl.textContent = `${selectedNetwork} সিলেক্ট করা হয়েছে—লিংক পেস্ট করে সেভ করুন।`;
+        });
+      });
+
+      inputEl.addEventListener("input", () => {
+        const val = inputEl.value.trim();
+        if (isValidHttpUrl(val)) {
+          testLinkEl.href = val;
+        }
+      });
+
+      saveBtn.addEventListener("click", async () => {
+        if (!isSmartLinkUnlocked) {
+          statusEl.style.color = "#ff9aa4";
+          statusEl.textContent = "আগে পাসওয়ার্ড দিয়ে আনলক করুন।";
+          return;
+        }
+
+        const url = inputEl.value.trim();
+        if (!isValidHttpUrl(url)) {
+          statusEl.style.color = "#ff9aa4";
+          statusEl.textContent = "সঠিক https:// বা http:// লিংক দিন।";
+          return;
+        }
+
+        saveBtn.disabled = true;
+        statusEl.style.color = "#cbd5e1";
+        statusEl.textContent = "সেভ হচ্ছে...";
+
+        try {
+          await setDoc(smartLinkDocRef, {
+            url,
+            network: selectedNetwork,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+
+          testLinkEl.href = url;
+          statusEl.style.color = "#b7d79b";
+          statusEl.textContent = `✅ স্মার্ট লিংক (${selectedNetwork}) সেভ হয়েছে!`;
+        } catch (err) {
+          statusEl.style.color = "#ff9aa4";
+          statusEl.textContent = "সেভ করতে সমস্যা হয়েছে: " + err.message;
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+    },
+    onOpen: () => {
+      if (!isSmartLinkUnlocked) return;
+      const inputEl = document.getElementById("tkSmartLinkInput");
+      const statusEl = document.getElementById("tkSmartLinkStatus");
+      const testLinkEl = document.getElementById("tkTestSmartLinkBtn");
+      if (inputEl && statusEl) {
+        loadCurrentSmartLink(inputEl, statusEl, testLinkEl);
+      }
+    }
+  });
+</script>
 
 
 
