@@ -253,7 +253,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, increment, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, collection, getDocs, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -284,6 +284,18 @@
     let availableSpins = 0;
     let currentUserObj = null;
 
+    function syncSpinButtonUI() {
+      const spinBtn = document.getElementById('spinBtn');
+      if (!spinBtn) return;
+      if (isSpinning || availableSpins <= 0) {
+        spinBtn.style.opacity = "0.5";
+        spinBtn.style.pointerEvents = isSpinning ? "none" : "auto";
+      } else {
+        spinBtn.style.opacity = "1";
+        spinBtn.style.pointerEvents = "auto";
+      }
+    }
+
     // ইউজার ডেটা ও হিস্ট্রি লোড করে সরাসরি স্ক্রিন আপডেট করার ফাংশন (পেজ রিলোড ছাড়াই)
     async function loadUserData() {
       if (!userDocRef || !currentUserObj) return;
@@ -291,14 +303,10 @@
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          availableSpins = userData.luckySpinCount !== undefined ? Number(userData.luckySpinCount) : 0;
+          const rawSpins = userData.luckySpinCount !== undefined ? Number(userData.luckySpinCount) : 0;
+          availableSpins = Number.isNaN(rawSpins) ? 0 : Math.max(0, rawSpins);
           document.getElementById('spinCountDisplay').innerText = availableSpins;
-
-          if (availableSpins <= 0) {
-            document.getElementById('spinBtn').style.opacity = "0.5";
-          } else {
-            document.getElementById('spinBtn').style.opacity = "1";
-          }
+          syncSpinButtonUI();
         }
 
         const historySnap = await getDocs(collection(db, "users", currentUserObj.uid, "spinHistory"));
@@ -317,44 +325,49 @@
       }
     }
 
-    // স্পিন শেষ হওয়ার সাথে সাথে ফায়ারবেসে প্রাইজ ও স্পিন কাউন্ট আপডেট করার ফাংশন
-    async function applySpinResult(prize) {
-      if (!userDocRef) return;
+    // স্পিন শুরু হওয়ার সাথে সাথে নিরাপদভাবে স্পিন কাউন্ট কমিয়ে ফলাফল প্রয়োগ করা
+    async function consumeSpinAndApplyResult(prize) {
+      if (!userDocRef || !currentUserObj) return;
 
-      try {
-        let updateData = {
-          luckySpinCount: increment(-1)
+      const prizeAmount = Number(prize.amount || 0);
+
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(userDocRef);
+        if (!snap.exists()) {
+          throw new Error("ইউজার ডাটা পাওয়া যায়নি!");
+        }
+        const uData = snap.data() || {};
+        const currentCount = Number(uData.luckySpinCount || 0);
+        if (currentCount <= 0) {
+          throw new Error("আপনার কোনো লাকি স্পিন বাকি নেই!");
+        }
+
+        const updates = {
+          luckySpinCount: currentCount - 1
         };
 
-        if (prize.amount > 0) {
-          updateData.taskCash = increment(prize.amount);
-          updateData.totalEarnings = increment(prize.amount);
+        if (prizeAmount > 0) {
+          updates.taskCash = Number(uData.taskCash || 0) + prizeAmount;
+          updates.totalEarnings = Number(uData.totalEarnings || 0) + prizeAmount;
         }
 
-        await updateDoc(userDocRef, updateData);
+        transaction.update(userDocRef, updates);
+      });
 
-        if (currentUserObj) {
-          await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
-            title: "লাকি স্পিন",
-            desc: prize.amount > 0 ? `স্পিন করে ${prize.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
-            amount: Number(prize.amount),
-            timestamp: serverTimestamp()
-          });
-        }
+      await addDoc(collection(db, "users", currentUserObj.uid, "spinHistory"), {
+        title: "লাকি স্পিন",
+        desc: prizeAmount > 0 ? `স্পিন করে ${prize.name} জিতেছেন` : `স্পিন ফ্লাপ হয়েছে (Try Again)`,
+        amount: prizeAmount,
+        timestamp: serverTimestamp()
+      });
 
-        if (prize.amount > 0) {
-          alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
-        } else {
-          alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
-        }
-
-        // পেজ রিলোড না করে ইনস্ট্যান্ট ডেটা রিফ্রেশ করা হলো
-        await loadUserData();
-
-      } catch (error) {
-        console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
-        alert("ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
+      if (prizeAmount > 0) {
+        alert(`অভিনন্দন! আপনি জিতেছেন ${prize.name}। এটি আপনার অ্যাকাউন্টে জমা হয়েছে।`);
+      } else {
+        alert("ধন্যবাদ! আবার চেষ্টা করুন (Try Again)।");
       }
+
+      await loadUserData();
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -376,6 +389,8 @@
       }
 
       isSpinning = true;
+      syncSpinButtonUI();
+
       const selectedIndex = Math.floor(Math.random() * items.length);
       const prize = items[selectedIndex];
 
@@ -388,8 +403,16 @@
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
       setTimeout(async () => {
-        isSpinning = false;
-        await applySpinResult(prize);
+        try {
+          await consumeSpinAndApplyResult(prize);
+        } catch (error) {
+          console.error("পুরস্কার আপডেট করতে সমস্যা:", error);
+          alert(error.message || "ত্রুটি ঘটেছে, আবার চেষ্টা করুন।");
+          await loadUserData();
+        } finally {
+          isSpinning = false;
+          syncSpinButtonUI();
+        }
       }, 4000);
     }
   </script>
