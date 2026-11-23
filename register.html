@@ -97,7 +97,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -113,7 +113,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // URL থেকে রেফারেল আইডি সেট করা
+    // URL থেকে রেফারেল আইডি সেট করা (থাকলে পরিবর্তন করা যাবে না)
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
@@ -121,6 +121,27 @@
         document.getElementById('refInput').value = refCode.trim();
       }
     };
+
+    async function findUplineDocRef(rawRefCode) {
+      const cleanRef = String(rawRefCode || "").trim();
+      if (!cleanRef || cleanRef === "none") return null;
+
+      // ১. আগে সরাসরি UID হিসেবে doc(db, "users", cleanRef) যাচাই
+      const directRef = doc(db, "users", cleanRef);
+      const directSnap = await getDoc(directRef);
+      if (directSnap.exists()) {
+        return directRef;
+      }
+
+      // ২. না পেলে referralCode ফিল্ড দিয়ে কুয়েরি করে খোঁজা
+      const q = query(collection(db, "users"), where("referralCode", "==", cleanRef));
+      const querySnap = await getDocs(q);
+      if (!querySnap.empty) {
+        return querySnap.docs[0].ref;
+      }
+
+      return null;
+    }
 
     const registerForm = document.getElementById('registerForm');
     registerForm.addEventListener('submit', async (e) => {
@@ -182,13 +203,11 @@
           createdAt: serverTimestamp()
         });
 
-        // ৩. রেফারার ডাটা আপডেট
+        // ৩. রেফারার ডাটা আপডেট (UID অথবা referralCode উভয় ক্ষেত্রেই কাজ করবে)
         if (cleanRef !== "none") {
           try {
-            const uplineRef = doc(db, "users", cleanRef);
-            const uplineSnap = await getDoc(uplineRef);
-
-            if (uplineSnap.exists()) {
+            const uplineRef = await findUplineDocRef(cleanRef);
+            if (uplineRef && uplineRef.id !== user.uid) {
               await updateDoc(uplineRef, {
                 teamMembers: arrayUnion({
                   uid: user.uid,
