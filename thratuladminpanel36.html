@@ -1,432 +1,297 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Taskora — রিচার্জ ও উইথড্রো রিকোয়েস্ট</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taskora Admin Workspace</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg-page: #eef2f5;
+      --bg-page: #f6f5f0;
       --bg-card: #ffffff;
-      --bg-soft: #f8fafc;
-      --header-dark: #2b2d42;
-      --text-main: #1f2937;
+      --bg-dark: #141517;
+      --bg-dark-soft: #1f2226;
+      --text-main: #18191b;
       --text-muted: #6b7280;
-      --border-light: #d1d8e0;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
+      --accent-gold: #d99b26;
+      --accent-gold-soft: #fef3c7;
+      --border-soft: #e5e7eb;
       --success: #16a34a;
-      --success-hover: #15803d;
       --danger: #dc2626;
-      --danger-hover: #b91c1c;
+      --info: #2563eb;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 16px;
+      font-family: 'Segoe UI', Arial, sans-serif;
       background: var(--bg-page);
       color: var(--text-main);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding-bottom: 40px;
     }
+
+    /* টপ ডার্ক বার */
+    .tk-topbar {
+      background: var(--bg-dark);
+      color: #ffffff;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid rgba(217, 155, 38, 0.35);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .tk-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tk-brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--accent-gold);
+      color: #141517;
+      font-weight: 800;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+    }
+    .tk-brand-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f5b942;
+      line-height: 1.1;
+    }
+    .tk-brand-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .tk-top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .tk-btn-logout {
+      background: #26292e;
+      color: #f9fafb;
+      border: 1px solid #3f444e;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tk-btn-logout:hover { background: #32363e; }
 
     .tk-wrap {
-      max-width: 760px;
-      margin: 0 auto;
+      max-width: 820px;
+      margin: 22px auto 0;
+      padding: 0 14px;
     }
 
-    .tk-lock-card {
-      max-width: 420px;
-      margin: 40px auto;
+    /* লগইন ও পাসওয়ার্ড কার্ড */
+    .tk-auth-card {
+      max-width: 400px;
+      margin: 36px auto;
       background: var(--bg-card);
-      border: 1px solid var(--border-light);
-      border-radius: 14px;
-      padding: 22px 18px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
       text-align: center;
     }
-
-    .tk-lock-title {
-      margin: 0 0 6px;
-      font-size: 18px;
+    .tk-auth-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      border-radius: 12px;
+      background: var(--bg-dark);
+      color: #f5b942;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+    .tk-pill-tag {
+      display: inline-block;
+      background: var(--accent-gold-soft);
+      color: #92400e;
+      font-size: 11px;
       font-weight: 700;
-      color: var(--header-dark);
+      letter-spacing: 0.6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .tk-auth-title {
+      margin: 0 0 6px;
+      font-size: 22px;
+      color: var(--bg-dark);
+    }
+    .tk-auth-desc {
+      margin: 0 0 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tk-input {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      background: #fafafa;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .tk-input:focus {
+      border-color: var(--accent-gold);
+      background: #ffffff;
+    }
+    .tk-btn-primary {
+      width: 100%;
+      padding: 11px 14px;
+      border: none;
+      border-radius: 10px;
+      background: var(--bg-dark);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-btn-primary:hover { background: #26292e; }
+    .tk-btn-secondary {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .tk-error {
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 8px;
+      display: none;
+      font-weight: 600;
     }
 
-    .tk-lock-desc {
-      margin: 0 0 14px;
+    /* ড্যাশবোর্ড হেডার ও মেনু */
+    .tk-workspace-head {
+      margin-bottom: 16px;
+    }
+    .tk-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #b45309;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .tk-workspace-title {
+      margin: 0;
+      font-size: 24px;
+      color: var(--bg-dark);
+    }
+    .tk-workspace-sub {
+      margin: 4px 0 0;
       font-size: 13px;
       color: var(--text-muted);
     }
 
-    .tk-lock-input {
-      width: 100%;
-      padding: 11px 12px;
-      border: 1px solid var(--border-light);
-      border-radius: 9px;
-      font-size: 14px;
-      background: var(--bg-soft);
-      margin-bottom: 10px;
-    }
-
-    .tk-lock-btn {
-      width: 100%;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 11px 14px;
-      border-radius: 9px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .tk-lock-btn:hover {
-      background: var(--primary-hover);
-    }
-
-    .tk-lock-err {
-      min-height: 18px;
-      margin-top: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--danger);
-    }
-
-    .tk-banner {
-      background: var(--header-dark);
-      color: #ffffff;
-      padding: 14px 18px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .tk-banner-title {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .tk-banner-sub {
-      margin: 3px 0 0;
-      font-size: 12px;
-      color: #d1d5db;
-    }
-
-    .tk-refresh-btn {
-      background: rgba(255, 255, 255, 0.14);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .tk-refresh-btn:hover {
-      background: rgba(255, 255, 255, 0.24);
-    }
-
-    .tk-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-light);
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-      margin-bottom: 14px;
-    }
-
-    .tk-tabs-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .tk-tab-col {
+    #tkDashboardMenu {
       display: flex;
       flex-direction: column;
-      gap: 7px;
-      align-items: stretch;
+      gap: 10px;
     }
 
-    .tk-tab-btn {
-      width: 100%;
-      background: var(--bg-soft);
-      color: var(--text-main);
-      border: 1px solid var(--border-light);
-      padding: 11px 12px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      transition: 0.2s ease;
-    }
-
-    .tk-tab-btn.active {
-      background: var(--primary);
-      border-color: var(--primary);
+    .tk-back-btn {
+      background: var(--bg-dark);
       color: #ffffff;
-      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.22);
-    }
-
-    .tk-history-btn {
-      align-self: flex-start;
-      background: #f1f5f9;
-      color: var(--text-main);
-      border: 1px solid var(--border-light);
-      padding: 5px 11px;
-      border-radius: 7px;
-      font-size: 12px;
-      font-weight: 700;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      transition: 0.15s ease;
+      gap: 7px;
+      margin-bottom: 14px;
     }
-
-    .tk-history-btn:hover {
-      background: #e2e8f0;
-    }
-
-    .tk-history-btn.active {
-      background: var(--header-dark);
-      border-color: var(--header-dark);
-      color: #ffffff;
-    }
-
-    .tk-list-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding-bottom: 10px;
-      margin-bottom: 12px;
-      border-bottom: 1px solid #e5e7eb;
-      flex-wrap: wrap;
-    }
-
-    .tk-list-title {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--header-dark);
-    }
-
-    .tk-badge-count {
-      background: #e0e7ff;
-      color: #1d4ed8;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 999px;
-    }
-
-    .tk-serial-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .tk-req-row {
-      background: var(--bg-soft);
-      border: 1px solid var(--border-light);
-      border-radius: 10px;
-      padding: 13px 14px;
-    }
-
-    .tk-req-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
-
-    .tk-serial-num {
-      font-weight: 800;
-      font-size: 14px;
-      color: var(--header-dark);
-    }
-
-    .tk-status-tag {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 999px;
-    }
-
-    .st-pending {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .st-approved {
-      background: #dcfce7;
-      color: #15803d;
-    }
-
-    .st-rejected {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .tk-req-details {
-      font-size: 13px;
-      line-height: 1.65;
-      color: #374151;
-      margin-bottom: 10px;
-      word-break: break-word;
-    }
-
-    .tk-btn-pair {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .tk-btn-approve {
-      background: var(--success);
-      color: #ffffff;
-      border: none;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .tk-btn-approve:hover:not(:disabled) {
-      background: var(--success-hover);
-    }
-
-    .tk-btn-reject {
-      background: var(--danger);
-      color: #ffffff;
-      border: none;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .tk-btn-reject:hover:not(:disabled) {
-      background: var(--danger-hover);
-    }
-
-    .tk-btn-approve:disabled,
-    .tk-btn-reject:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .tk-empty-box {
-      text-align: center;
-      padding: 26px 12px;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .tk-alert-banner {
-      display: none;
-      margin-bottom: 12px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-    }
+    .tk-back-btn:hover { background: #292d34; }
   </style>
 </head>
 <body>
-  <div id="tkLockScreen" class="tk-lock-card">
-    <h2 class="tk-lock-title">🔒 রিকোয়েস্ট প্যানেল লক</h2>
-    <p class="tk-lock-desc">পেন্ডিং রিচার্জ ও উইথড্রো রিকোয়েস্ট ম্যানেজ করতে পাসওয়ার্ড দিন।</p>
-    <input type="password" id="tkStaffPassInput" class="tk-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off" />
-    <button type="button" id="tkStaffUnlockBtn" class="tk-lock-btn">প্রবেশ করুন</button>
-    <div id="tkStaffPassErr" class="tk-lock-err"></div>
-  </div>
 
-  <div id="tkMainPanel" class="tk-wrap" style="display: none;">
-    <div class="tk-banner">
+  <header class="tk-topbar">
+    <div class="tk-brand">
+      <div class="tk-brand-badge">T</div>
       <div>
-        <h2 class="tk-banner-title">
-          <i class="fa-solid fa-list-check"></i> রিকোয়েস্ট কন্ট্রোল প্যানেল
-        </h2>
-        <p class="tk-banner-sub">শুধু রানিং পেন্ডিং রিকোয়েস্ট দেখুন; অ্যাপ্রুভ বা রিজেক্ট করলেই লিস্ট থেকে সরে যাবে</p>
+        <div class="tk-brand-title">Taskora Admin</div>
+        <div class="tk-brand-sub">Modular Control Console</div>
       </div>
-      <button type="button" id="tkRefreshBtn" class="tk-refresh-btn">
-        <i class="fa-solid fa-rotate-right"></i> রিফ্রেশ
+    </div>
+    <div class="tk-top-actions">
+      <button type="button" id="tkLogoutBtn" class="tk-btn-logout" style="display:none;" onclick="window.tkAdminLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> লগআউট
       </button>
     </div>
+  </header>
 
-    <div class="tk-card">
-      <div class="tk-tabs-grid">
-        <div class="tk-tab-col">
-          <button type="button" id="btnRechargeTab" class="tk-tab-btn active">
-            <i class="fa-solid fa-mobile-screen-button"></i> রিচার্জ রিকোয়েস্ট
-          </button>
-          <button type="button" id="btnRechargeHistory" class="tk-history-btn">
-            <i class="fa-solid fa-clock-rotate-left"></i> হিস্টোরি
-          </button>
-        </div>
+  <div class="tk-wrap">
 
-        <div class="tk-tab-col">
-          <button type="button" id="btnWithdrawTab" class="tk-tab-btn">
-            <i class="fa-solid fa-money-bill-transfer"></i> উইথড্রো রিকোয়েস্ট
-          </button>
-          <button type="button" id="btnWithdrawHistory" class="tk-history-btn">
-            <i class="fa-solid fa-clock-rotate-left"></i> হিস্টোরি
-          </button>
-        </div>
-      </div>
+        <!-- মূল অ্যাডমিন লগইন -->
+    <div id="tkLoginCard" class="tk-auth-card">
+      <div class="tk-auth-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="tk-pill-tag">RESTRICTED ACCESS</div>
+      <h2 class="tk-auth-title">Admin Control Panel</h2>
+      <p class="tk-auth-desc">অ্যাডমিন প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন</p>
+      <input type="password" id="tkAdminPassInput" class="tk-input" placeholder="অ্যাডমিন পাসওয়ার্ড লিখুন...">
+      <button type="button" class="tk-btn-primary" onclick="window.tkVerifyAdminPass()">Access Dashboard</button>
+      <div id="tkLoginError" class="tk-error">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</div>
     </div>
 
-    <div id="tkStatusAlert" class="tk-alert-banner"></div>
+    <!-- সিক্রেট সেকশন পাসওয়ার্ড প্রম্পট -->
+    <div id="tkSecPassCard" class="tk-auth-card" style="display:none;">
+      <div class="tk-auth-icon"><i class="fa-solid fa-key"></i></div>
+      <div class="tk-pill-tag">SECURITY CHECK</div>
+      <h2 id="tkSecTitle" class="tk-auth-title">সিকিউরিটি যাচাই</h2>
+      <p id="tkSecDesc" class="tk-auth-desc">এই সেকশন খুলতে সিক্রেট পাসওয়ার্ড দিন</p>
+      <input type="password" id="tkSecPassInput" class="tk-input" placeholder="সিক্রেট পাসওয়ার্ড লিখুন...">
+      <button type="button" class="tk-btn-primary" onclick="window.tkVerifySecPass()">আনলক করুন</button>
+      <button type="button" class="tk-btn-secondary" onclick="window.tkBackToMenu()">ড্যাশবোর্ডে ফিরুন</button>
+      <div id="tkSecError" class="tk-error">ভুল সিক্রেট পাসওয়ার্ড!</div>
+    </div>
 
-    <div class="tk-card">
-      <div class="tk-list-header">
-        <h3 id="tkSectionTitle" class="tk-list-title">রিচার্জ রিকোয়েস্ট (পেন্ডিং)</h3>
-        <span id="tkTotalBadge" class="tk-badge-count">০টি রিকোয়েস্ট</span>
+    <!-- মূল ড্যাশবোর্ড -->
+    <div id="tkDashboardShell" style="display:none;">
+      <div id="tkDashboardHome">
+        <div class="tk-workspace-head">
+          <div class="tk-kicker">MANAGEMENT CONSOLE</div>
+          <h1 class="tk-workspace-title">Admin Workspace</h1>
+          <p class="tk-workspace-sub">প্রতিটি ফিচার আলাদা মডিউল হিসেবে সাজানো আছে—প্রয়োজনমতো খুলুন বা যোগ-বাদ করুন</p>
+        </div>
+        <div id="tkDashboardMenu"></div>
       </div>
 
-      <div id="tkSerialContainer" class="tk-serial-stack">
-        <div class="tk-empty-box">লোড হচ্ছে...</div>
-      </div>
+      <!-- আলাদা ফিচার পার্টগুলোর ঘর এখানে যুক্ত হবে -->
+      <div id="tkFeatureRoomsHost"></div>
     </div>
   </div>
+
+  <!-- ===== ফায়ারবেজ ও কোর হেল্পার (সবার ওপরে) ===== -->
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      doc,
-      getDocs,
-      runTransaction,
-      updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const STAFF_PASS = "TarekHasan@36";
-    const VAT_RATE = 0.10; // উইথড্রতে ১০% ভ্যাট
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
@@ -439,309 +304,2663 @@
     };
 
     const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-    const db = (window.tkFirebase && window.tkFirebase.db) ? window.tkFirebase.db : getFirestore(app);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    const COLLECTIONS = {
-      recharge: "recharge_requests",
-      withdraw: "withdrawals"
+    window.tkFirebase = { app, db, auth };
+
+    const ADMIN_PASSWORD = "TarekHasan@36";
+    const SECTION_PASSWORDS = {
+      packages: { title: "প্যাকেজ সিকিউরিটি", desc: "প্যাকেজ ম্যানেজ করতে পাসওয়ার্ড দিন", pass: "Kawtha@36" },
+      users: { title: "ইউজার ডিটেলস সিকিউরিটি", desc: "ইউজার তথ্য দেখতে পাসওয়ার্ড দিন", pass: "NIRJONA@36" },
+      withdrawProfiles: { title: "উইথড্র প্রোফাইল সিকিউরিটি", desc: "উইথড্র প্রোফাইল দেখতে পাসওয়ার্ড দিন", pass: "NIRJONA@36" }
     };
 
-    // viewMode: "recharge_pending" | "withdraw_pending" | "recharge_history" | "withdraw_history"
-    let viewMode = "recharge_pending";
-    let cachedItems = [];
-    let isUnlocked = false;
+    let pendingModuleOpen = null;
+    let inactivityTimer = null;
+    const INACTIVITY_LIMIT = 5 * 60 * 1000;
 
-    const lockScreen = document.getElementById("tkLockScreen");
-    const mainPanel = document.getElementById("tkMainPanel");
-    const passInput = document.getElementById("tkStaffPassInput");
-    const unlockBtn = document.getElementById("tkStaffUnlockBtn");
-    const passErr = document.getElementById("tkStaffPassErr");
-
-    const btnRechargeTab = document.getElementById("btnRechargeTab");
-    const btnWithdrawTab = document.getElementById("btnWithdrawTab");
-    const btnRechargeHistory = document.getElementById("btnRechargeHistory");
-    const btnWithdrawHistory = document.getElementById("btnWithdrawHistory");
-
-    const refreshBtn = document.getElementById("tkRefreshBtn");
-    const sectionTitle = document.getElementById("tkSectionTitle");
-    const totalBadge = document.getElementById("tkTotalBadge");
-    const serialContainer = document.getElementById("tkSerialContainer");
-    const alertBanner = document.getElementById("tkStatusAlert");
-
-    function unlockPanel() {
-      if (passInput.value === STAFF_PASS) {
-        isUnlocked = true;
-        lockScreen.style.display = "none";
-        mainPanel.style.display = "block";
-        loadViewData(viewMode);
-      } else {
-        passErr.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+    function resetInactivityTimer() {
+      clearTimeout(inactivityTimer);
+      if (sessionStorage.getItem("tkAdminLoggedIn") === "true") {
+        inactivityTimer = setTimeout(() => {
+          alert("⚠️ ৫ মিনিট কোনো কার্যক্রম না থাকায় অ্যাডমিন প্যানেল স্বয়ংক্রিয়ভাবে লগআউট হয়ে গেছে!");
+          window.tkAdminLogout();
+        }, INACTIVITY_LIMIT);
       }
     }
 
-    unlockBtn.addEventListener("click", unlockPanel);
-    passInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") unlockPanel();
+    ["mousemove", "keydown", "click", "touchstart"].forEach((evt) => {
+      window.addEventListener(evt, resetInactivityTimer);
     });
 
-    function showBanner(msg, isError = false) {
-      alertBanner.style.display = "block";
-      alertBanner.style.background = isError ? "#fef2f2" : "#f0fdf4";
-      alertBanner.style.color = isError ? "#b91c1c" : "#15803d";
-      alertBanner.style.border = isError ? "1px solid #fecaca" : "1px solid #bbf7d0";
-      alertBanner.textContent = msg;
-    }
+    window.tkResetTimer = resetInactivityTimer;
 
-    function normalizeStatus(raw) {
-      const s = String(raw || "pending").toLowerCase();
-      if (s === "approved" || s === "approve" || s === "completed" || s === "success") {
-        return "approved";
+    // প্রতিটি স্বতন্ত্র ফিচার পার্ট নিজের বাটন ও রুম রেজিস্টার করবে
+    window.tkRegisterFeature = function({ id, title, icon, badgeText = "", secretKey = null, renderRoom, onOpen }) {
+      const menu = document.getElementById("tkDashboardMenu");
+      const roomsHost = document.getElementById("tkFeatureRoomsHost");
+      if (!menu || !roomsHost) return;
+
+      if (!document.getElementById("tkRoom_" + id)) {
+        const room = document.createElement("div");
+        room.id = "tkRoom_" + id;
+        room.className = "tk-feature-room";
+        room.style.display = "none";
+        room.innerHTML = `
+          <button type="button" class="tk-back-btn" onclick="window.tkBackToMenu()">
+            <i class="fa-solid fa-arrow-left"></i> ড্যাশবোর্ডে ফিরুন
+          </button>
+          <div id="tkRoomBody_${id}"></div>
+        `;
+        roomsHost.appendChild(room);
+        if (typeof renderRoom === "function") {
+          renderRoom(document.getElementById("tkRoomBody_" + id));
+        }
       }
-      if (s === "rejected" || s === "reject" || s === "cancelled" || s === "failed") {
-        return "rejected";
+
+      if (!document.getElementById("tkMenuBtn_" + id)) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.id = "tkMenuBtn_" + id;
+        btn.style.cssText = `
+          width: 100%;
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 15px 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        `;
+        btn.innerHTML = `
+          <span style="display:flex;align-items:center;gap:12px;font-size:15px;font-weight:700;color:#18191b;">
+            <span style="width:34px;height:34px;border-radius:9px;background:#fef3c7;color:#b45309;display:grid;place-items:center;">
+              <i class="fa-solid ${icon}"></i>
+            </span>
+            <span>${title}</span>
+            ${badgeText ? `<span style="font-size:11px;background:#141517;color:#f5b942;padding:2px 8px;border-radius:999px;">${badgeText}</span>` : ""}
+          </span>
+          <i class="fa-solid fa-chevron-right" style="color:#6b7280;"></i>
+        `;
+        btn.addEventListener("click", () => openFeature(id, secretKey, onOpen));
+        menu.appendChild(btn);
       }
-      return "pending";
-    }
+    };
 
-    function renderStatusBadge(status) {
-      if (status === "approved") {
-        return `<span class="tk-status-tag st-approved">অ্যাপ্রুভড</span>`;
+    function openFeature(id, secretKey, onOpen) {
+      resetInactivityTimer();
+      const unlockFlag = secretKey ? sessionStorage.getItem("tkSecUnlocked_" + secretKey) === "true" : true;
+
+      if (secretKey && !unlockFlag) {
+        pendingModuleOpen = { id, secretKey, onOpen };
+        const cfg = SECTION_PASSWORDS[secretKey] || { title: "সিকিউরিটি যাচাই", desc: "সিক্রেট পাসওয়ার্ড দিন" };
+        document.getElementById("tkDashboardShell").style.display = "none";
+        document.getElementById("tkSecTitle").textContent = cfg.title;
+        document.getElementById("tkSecDesc").textContent = cfg.desc;
+        document.getElementById("tkSecPassInput").value = "";
+        document.getElementById("tkSecError").style.display = "none";
+        document.getElementById("tkSecPassCard").style.display = "block";
+        return;
       }
-      if (status === "rejected") {
-        return `<span class="tk-status-tag st-rejected">রিজেক্টেড</span>`;
-      }
-      return `<span class="tk-status-tag st-pending">পেন্ডিং / ওয়েটিং</span>`;
+
+      document.getElementById("tkDashboardHome").style.display = "none";
+      document.querySelectorAll(".tk-feature-room").forEach((el) => (el.style.display = "none"));
+      const targetRoom = document.getElementById("tkRoom_" + id);
+      if (targetRoom) targetRoom.style.display = "block";
+      if (typeof onOpen === "function") onOpen();
     }
 
-    function getTimestampMs(row) {
-      const val = row.reviewedAt || row.timestamp || row.createdAt || 0;
-      if (typeof val === "number") return val;
-      if (val && typeof val.toMillis === "function") return val.toMillis();
-      if (val && typeof val.seconds === "number") return val.seconds * 1000;
-      const parsed = Date.parse(val);
-      return Number.isNaN(parsed) ? 0 : parsed;
-    }
-
-    function getWithdrawAmounts(item) {
-      const hasDeducted = item.deductedAmount !== undefined && item.deductedAmount !== null;
-      const rawAmt = Number(item.amount || 0);
-      const deducted = hasDeducted
-        ? Number(item.deductedAmount)
-        : Number((rawAmt / (1 - VAT_RATE)).toFixed(2));
-      const payable = hasDeducted
-        ? rawAmt
-        : Number((deducted * (1 - VAT_RATE)).toFixed(2));
-      const vatCut = Number((deducted - payable).toFixed(2));
-      return { deducted, payable, vatCut };
-    }
-
-    function updateModeUI(mode) {
-      btnRechargeTab.classList.toggle("active", mode === "recharge_pending");
-      btnWithdrawTab.classList.toggle("active", mode === "withdraw_pending");
-      btnRechargeHistory.classList.toggle("active", mode === "recharge_history");
-      btnWithdrawHistory.classList.toggle("active", mode === "withdraw_history");
-
-      if (mode === "recharge_pending") {
-        sectionTitle.textContent = "রিচার্জ রিকোয়েস্ট (পেন্ডিং)";
-      } else if (mode === "withdraw_pending") {
-        sectionTitle.textContent = "উইথড্রো রিকোয়েস্ট (পেন্ডিং)";
-      } else if (mode === "recharge_history") {
-        sectionTitle.textContent = "রিচার্জ হিস্টোরি (অ্যাপ্রুভড ও রিজেক্টেড)";
+    window.tkVerifySecPass = function() {
+      if (!pendingModuleOpen) return;
+      const entered = document.getElementById("tkSecPassInput").value;
+      const cfg = SECTION_PASSWORDS[pendingModuleOpen.secretKey];
+      if (cfg && entered === cfg.pass) {
+        sessionStorage.setItem("tkSecUnlocked_" + pendingModuleOpen.secretKey, "true");
+        document.getElementById("tkSecPassCard").style.display = "none";
+        document.getElementById("tkDashboardShell").style.display = "block";
+        const current = pendingModuleOpen;
+        pendingModuleOpen = null;
+        openFeature(current.id, null, current.onOpen);
       } else {
-        sectionTitle.textContent = "উইথড্রো হিস্টোরি (অ্যাপ্রুভড ও রিজেক্টেড)";
+        document.getElementById("tkSecError").style.display = "block";
+      }
+    };
+
+    window.tkVerifyAdminPass = function() {
+      const pass = document.getElementById("tkAdminPassInput").value.trim();
+      if (pass === ADMIN_PASSWORD) {
+        sessionStorage.setItem("tkAdminLoggedIn", "true");
+        document.getElementById("tkLoginError").style.display = "none";
+        document.getElementById("tkLoginCard").style.display = "none";
+        document.getElementById("tkSecPassCard").style.display = "none";
+        document.getElementById("tkDashboardShell").style.display = "block";
+        document.getElementById("tkLogoutBtn").style.display = "inline-block";
+        window.tkBackToMenu();
+        resetInactivityTimer();
+      } else {
+        document.getElementById("tkLoginError").style.display = "block";
+      }
+    };
+
+    document.getElementById("tkAdminPassInput").addEventListener("keyup", (e) => {
+      if (e.key === "Enter") window.tkVerifyAdminPass();
+    });
+
+    document.getElementById("tkSecPassInput").addEventListener("keyup", (e) => {
+      if (e.key === "Enter") window.tkVerifySecPass();
+    });
+
+    window.tkBackToMenu = function() {
+      pendingModuleOpen = null;
+      document.getElementById("tkSecPassCard").style.display = "none";
+      document.getElementById("tkLoginCard").style.display = "none";
+      document.getElementById("tkDashboardShell").style.display = "block";
+      document.getElementById("tkDashboardHome").style.display = "block";
+      document.querySelectorAll(".tk-feature-room").forEach((el) => (el.style.display = "none"));
+    };
+
+    window.tkAdminLogout = function() {
+      sessionStorage.clear();
+      clearTimeout(inactivityTimer);
+      pendingModuleOpen = null;
+      document.getElementById("tkLogoutBtn").style.display = "none";
+      document.getElementById("tkDashboardShell").style.display = "none";
+      document.getElementById("tkSecPassCard").style.display = "none";
+      document.getElementById("tkLoginCard").style.display = "block";
+      document.getElementById("tkAdminPassInput").value = "";
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      sessionStorage.clear();
+    });
+  </script>
+
+
+
+    <!-- ===== পার্ট ১.১: রিচার্জ রিকোয়েস্ট (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-rc-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #2563eb;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      font-size: 14px;
+      word-break: break-word;
+    }
+    .tk-rc-card p { margin: 5px 0; color: #374151; }
+    .tk-rc-btn-ok {
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .tk-rc-btn-no {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      margin-left: 6px;
+    }
+  </style>
+
+  <script type="module">
+    import { collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+
+    async function loadRechargeList() {
+      const box = document.getElementById("tkRechargeListBox");
+      if (!box) return;
+      box.innerHTML = "লোড হচ্ছে...";
+      try {
+        const snap = await getDocs(collection(db, "recharge_requests"));
+        if (snap.empty) {
+          box.innerHTML = `<div class="tk-rc-card">কোনো রিচার্জ রিকোয়েস্ট নেই।</div>`;
+          return;
+        }
+        let html = "";
+        let pendingCount = 0;
+        snap.forEach((d) => {
+          const data = d.data();
+          if (!data.status || data.status === "pending") {
+            pendingCount++;
+            html += `
+              <div class="tk-rc-card">
+                <p>ইউজার নাম: <strong>${data.userName || "N/A"}</strong></p>
+                <p>ফোন/ইমেইল: <strong>${data.userPhone || data.userEmail || "N/A"}</strong></p>
+                <p>পরিমাণ: <strong style="color:#16a34a;">৳ ${data.amount}</strong></p>
+                <p>মেথড: <strong>${data.method || ""}</strong></p>
+                <p>TrxID: <strong style="color:#2563eb;">${data.trxId || ""}</strong></p>
+                <p>স্ট্যাটাস: <em>${data.status || "pending"}</em></p>
+                <button type="button" class="tk-rc-btn-ok" data-rc-approve="${d.id}" data-uid="${data.userId}" data-amt="${data.amount}">এপ্রুভ</button>
+                <button type="button" class="tk-rc-btn-no" data-rc-reject="${d.id}">রিজেক্ট</button>
+              </div>
+            `;
+          }
+        });
+        box.innerHTML = pendingCount ? html : `<div class="tk-rc-card">কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।</div>`;
+
+        box.querySelectorAll("[data-rc-approve]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-rc-approve");
+            const uid = btn.getAttribute("data-uid");
+            const amt = Number(btn.getAttribute("data-amt") || 0);
+            try {
+              await updateDoc(doc(db, "users", uid), { myCash: increment(amt) });
+              await updateDoc(doc(db, "recharge_requests", id), { status: "approved" });
+              alert("রিচার্জ সফলভাবে অনুমোদিত হয়েছে!");
+              loadRechargeList();
+            } catch (e) {
+              alert("সমস্যা হয়েছে!");
+            }
+          });
+        });
+
+        box.querySelectorAll("[data-rc-reject]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-rc-reject");
+            try {
+              await updateDoc(doc(db, "recharge_requests", id), { status: "rejected" });
+              alert("রিচার্জ রিকোয়েস্ট বাতিল করা হয়েছে।");
+              loadRechargeList();
+            } catch (e) {
+              alert("সমস্যা হয়েছে!");
+            }
+          });
+        });
+      } catch (e) {
+        box.innerHTML = `<div class="tk-rc-card" style="color:#dc2626;">ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
       }
     }
 
-    async function loadViewData(mode = viewMode) {
-      if (!isUnlocked) return;
-      viewMode = mode;
-      updateModeUI(mode);
+    window.tkRegisterFeature({
+      id: "recharge",
+      title: "রিচার্জ রিকোয়েস্ট",
+      icon: "fa-wallet",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">রিচার্জ রিকোয়েস্ট তালিকা</h3>
+          <div id="tkRechargeListBox">লোড হচ্ছে...</div>
+        `;
+      },
+      onOpen: loadRechargeList
+    });
+  </script>
 
-      const isRecharge = mode === "recharge_pending" || mode === "recharge_history";
-      const isHistory = mode === "recharge_history" || mode === "withdraw_history";
-      const colName = isRecharge ? COLLECTIONS.recharge : COLLECTIONS.withdraw;
+  <!-- ===== পার্ট ১.২: উত্তোলন রিকোয়েস্ট (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-wd-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #d97706;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      font-size: 14px;
+      word-break: break-word;
+    }
+    .tk-wd-card p { margin: 5px 0; color: #374151; }
+    .tk-wd-btn-ok {
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .tk-wd-btn-no {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      margin-left: 6px;
+    }
+  </style>
 
-      serialContainer.innerHTML = `<div class="tk-empty-box">তথ্য লোড হচ্ছে...</div>`;
+  <script type="module">
+    import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    const { db } = window.tkFirebase;
+
+    async function loadWithdrawList() {
+      const box = document.getElementById("tkWithdrawListBox");
+      if (!box) return;
+      box.innerHTML = "লোড হচ্ছে...";
       try {
-        const snap = await getDocs(collection(db, colName));
-        const list = [];
+        const snap = await getDocs(collection(db, "withdrawals"));
+        if (snap.empty) {
+          box.innerHTML = `<div class="tk-wd-card">কোনো উত্তোলন রিকোয়েস্ট নেই।</div>`;
+          return;
+        }
+        let html = "";
+        let pendingCount = 0;
+        snap.forEach((d) => {
+          const data = d.data();
+          if (!data.status || data.status === "waiting" || data.status === "processing") {
+            pendingCount++;
+            const refundAmt = data.deductedAmount || data.amount;
+            html += `
+              <div class="tk-wd-card">
+                <p>ইউজার: <strong>${data.userEmail || data.userName || "N/A"}</strong></p>
+                <p>রিকোয়েস্ট পরিমাণ (ভ্যাট বাদে): <strong>৳ ${data.amount}</strong></p>
+                <p>কাটা হয়েছিল: <strong style="color:#d97706;">৳ ${refundAmt}</strong></p>
+                <p>মেথড: <strong>${data.method || ""}</strong> (${data.account || ""})</p>
+                <p>স্ট্যাটাস: <em>${data.status || "waiting"}</em></p>
+                <button type="button" class="tk-wd-btn-ok" data-wd-id="${d.id}" data-uid="${data.userId}" data-amt="${refundAmt}" data-act="approve">এপ্রুভ</button>
+                <button type="button" class="tk-wd-btn-no" data-wd-id="${d.id}" data-uid="${data.userId}" data-amt="${refundAmt}" data-act="reject">রিজেক্ট</button>
+              </div>
+            `;
+          }
+        });
+        box.innerHTML = pendingCount ? html : `<div class="tk-wd-card">কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।</div>`;
 
-        snap.forEach((docSnap) => {
-          const data = docSnap.data() || {};
-          const status = normalizeStatus(data.status);
-          const matchesMode = isHistory ? status !== "pending" : status === "pending";
-          if (matchesMode) {
-            list.push({
-              id: docSnap.id,
-              ...data
+        box.querySelectorAll("[data-wd-id]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const wid = btn.getAttribute("data-wd-id");
+            const uid = btn.getAttribute("data-uid");
+            const amt = Number(btn.getAttribute("data-amt") || 0);
+            const act = btn.getAttribute("data-act");
+            try {
+              const wRef = doc(db, "withdrawals", wid);
+              const uRef = doc(db, "users", uid);
+              if (act === "approve") {
+                await updateDoc(wRef, { status: "approved" });
+                alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
+              } else {
+                const uSnap = await getDoc(uRef);
+                if (!uSnap.exists()) {
+                  alert("ইউজার ডাটা পাওয়া যায়নি!");
+                  return;
+                }
+                const currentCash = uSnap.data().taskCash || 0;
+                await updateDoc(wRef, { status: "rejected" });
+                await updateDoc(uRef, { taskCash: currentCash + amt });
+                alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে এবং টাকা ইউজারের অ্যাকাউন্টে ফেরত দেওয়া হয়েছে।");
+              }
+              loadWithdrawList();
+            } catch (e) {
+              alert("সমস্যা হয়েছে: " + (e.message || "আবার চেষ্টা করুন।"));
+            }
+          });
+        });
+      } catch (e) {
+        box.innerHTML = `<div class="tk-wd-card" style="color:#dc2626;">ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "withdraw",
+      title: "উত্তোলন রিকোয়েস্ট",
+      icon: "fa-money-bill-transfer",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">উত্তোলন রিকোয়েস্ট তালিকা</h3>
+          <div id="tkWithdrawListBox">লোড হচ্ছে...</div>
+        `;
+      },
+      onOpen: loadWithdrawList
+    });
+                               </script>
+
+
+
+
+
+  <!-- ===== পার্ট ২.১: নোটিশ ম্যানেজমেন্ট (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-nt-form-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tk-nt-input, .tk-nt-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 14px;
+      background: #fafafa;
+      color: #18191b;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    .tk-nt-textarea {
+      min-height: 95px;
+      resize: vertical;
+    }
+    .tk-nt-submit {
+      width: 100%;
+      background: #141517;
+      color: #ffffff;
+      border: none;
+      padding: 11px 14px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .tk-nt-submit:hover { background: #26292e; }
+    .tk-nt-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #7c3aed;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tk-nt-del {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 6px 11px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+  </style>
+
+  <script type="module">
+    import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+
+    async function loadNoticesList() {
+      const box = document.getElementById("tkNoticeListBox");
+      if (!box) return;
+      box.innerHTML = "নোটিশ লোড হচ্ছে...";
+      try {
+        const q = query(collection(db, "notices"), orderBy("timestamp", "desc"));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          box.innerHTML = `<div class="tk-nt-card">কোনো নোটিশ পাওয়া যায়নি।</div>`;
+          return;
+        }
+        let html = "";
+        snap.forEach((d) => {
+          const n = d.data();
+          html += `
+            <div class="tk-nt-card">
+              <h4 style="margin:0 0 4px;color:#141517;">${n.title || ""}</h4>
+              <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">তারিখ: ${n.date || ""}</div>
+              <div style="font-size:13px;color:#374151;white-space:pre-line;">${n.details || ""}</div>
+              <button type="button" class="tk-nt-del" data-nt-del="${d.id}">
+                <i class="fa-solid fa-trash"></i> ডিলিট করুন
+              </button>
+            </div>
+          `;
+        });
+        box.innerHTML = html;
+
+        box.querySelectorAll("[data-nt-del]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-nt-del");
+            if (!confirm("আপনি কি নিশ্চিতভাবে এই নোটিশটি ডিলিট করতে চান?")) return;
+            try {
+              await deleteDoc(doc(db, "notices", id));
+              alert("নোটিশ সফলভাবে ডিলিট করা হয়েছে!");
+              loadNoticesList();
+            } catch (e) {
+              alert("ডিলিট করতে সমস্যা হয়েছে: " + e.message);
+            }
+          });
+        });
+      } catch (e) {
+        box.innerHTML = `<div class="tk-nt-card" style="color:#dc2626;">নোটিশ লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "notice",
+      title: "নোটিশ ম্যানেজমেন্ট",
+      icon: "fa-bullhorn",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">নতুন নোটিশ প্রকাশ করুন</h3>
+          <div class="tk-nt-form-card">
+            <input type="text" id="tkNoticeTitle" class="tk-nt-input" placeholder="নোটিশের শিরোনাম...">
+            <textarea id="tkNoticeBody" class="tk-nt-textarea" placeholder="নোটিশের বিস্তারিত বিবরণ এখানে লিখুন..."></textarea>
+            <button type="button" id="tkNoticePublishBtn" class="tk-nt-submit">
+              <i class="fa-solid fa-paper-plane"></i> নোটিশ পাবলিশ করুন
+            </button>
+          </div>
+          <h3 style="margin:0 0 12px;color:#141517;">সকল নোটিশ তালিকা</h3>
+          <div id="tkNoticeListBox">নোটিশ লোড হচ্ছে...</div>
+        `;
+
+        document.getElementById("tkNoticePublishBtn").addEventListener("click", async () => {
+          const title = document.getElementById("tkNoticeTitle").value.trim();
+          const details = document.getElementById("tkNoticeBody").value.trim();
+          if (!title || !details) {
+            alert("অনুগ্রহ করে শিরোনাম এবং বিস্তারিত উভয়ই লিখুন!");
+            return;
+          }
+          try {
+            const currentDate = new Date().toLocaleDateString("bn-BD", {
+              year: "numeric",
+              month: "long",
+              day: "numeric"
             });
+            await addDoc(collection(db, "notices"), {
+              title,
+              details,
+              date: currentDate,
+              timestamp: serverTimestamp()
+            });
+            alert("নোটিশ সফলভাবে পাবলিশ করা হয়েছে!");
+            document.getElementById("tkNoticeTitle").value = "";
+            document.getElementById("tkNoticeBody").value = "";
+            loadNoticesList();
+          } catch (e) {
+            alert("নোটিশ পোস্ট করতে সমস্যা হয়েছে: " + e.message);
+          }
+        });
+      },
+      onOpen: loadNoticesList
+    });
+  </script>
+
+  <!-- ===== পার্ট ২.২: প্যাকেজ ম্যানেজমেন্ট (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-pkg-form {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tk-pkg-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 14px;
+      background: #fafafa;
+      color: #18191b;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    .tk-pkg-save-btn {
+      width: 100%;
+      background: #141517;
+      color: #ffffff;
+      border: none;
+      padding: 11px 14px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .tk-pkg-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #0284c7;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      font-size: 13px;
+    }
+    .tk-pkg-card p { margin: 4px 0; color: #374151; }
+    .tk-pkg-edit {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 6px 11px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-pkg-del {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 6px 11px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+
+  <script type="module">
+    import { collection, getDocs, doc, setDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+
+    async function loadPackagesList() {
+      const box = document.getElementById("tkPackageListBox");
+      if (!box) return;
+      box.innerHTML = "প্যাকেজ লোড হচ্ছে...";
+      try {
+        const q = query(collection(db, "packages"), orderBy("level", "asc"));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          box.innerHTML = `<div class="tk-pkg-card">কোনো প্যাকেজ পাওয়া যায়নি।</div>`;
+          return;
+        }
+        let html = "";
+        snap.forEach((d) => {
+          const pkg = d.data();
+          html += `
+            <div class="tk-pkg-card">
+              <h4 style="margin:0 0 6px;color:#141517;">${pkg.name || ""} (Doc ID: ${d.id} | Pkg ID: ${pkg.packageId || ""})</h4>
+              <p>মূল্য: <strong>৳ ${pkg.price}</strong> | লেভেল: <strong>${pkg.level}</strong></p>
+              <p>প্রতি টাস্কে আয়: <strong>৳ ${pkg.reward || 10}</strong> | প্রতিদিন টাস্ক: <strong>${pkg.tasksLimit}</strong></p>
+              <p>স্পিন: <strong>${pkg.luckySpin}</strong> | বোনাস: <strong>৳ ${pkg.fixedCashBonus}</strong></p>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button type="button" class="tk-pkg-edit" data-pkg-edit="${encodeURIComponent(JSON.stringify({ id: d.id, ...pkg }))}">
+                  <i class="fa-solid fa-pen-to-square"></i> এডিট করুন
+                </button>
+                <button type="button" class="tk-pkg-del" data-pkg-del="${d.id}">
+                  <i class="fa-solid fa-trash"></i> ডিলিট করুন
+                </button>
+              </div>
+            </div>
+          `;
+        });
+        box.innerHTML = html;
+
+        box.querySelectorAll("[data-pkg-edit]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const pkg = JSON.parse(decodeURIComponent(btn.getAttribute("data-pkg-edit")));
+            document.getElementById("tkPkgDocId").value = pkg.id || "";
+            document.getElementById("tkPkgDocId").disabled = true;
+            document.getElementById("tkPkgId").value = pkg.packageId || "";
+            document.getElementById("tkPkgName").value = pkg.name || "";
+            document.getElementById("tkPkgPrice").value = pkg.price ?? "";
+            document.getElementById("tkPkgLevel").value = pkg.level ?? "";
+            document.getElementById("tkPkgTasks").value = pkg.tasksLimit ?? "";
+            document.getElementById("tkPkgReward").value = pkg.reward ?? 10;
+            document.getElementById("tkPkgSpin").value = pkg.luckySpin ?? 1;
+            document.getElementById("tkPkgBonus").value = pkg.fixedCashBonus ?? 100;
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+        });
+
+        box.querySelectorAll("[data-pkg-del]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-pkg-del");
+            if (!confirm("আপনি কি নিশ্চিতভাবে এই প্যাকেজটি ডিলিট করতে চান?")) return;
+            try {
+              await deleteDoc(doc(db, "packages", id));
+              alert("প্যাকেজ সফলভাবে ডিলিট করা হয়েছে!");
+              loadPackagesList();
+            } catch (e) {
+              alert("ডিলিট করতে সমস্যা হয়েছে: " + e.message);
+            }
+          });
+        });
+      } catch (e) {
+        box.innerHTML = `<div class="tk-pkg-card" style="color:#dc2626;">প্যাকেজ লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "packages",
+      title: "প্যাকেজ ম্যানেজমেন্ট",
+      icon: "fa-box",
+      badgeText: "সিক্রেট",
+      secretKey: "packages",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">নতুন প্যাকেজ যোগ করুন</h3>
+          <div class="tk-pkg-form">
+            <input type="text" id="tkPkgDocId" class="tk-pkg-input" placeholder="ডকুমেন্ট আইডি (যেমন: task_5)">
+            <input type="text" id="tkPkgId" class="tk-pkg-input" placeholder="প্যাকেজ আইডি (যেমন: task.5 বা task_5)">
+            <input type="text" id="tkPkgName" class="tk-pkg-input" placeholder="প্যাকেজের নাম (যেমন: টাস্ক প্যাকেজ ৫)">
+            <input type="number" id="tkPkgPrice" class="tk-pkg-input" placeholder="মূল্য (টাকায়, যেমন: 10000)">
+            <input type="number" id="tkPkgLevel" class="tk-pkg-input" placeholder="লেভেল (সংখ্যা, যেমন: 5)">
+            <input type="number" id="tkPkgTasks" class="tk-pkg-input" placeholder="প্রতিদিনের টাস্ক লিমিট (যেমন: 30)">
+            <input type="number" id="tkPkgReward" class="tk-pkg-input" placeholder="প্রতি টাস্কে আয় / রিওয়ার্ড (যেমন: 10)">
+            <input type="number" id="tkPkgSpin" class="tk-pkg-input" placeholder="লাকি স্পিন সংখ্যা (যেমন: 4)">
+            <input type="number" id="tkPkgBonus" class="tk-pkg-input" placeholder="নির্দিষ্ট ক্যাশ বোনাস (যেমন: 600)">
+            <button type="button" id="tkPkgSaveBtn" class="tk-pkg-save-btn">
+              <i class="fa-solid fa-plus"></i> প্যাকেজ সেভ করুন
+            </button>
+          </div>
+          <h3 style="margin:0 0 12px;color:#141517;">সকল প্যাকেজ তালিকা</h3>
+          <div id="tkPackageListBox">প্যাকেজ লোড হচ্ছে...</div>
+        `;
+
+        document.getElementById("tkPkgSaveBtn").addEventListener("click", async () => {
+          const docId = document.getElementById("tkPkgDocId").value.trim();
+          const pkgId = document.getElementById("tkPkgId").value.trim();
+          const name = document.getElementById("tkPkgName").value.trim();
+          const price = Number(document.getElementById("tkPkgPrice").value);
+          const level = Number(document.getElementById("tkPkgLevel").value);
+          const tasksLimit = Number(document.getElementById("tkPkgTasks").value);
+          const reward = Number(document.getElementById("tkPkgReward").value);
+          const luckySpin = Number(document.getElementById("tkPkgSpin").value);
+          const fixedCashBonus = Number(document.getElementById("tkPkgBonus").value);
+
+          if (!docId || !pkgId || !name || !price || !level) {
+            alert("অনুগ্রহ করে ডকুমেন্ট আইডি, প্যাকেজ আইডি, নাম, মূল্য এবং লেভেল পূরণ করুন!");
+            return;
+          }
+
+          try {
+            await setDoc(doc(db, "packages", docId), {
+              packageId: pkgId,
+              name,
+              price,
+              level,
+              tasksLimit: tasksLimit || 10,
+              reward: reward || 10,
+              luckySpin: luckySpin || 1,
+              fixedCashBonus: fixedCashBonus || 100
+            });
+            alert("প্যাকেজ সফলভাবে সেভ/আপডেট করা হয়েছে!");
+            ["tkPkgDocId", "tkPkgId", "tkPkgName", "tkPkgPrice", "tkPkgLevel", "tkPkgTasks", "tkPkgReward", "tkPkgSpin", "tkPkgBonus"].forEach((id) => {
+              const el = document.getElementById(id);
+              el.value = "";
+              el.disabled = false;
+            });
+            loadPackagesList();
+          } catch (e) {
+            alert("প্যাকেজ যোগ করতে সমস্যা হয়েছে: " + e.message);
+          }
+        });
+      },
+      onOpen: loadPackagesList
+    });
+  </script>
+
+
+
+
+    <!-- ===== পার্ট ৩.১: ইউজার ডিটেলস (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-us-search {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      background: #ffffff;
+      color: #18191b;
+      margin-bottom: 14px;
+      outline: none;
+    }
+    .tk-us-item {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 13px 15px;
+      margin-bottom: 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .tk-us-item:hover { border-color: #d99b26; }
+    .tk-us-detail-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+    .tk-us-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .tk-us-table th, .tk-us-table td {
+      padding: 9px 11px;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    .tk-us-table th {
+      background: #141517;
+      color: #f5b942;
+    }
+    .tk-us-edit-input {
+      width: 100%;
+      padding: 6px 9px;
+      border: 1px solid #9ca3af;
+      border-radius: 7px;
+      font-size: 13px;
+    }
+    .tk-us-btn-edit {
+      background: #d97706;
+      color: #ffffff;
+      border: none;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    .tk-us-btn-save {
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    .tk-us-btn-del {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 12px;
+      margin-left: 8px;
+    }
+  </style>
+
+  <script type="module">
+    import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+    let tkUsersCache = [];
+
+    function renderUsersList(list) {
+      const box = document.getElementById("tkUsersListBox");
+      if (!box) return;
+      if (!list.length) {
+        box.innerHTML = `<div class="tk-us-detail-card">কোনো ইউজার পাওয়া যায়নি।</div>`;
+        return;
+      }
+      box.innerHTML = "";
+      list.forEach((user) => {
+        const row = document.createElement("div");
+        row.className = "tk-us-item";
+        row.innerHTML = `
+          <div>
+            <strong>${user.name || "নাম নেই"}</strong><br>
+            <span style="font-size:12px;color:#6b7280;"><i class="fa-solid fa-phone"></i> ${user.phone || "নম্বর নেই"}</span>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color:#6b7280;"></i>
+        `;
+        row.addEventListener("click", () => showSingleUser(user));
+        box.appendChild(row);
+      });
+    }
+
+    function showSingleUser(user) {
+      const box = document.getElementById("tkUsersListBox");
+      const searchEl = document.getElementById("tkUsersSearchInput");
+      if (searchEl) searchEl.style.display = "none";
+      const uid = user.uid || user.id;
+
+      box.innerHTML = `
+        <button type="button" class="tk-back-btn" id="tkBackToUsersListBtn">
+          <i class="fa-solid fa-arrow-left"></i> ইউজার লিস্টে ফিরুন
+        </button>
+        <div class="tk-us-detail-card">
+          <h3 style="margin:0 0 10px;color:#141517;">👤 ${user.name || "N/A"} - বিস্তারিত তথ্য</h3>
+          <div style="overflow-x:auto;">
+            <table class="tk-us-table">
+              <tr><th>ফিল্ডের নাম</th><th>মান (Value)</th></tr>
+              <tr><td>ইউজার আইডি (UID)</td><td>${uid || "N/A"}</td></tr>
+              <tr><td>পূর্ণ নাম</td><td><span data-v="name">${user.name || ""}</span><input type="text" data-e="name" class="tk-us-edit-input" value="${user.name || ""}" style="display:none;"></td></tr>
+              <tr><td>ফোন নম্বর</td><td><span data-v="phone">${user.phone || ""}</span><input type="text" data-e="phone" class="tk-us-edit-input" value="${user.phone || ""}" style="display:none;"></td></tr>
+              <tr><td>নতুন পাসওয়ার্ড (রিসেট)</td><td><span data-v="password" style="color:#b45309;">পরিবর্তন করতে এডিট মোডে যান</span><input type="text" data-e="password" class="tk-us-edit-input" placeholder="নতুন পাসওয়ার্ড লিখুন..." style="display:none;"></td></tr>
+              <tr><td>টাস্ক ক্যাশ</td><td><span data-v="taskCash">${user.taskCash || 0}</span><input type="number" data-e="taskCash" class="tk-us-edit-input" value="${user.taskCash || 0}" style="display:none;"></td></tr>
+              <tr><td>মাই ক্যাশ</td><td><span data-v="myCash">${user.myCash || 0}</span><input type="number" data-e="myCash" class="tk-us-edit-input" value="${user.myCash || 0}" style="display:none;"></td></tr>
+              <tr><td>মোট আয়</td><td><span data-v="totalEarnings">${user.totalEarnings || 0}</span><input type="number" data-e="totalEarnings" class="tk-us-edit-input" value="${user.totalEarnings || 0}" style="display:none;"></td></tr>
+              <tr><td>সক্রিয় প্যাকেজ</td><td><span data-v="package">${user.package || "none"}</span><input type="text" data-e="package" class="tk-us-edit-input" value="${user.package || "none"}" style="display:none;"></td></tr>
+              <tr><td>লাকি স্পিন (সংখ্যা)</td><td><span data-v="luckySpinCount">${user.luckySpinCount || 0}</span><input type="number" data-e="luckySpinCount" class="tk-us-edit-input" value="${user.luckySpinCount || 0}" style="display:none;"></td></tr>
+              <tr><td>রেফারকারী</td><td>${user.referredBy || "none"}</td></tr>
+            </table>
+          </div>
+          <button type="button" id="tkUserEditBtn" class="tk-us-btn-edit">
+            <i class="fa-solid fa-pen-to-square"></i> তথ্য ও পাসওয়ার্ড এডিট করুন
+          </button>
+          <button type="button" id="tkUserSaveBtn" class="tk-us-btn-save" style="display:none;">
+            <i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সংরক্ষণ করুন
+          </button>
+          <button type="button" id="tkUserDelBtn" class="tk-us-btn-del">
+            <i class="fa-solid fa-trash-can"></i> অ্যাকাউন্ট ডিলিট করুন
+          </button>
+        </div>
+      `;
+
+      document.getElementById("tkBackToUsersListBtn").addEventListener("click", () => {
+        if (searchEl) searchEl.style.display = "block";
+        loadUsersList();
+      });
+
+      document.getElementById("tkUserEditBtn").addEventListener("click", () => {
+        box.querySelectorAll("[data-v]").forEach((s) => (s.style.display = "none"));
+        box.querySelectorAll("[data-e]").forEach((inp) => (inp.style.display = "block"));
+        document.getElementById("tkUserEditBtn").style.display = "none";
+        document.getElementById("tkUserSaveBtn").style.display = "inline-block";
+      });
+
+      document.getElementById("tkUserSaveBtn").addEventListener("click", async () => {
+        try {
+          const val = (f) => box.querySelector(`[data-e="${f}"]`).value.trim();
+          const payload = {
+            name: val("name"),
+            phone: val("phone"),
+            luckySpinCount: Number(val("luckySpinCount")),
+            taskCash: Number(val("taskCash")),
+            myCash: Number(val("myCash")),
+            totalEarnings: Number(val("totalEarnings")),
+            package: val("package")
+          };
+          const newPass = val("password");
+          if (newPass !== "") payload.password = newPass;
+
+          await updateDoc(doc(db, "users", uid), payload);
+          alert("ইউজারের তথ্য সফলভাবে আপডেট করা হয়েছে!");
+          if (searchEl) searchEl.style.display = "block";
+          loadUsersList();
+        } catch (e) {
+          alert("তথ্য আপডেট করতে সমস্যা হয়েছে: " + e.message);
+        }
+      });
+
+      document.getElementById("tkUserDelBtn").addEventListener("click", async () => {
+        const uName = user.name || "ইউজার";
+        if (!confirm(`⚠️ সাবধান!\n\nআপনি কি নিশ্চিতভাবে "${uName}"-এর অ্যাকাউন্টটি মুছে ফেলতে চান?`)) return;
+        const secondConfirm = prompt(`নিশ্চিত করতে "DELETE" অথবা ইউজারের নাম (${uName}) লিখুন:`);
+        if (secondConfirm && (secondConfirm.trim() === "DELETE" || secondConfirm.trim() === uName.trim())) {
+          try {
+            await deleteDoc(doc(db, "users", uid));
+            alert("অ্যাকাউন্টটি সফলভাবে ডিলিট করা হয়েছে!");
+            if (searchEl) searchEl.style.display = "block";
+            loadUsersList();
+          } catch (e) {
+            alert("ইউজার ডিলিট করতে সমস্যা হয়েছে: " + e.message);
+          }
+        } else {
+          alert("সঠিকভাবে টাইপ না করায় ডিলিট বাতিল করা হয়েছে।");
+        }
+      });
+    }
+
+    async function loadUsersList() {
+      const box = document.getElementById("tkUsersListBox");
+      const searchEl = document.getElementById("tkUsersSearchInput");
+      if (!box) return;
+      if (searchEl) searchEl.style.display = "block";
+      box.innerHTML = "ইউজার ডেটা লোড হচ্ছে...";
+      try {
+        const snap = await getDocs(collection(db, "users"));
+        if (snap.empty) {
+          box.innerHTML = `<div class="tk-us-detail-card">কোনো ইউজার পাওয়া যায়নি।</div>`;
+          return;
+        }
+        tkUsersCache = [];
+        snap.forEach((d) => tkUsersCache.push({ id: d.id, ...d.data() }));
+        renderUsersList(tkUsersCache);
+      } catch (e) {
+        box.innerHTML = `<div class="tk-us-detail-card" style="color:#dc2626;">ইউজার ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "users",
+      title: "ইউজার ডিটেলস",
+      icon: "fa-users-gear",
+      badgeText: "সিক্রেট",
+      secretKey: "users",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">ইউজার ডিটেলস ও তথ্য তালিকা</h3>
+          <input type="text" id="tkUsersSearchInput" class="tk-us-search" placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন...">
+          <div id="tkUsersListBox">ইউজার ডেটা লোড হচ্ছে...</div>
+        `;
+        document.getElementById("tkUsersSearchInput").addEventListener("keyup", (e) => {
+          const q = e.target.value.toLowerCase();
+          const filtered = tkUsersCache.filter((u) => {
+            const n = (u.name || "").toLowerCase();
+            const p = (u.phone || "").toLowerCase();
+            return n.includes(q) || p.includes(q);
+          });
+          renderUsersList(filtered);
+        });
+      },
+      onOpen: loadUsersList
+    });
+  </script>
+
+  <!-- ===== পার্ট ৩.২: ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-wp-search {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      background: #ffffff;
+      color: #18191b;
+      margin-bottom: 14px;
+      outline: none;
+    }
+    .tk-wp-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 13px;
+    }
+    .tk-wp-table th, .tk-wp-table td {
+      padding: 9px 10px;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    .tk-wp-table th {
+      background: #141517;
+      color: #f5b942;
+    }
+    .tk-wp-table select, .tk-wp-table input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 13px;
+    }
+    .tk-wp-upd {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .tk-wp-del {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+  </style>
+
+  <script type="module">
+    import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+    let tkWpCache = [];
+
+    function renderWpTable(profiles) {
+      const box = document.getElementById("tkWpListBox");
+      if (!box) return;
+      if (!profiles.length) {
+        box.innerHTML = `<div style="background:#fff;padding:14px;border-radius:12px;border:1px solid #e5e7eb;text-align:center;">কোনো ম্যাচিং উইথড্র প্রোফাইল পাওয়া যায়নি।</div>`;
+        return;
+      }
+      let rows = "";
+      profiles.forEach((p) => {
+        const uid = p.id;
+        const idText = p.userEmailOrPhone || uid;
+        rows += `
+          <tr>
+            <td style="font-size:12px;word-break:break-all;">${idText}</td>
+            <td>
+              <select data-wp-method="${uid}">
+                <option value="bKash" ${p.method === "bKash" ? "selected" : ""}>বিকাশ</option>
+                <option value="Nagad" ${p.method === "Nagad" ? "selected" : ""}>নগদ</option>
+              </select>
+            </td>
+            <td><input type="text" data-wp-acc="${uid}" value="${p.account || ""}"></td>
+            <td>
+              <button type="button" class="tk-wp-upd" data-wp-save="${uid}">আপডেট</button>
+              <button type="button" class="tk-wp-del" data-wp-remove="${uid}">ডিলিট</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      box.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="tk-wp-table">
+            <thead>
+              <tr><th>ইউজার আইডি / ইমেইল</th><th>মাধ্যম</th><th>অ্যাকাউন্ট নম্বর</th><th>কার্যক্রম</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+
+      box.querySelectorAll("[data-wp-save]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const uid = btn.getAttribute("data-wp-save");
+          const method = box.querySelector(`[data-wp-method="${uid}"]`).value;
+          const account = box.querySelector(`[data-wp-acc="${uid}"]`).value.trim();
+          if (!account) {
+            alert("অ্যাকাউন্ট নম্বর খালি রাখা যাবে না!");
+            return;
+          }
+          if (!confirm("আপনি কি এই উইথড্র প্রোফাইলটি আপডেট করতে চান?")) return;
+          try {
+            await updateDoc(doc(db, "withdrawProfiles", uid), { method, account });
+            alert("উইথড্র প্রোফাইল সফলভাবে আপডেট করা হয়েছে!");
+            loadWpList();
+          } catch (e) {
+            alert("আপডেট করতে সমস্যা হয়েছে: " + e.message);
+          }
+        });
+      });
+
+      box.querySelectorAll("[data-wp-remove]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const uid = btn.getAttribute("data-wp-remove");
+          if (!confirm("সতর্কতা: আপনি কি সত্যিই এই উইথড্র প্রোফাইলটি ডিলিট করতে চান?")) return;
+          try {
+            await deleteDoc(doc(db, "withdrawProfiles", uid));
+            alert("উইথড্র প্রোফাইল সফলভাবে ডিলিট করা হয়েছে!");
+            loadWpList();
+          } catch (e) {
+            alert("ডিলিট করতে সমস্যা হয়েছে: " + e.message);
+          }
+        });
+      });
+    }
+
+    async function loadWpList() {
+      const box = document.getElementById("tkWpListBox");
+      if (!box) return;
+      box.innerHTML = "উইথড্র প্রোফাইলগুলো লোড হচ্ছে...";
+      try {
+        const snap = await getDocs(collection(db, "withdrawProfiles"));
+        if (snap.empty) {
+          box.innerHTML = `<div style="background:#fff;padding:14px;border-radius:12px;border:1px solid #e5e7eb;text-align:center;">কোনো উইথড্র প্রোফাইল পাওয়া যায়নি।</div>`;
+          tkWpCache = [];
+          return;
+        }
+        tkWpCache = [];
+        snap.forEach((d) => tkWpCache.push({ id: d.id, ...d.data() }));
+        renderWpTable(tkWpCache);
+      } catch (e) {
+        box.innerHTML = `<div style="background:#fff;padding:14px;border-radius:12px;border:1px solid #e5e7eb;color:#dc2626;text-align:center;">উইথড্র প্রোফাইল লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "withdrawProfiles",
+      title: "ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট",
+      icon: "fa-id-card",
+      badgeText: "সিক্রেট",
+      secretKey: "withdrawProfiles",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">ইউজার উইথড্র প্রোফাইল ম্যানেজমেন্ট</h3>
+          <input type="text" id="tkWpSearchInput" class="tk-wp-search" placeholder="🔍 ফোন নম্বর, ইমেইল বা ইউজার আইডি দিয়ে সার্চ করুন...">
+          <div id="tkWpListBox">উইথড্র প্রোফাইলগুলো লোড হচ্ছে...</div>
+        `;
+        document.getElementById("tkWpSearchInput").addEventListener("keyup", (e) => {
+          const q = e.target.value.toLowerCase();
+          const filtered = tkWpCache.filter((p) => {
+            const acc = (p.account || "").toLowerCase();
+            const id = (p.id || "").toLowerCase();
+            const ident = (p.userEmailOrPhone || "").toLowerCase();
+            return acc.includes(q) || id.includes(q) || ident.includes(q);
+          });
+          renderWpTable(filtered);
+        });
+      },
+      onOpen: loadWpList
+    });
+  </script>
+
+
+
+
+    <!-- ===== পার্ট ৪: ইউজার সাপোর্ট চ্যাট (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-sc-layout {
+      display: flex;
+      gap: 10px;
+      height: 410px;
+    }
+    .tk-sc-sidebar {
+      width: 36%;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 8px;
+      overflow-y: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tk-sc-user-item {
+      padding: 9px 10px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 9px;
+      margin-bottom: 7px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .tk-sc-user-item:hover, .tk-sc-user-item.active {
+      background: #fef3c7;
+      border-color: #d99b26;
+    }
+    .tk-sc-room {
+      width: 64%;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 10px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tk-sc-head {
+      font-weight: 700;
+      font-size: 13px;
+      color: #141517;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 7px;
+      margin-bottom: 8px;
+    }
+    .tk-sc-msgs {
+      flex: 1;
+      overflow-y: auto;
+      background: #f6f5f0;
+      border-radius: 9px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .tk-sc-bubble {
+      padding: 7px 10px;
+      border-radius: 9px;
+      max-width: 82%;
+      word-break: break-word;
+    }
+    .tk-sc-bubble.admin {
+      align-self: flex-end;
+      background: #141517;
+      color: #ffffff;
+    }
+    .tk-sc-bubble.user {
+      align-self: flex-start;
+      background: #ffffff;
+      color: #18191b;
+      border: 1px solid #e5e7eb;
+    }
+    .tk-sc-bar {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .tk-sc-input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+    .tk-sc-send {
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 8px 13px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+  </style>
+
+  <script type="module">
+    import { collection, getDocs, addDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+    let tkActiveChatUid = null;
+    let tkChatUnsub = null;
+
+    function listenChatRoom(uid, label) {
+      tkActiveChatUid = uid;
+      const room = document.getElementById("tkScRoom");
+      const head = document.getElementById("tkScActiveName");
+      const msgsBox = document.getElementById("tkScMessages");
+      if (!room || !head || !msgsBox) return;
+
+      room.style.display = "flex";
+      head.textContent = "চ্যাট: " + label;
+
+      if (tkChatUnsub) {
+        tkChatUnsub();
+        tkChatUnsub = null;
+      }
+
+      const q = query(collection(db, "support_chats", uid, "messages"), orderBy("timestamp", "asc"));
+      tkChatUnsub = onSnapshot(q, (snap) => {
+        msgsBox.innerHTML = "";
+        if (snap.empty) {
+          msgsBox.innerHTML = `<div style="color:#6b7280;text-align:center;margin:auto;font-size:12px;">কোনো মেসেজ নেই।</div>`;
+          return;
+        }
+        snap.forEach((d) => {
+          const m = d.data();
+          const isAdmin = m.sender === "admin";
+          const div = document.createElement("div");
+          div.className = "tk-sc-bubble " + (isAdmin ? "admin" : "user");
+          div.innerHTML = `
+            <div style="font-size:10px;opacity:0.75;font-weight:700;margin-bottom:2px;">${isAdmin ? "অ্যাডমিন (আপনি)" : "ইউজার"}</div>
+            <div>${m.text || ""}</div>
+          `;
+          msgsBox.appendChild(div);
+        });
+        msgsBox.scrollTop = msgsBox.scrollHeight;
+      });
+    }
+
+    async function loadChatUsers() {
+      const sidebar = document.getElementById("tkScUserList");
+      if (!sidebar) return;
+      sidebar.innerHTML = `<div style="color:#6b7280;font-size:12px;text-align:center;margin-top:16px;">লোড হচ্ছে...</div>`;
+      try {
+        const snap = await getDocs(collection(db, "support_chats"));
+        if (snap.empty) {
+          sidebar.innerHTML = `<div style="color:#6b7280;font-size:12px;text-align:center;margin-top:16px;">কোনো চ্যাট রিকোয়েস্ট নেই।</div>`;
+          return;
+        }
+        sidebar.innerHTML = "";
+        snap.forEach((docSnap) => {
+          const uid = docSnap.id;
+          const data = docSnap.data();
+          const label = data.userPhone || data.userEmail || data.userName || ("ID: " + uid.substring(0, 8));
+          const item = document.createElement("div");
+          item.className = "tk-sc-user-item";
+          item.innerHTML = `
+            <div style="font-weight:700;color:#141517;"><i class="fa-solid fa-user-shield"></i> ${label}</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:2px;word-break:break-all;">${uid}</div>
+          `;
+          item.addEventListener("click", () => {
+            sidebar.querySelectorAll(".tk-sc-user-item").forEach((el) => el.classList.remove("active"));
+            item.classList.add("active");
+            listenChatRoom(uid, label);
+          });
+          sidebar.appendChild(item);
+        });
+      } catch (e) {
+        sidebar.innerHTML = `<div style="color:#dc2626;font-size:12px;text-align:center;margin-top:16px;">লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "supportChat",
+      title: "ইউজার সাপোর্ট চ্যাট",
+      icon: "fa-comments",
+      badgeText: "Live",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">ইউজার সাপোর্ট লাইভ চ্যাট</h3>
+          <div class="tk-sc-layout">
+            <div id="tkScUserList" class="tk-sc-sidebar">লোড হচ্ছে...</div>
+            <div id="tkScRoom" class="tk-sc-room">
+              <div id="tkScActiveName" class="tk-sc-head">ইউজার সিলেক্ট করুন</div>
+              <div id="tkScMessages" class="tk-sc-msgs"></div>
+              <div class="tk-sc-bar">
+                <input type="text" id="tkScReplyInput" class="tk-sc-input" placeholder="উত্তর লিখুন...">
+                <button type="button" id="tkScSendBtn" class="tk-sc-send">পাঠান</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const sendMsg = async () => {
+          const inp = document.getElementById("tkScReplyInput");
+          const txt = inp.value.trim();
+          if (!txt || !tkActiveChatUid) return;
+          try {
+            await addDoc(collection(db, "support_chats", tkActiveChatUid, "messages"), {
+              sender: "admin",
+              text: txt,
+              timestamp: serverTimestamp()
+            });
+            inp.value = "";
+          } catch (e) {
+            alert("মেসেজ পাঠাতে সমস্যা হয়েছে: " + e.message);
+          }
+        };
+
+        document.getElementById("tkScSendBtn").addEventListener("click", sendMsg);
+        document.getElementById("tkScReplyInput").addEventListener("keypress", (e) => {
+          if (e.key === "Enter") sendMsg();
+        });
+      },
+      onOpen: loadChatUsers
+    });
+  </script>
+
+
+
+      <!-- ===== পার্ট ৫: ছুটির দিন (উইথড্র ও কাজ) - স্বতন্ত্র ব্লক ===== -->
+  <style>
+    .tk-hd-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .tk-hd-tab {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #18191b;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .tk-hd-tab.active {
+      background: #141517;
+      color: #f5b942;
+      border-color: #141517;
+    }
+    .tk-hd-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 14px;
+    }
+    .tk-hd-days {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 10px 0 14px;
+    }
+    .tk-hd-day-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 11px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tk-hd-time-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .tk-hd-field {
+      margin-bottom: 14px;
+    }
+    .tk-hd-time-row .tk-hd-field {
+      margin-bottom: 0;
+    }
+    .tk-hd-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+    .tk-hd-field input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 13px;
+      background: #fafafa;
+      box-sizing: border-box;
+    }
+    .tk-hd-save-btn {
+      width: 100%;
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-hd-save-btn:hover { background: #15803d; }
+  </style>
+
+  <script type="module">
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+    const WEEK_DAYS = [
+      { key: "sun", bn: "রবিবার" },
+      { key: "mon", bn: "সোমবার" },
+      { key: "tue", bn: "মঙ্গলবার" },
+      { key: "wed", bn: "বুধবার" },
+      { key: "thu", bn: "বৃহস্পতিবার" },
+      { key: "fri", bn: "শুক্রবার" },
+      { key: "sat", bn: "শনিবার" }
+    ];
+
+    function buildDayChecks(containerId, prefix) {
+      const box = document.getElementById(containerId);
+      if (!box) return;
+      box.innerHTML = WEEK_DAYS.map((d) => `
+        <label class="tk-hd-day-label">
+          <input type="checkbox" id="${prefix}_${d.key}" value="${d.key}">
+          <span>${d.bn}</span>
+        </label>
+      `).join("");
+    }
+
+    async function loadHolidaySettings() {
+      try {
+        const snap = await getDoc(doc(db, "admin_settings", "holiday_rules"));
+        const data = snap.exists() ? snap.data() : {};
+
+        const wdDays = Array.isArray(data.withdraw?.openDays) ? data.withdraw.openDays : ["sun", "mon", "tue", "wed", "thu", "sat"];
+        WEEK_DAYS.forEach((d) => {
+          const el = document.getElementById("tkWdDay_" + d.key);
+          if (el) el.checked = wdDays.includes(d.key);
+        });
+        const startInp = document.getElementById("tkWdStartTime");
+        const endInp = document.getElementById("tkWdEndTime");
+        const maxInp = document.getElementById("tkWdMaxPerDay");
+        if (startInp) startInp.value = data.withdraw?.startTime || "09:00";
+        if (endInp) endInp.value = data.withdraw?.endTime || "22:00";
+        if (maxInp) maxInp.value = (data.withdraw?.maxPerDay !== undefined && Number(data.withdraw.maxPerDay) > 0) ? Number(data.withdraw.maxPerDay) : 1;
+
+        const wkDays = Array.isArray(data.work?.openDays) ? data.work.openDays : ["sun", "mon", "tue", "wed", "thu", "sat"];
+        WEEK_DAYS.forEach((d) => {
+          const el = document.getElementById("tkWkDay_" + d.key);
+          if (el) el.checked = wkDays.includes(d.key);
+        });
+      } catch (e) {
+        console.error("Holiday settings load error:", e);
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "holidayRules",
+      title: "ছুটির দিন ও সময় (উইথড্র ও কাজ)",
+      icon: "fa-calendar-xmark",
+      badgeText: "নতুন",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">ছুটির দিন ও সময় নিয়ন্ত্রণ</h3>
+          <div class="tk-hd-tabs">
+            <button type="button" id="tkTabWithdraw" class="tk-hd-tab active">💸 উইথড্র</button>
+            <button type="button" id="tkTabWork" class="tk-hd-tab">⚙️ কাজ</button>
+          </div>
+
+          <!-- উইথড্র অপশন -->
+          <div id="tkPanelWithdraw" class="tk-hd-card">
+            <div style="font-weight:700;font-size:14px;color:#141517;">উইথড্র চালু থাকবে যেসব দিনে (টিক দিন):</div>
+            <div id="tkWdDaysBox" class="tk-hd-days"></div>
+            <div class="tk-hd-time-row">
+              <div class="tk-hd-field">
+                <label for="tkWdStartTime">কয়টা থেকে চালু</label>
+                <input type="time" id="tkWdStartTime" value="09:00">
+              </div>
+              <div class="tk-hd-field">
+                <label for="tkWdEndTime">কয়টা পর্যন্ত চালু</label>
+                <input type="time" id="tkWdEndTime" value="22:00">
+              </div>
+            </div>
+            <div class="tk-hd-field">
+              <label for="tkWdMaxPerDay">দিনে কয়বার উইথড্র করা যাবে</label>
+              <input type="number" id="tkWdMaxPerDay" min="1" value="1" placeholder="যেমন: 1">
+            </div>
+            <button type="button" id="tkSaveWithdrawRulesBtn" class="tk-hd-save-btn">
+              <i class="fa-solid fa-check"></i> উইথড্র নিয়ম ওকে / সেভ করুন
+            </button>
+          </div>
+
+          <!-- কাজ অপশন -->
+          <div id="tkPanelWork" class="tk-hd-card" style="display:none;">
+            <div style="font-weight:700;font-size:14px;color:#141517;">কাজ চালু থাকবে যেসব বারে (টিক দিন, বাকি বার বন্ধ):</div>
+            <div id="tkWkDaysBox" class="tk-hd-days"></div>
+            <button type="button" id="tkSaveWorkRulesBtn" class="tk-hd-save-btn">
+              <i class="fa-solid fa-check"></i> কাজের দিন ওকে / সেভ করুন
+            </button>
+          </div>
+        `;
+
+        buildDayChecks("tkWdDaysBox", "tkWdDay");
+        buildDayChecks("tkWkDaysBox", "tkWkDay");
+
+        const tabWd = document.getElementById("tkTabWithdraw");
+        const tabWk = document.getElementById("tkTabWork");
+        const panWd = document.getElementById("tkPanelWithdraw");
+        const panWk = document.getElementById("tkPanelWork");
+
+        tabWd.addEventListener("click", () => {
+          tabWd.classList.add("active");
+          tabWk.classList.remove("active");
+          panWd.style.display = "block";
+          panWk.style.display = "none";
+        });
+
+        tabWk.addEventListener("click", () => {
+          tabWk.classList.add("active");
+          tabWd.classList.remove("active");
+          panWk.style.display = "block";
+          panWd.style.display = "none";
+        });
+
+        document.getElementById("tkSaveWithdrawRulesBtn").addEventListener("click", async () => {
+          const openDays = WEEK_DAYS.filter((d) => document.getElementById("tkWdDay_" + d.key)?.checked).map((d) => d.key);
+          const startTime = document.getElementById("tkWdStartTime").value || "09:00";
+          const endTime = document.getElementById("tkWdEndTime").value || "22:00";
+          const maxPerDay = Number(document.getElementById("tkWdMaxPerDay").value);
+
+          if (!maxPerDay || maxPerDay < 1) {
+            alert("দিনে কমপক্ষে ১ বার উইথড্র করার সংখ্যা দিন!");
+            return;
+          }
+
+          try {
+            await setDoc(doc(db, "admin_settings", "holiday_rules"), {
+              withdraw: { openDays, startTime, endTime, maxPerDay }
+            }, { merge: true });
+            alert("✅ উইথড্র চালু থাকার দিন, সময় ও দৈনিক লিমিট সেভ হয়েছে!");
+          } catch (e) {
+            alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
           }
         });
 
-        list.sort((a, b) => getTimestampMs(b) - getTimestampMs(a));
-        cachedItems = list;
-        totalBadge.textContent = `${list.length}টি রিকোয়েস্ট`;
-
-        if (!list.length) {
-          serialContainer.innerHTML = isHistory
-            ? `<div class="tk-empty-box">কোনো হিস্টোরি রেকর্ড পাওয়া যায়নি।</div>`
-            : `<div class="tk-empty-box">কোনো পেন্ডিং রিকোয়েস্ট নেই।</div>`;
-          return;
-        }
-
-        serialContainer.innerHTML = list.map((item, index) => {
-          const serial = index + 1;
-          const status = normalizeStatus(item.status);
-          const userInfo = item.userName || item.userPhone || item.userEmail || item.userId || "ইউজার";
-          const method = item.method || "—";
-          const amount = item.amount ?? 0;
-
-          let extraLines = "";
-          if (isRecharge) {
-            extraLines = `
-              <strong>পরিমাণ:</strong> ৳${amount}<br>
-              <strong>মাধ্যম:</strong> ${method}<br>
-              <strong>TrxID:</strong> ${item.trxId || "—"}<br>
-              <strong>ফোন / ইমেইল:</strong> ${item.userPhone || "—"} / ${item.userEmail || "—"}
-            `;
-          } else {
-            const { deducted, payable, vatCut } = getWithdrawAmounts(item);
-            extraLines = `
-              <strong>মোট কাটা (10% VAT সহ):</strong> ৳${deducted} (VAT: ৳${vatCut})<br>
-              <strong>প্রাপ্য পরিমাণ:</strong> ৳${payable}<br>
-              <strong>মাধ্যম ও নম্বর:</strong> ${method} — ${item.account || "—"}<br>
-              <strong>ইউজার:</strong> ${item.userEmail || item.userId || "—"}
-            `;
+        document.getElementById("tkSaveWorkRulesBtn").addEventListener("click", async () => {
+          const openDays = WEEK_DAYS.filter((d) => document.getElementById("tkWkDay_" + d.key)?.checked).map((d) => d.key);
+          const closedDays = WEEK_DAYS.filter((d) => !openDays.includes(d.key)).map((d) => d.key);
+          try {
+            await setDoc(doc(db, "admin_settings", "holiday_rules"), {
+              work: { openDays, closedDays }
+            }, { merge: true });
+            alert("✅ কাজের চালু ও বন্ধ বার সেভ হয়েছে!");
+          } catch (e) {
+            alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
           }
+        });
+      },
+      onOpen: loadHolidaySettings
+    });
+  </script>
 
-          const actionButtons = !isHistory
-            ? `
-              <div class="tk-btn-pair">
-                <button
-                  type="button"
-                  class="tk-btn-approve"
-                  data-decision="approved"
-                  data-doc-id="${item.id}"
-                >
-                  <i class="fa-solid fa-check"></i> অ্যাপ্রুভ
-                </button>
-                <button
-                  type="button"
-                  class="tk-btn-reject"
-                  data-decision="rejected"
-                  data-doc-id="${item.id}"
-                >
-                  <i class="fa-solid fa-xmark"></i> রিজেক্ট
-                </button>
-              </div>
-            `
-            : "";
+  <!-- ===== পার্ট ৬: ফ্রি ট্রায়াল (প্রতিদিন কাজ ও কয়দিন) - স্বতন্ত্র ব্লক ===== -->
+  <style>
+    .tk-ft-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tk-ft-group {
+      margin-bottom: 12px;
+    }
+    .tk-ft-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #141517;
+      margin-bottom: 6px;
+    }
+    .tk-ft-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 14px;
+      background: #fafafa;
+      color: #18191b;
+      outline: none;
+    }
+    .tk-ft-save {
+      width: 100%;
+      background: #141517;
+      color: #f5b942;
+      border: none;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-ft-save:hover { background: #26292e; }
 
-          return `
-            <div class="tk-req-row" data-id="${item.id}">
-              <div class="tk-req-top">
-                <span class="tk-serial-num">#${serial} — ${userInfo}</span>
-                ${renderStatusBadge(status)}
-              </div>
-              <div class="tk-req-details">
-                ${extraLines}<br>
-                <strong>ID:</strong> <code>${item.id}</code>
-              </div>
-              ${actionButtons}
-            </div>
-          `;
-        }).join("");
-      } catch (err) {
-        totalBadge.textContent = "০টি রিকোয়েস্ট";
-        serialContainer.innerHTML = `<div class="tk-empty-box" style="color:#b91c1c;">লোড করতে সমস্যা হয়েছে: ${err.message}</div>`;
+    .tk-ft-lock-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .tk-ft-lock-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: #141517;
+      margin: 0 0 6px;
+    }
+    .tk-ft-lock-desc {
+      font-size: 12px;
+      color: #4b5563;
+      margin: 0 0 12px;
+    }
+    .tk-ft-lock-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 14px;
+      background: #fafafa;
+      color: #18191b;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .tk-ft-unlock-btn {
+      width: 100%;
+      background: #141517;
+      color: #f5b942;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-ft-unlock-btn:hover { background: #26292e; }
+    .tk-ft-lock-error {
+      color: #dc2626;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+  </style>
+
+  <script type="module">
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+    const TK_FT_PASS = "Kawtha@36";
+    let tkFtUnlocked = false;
+    let tkFtRoot = null;
+
+    async function loadFreeTrialSettings() {
+      if (!tkFtUnlocked) return;
+      try {
+        const snap = await getDoc(doc(db, "admin_settings", "free_trial"));
+        if (!snap.exists()) return;
+        const data = snap.data();
+        const tasksInp = document.getElementById("tkFtDailyTasks");
+        const daysInp = document.getElementById("tkFtTotalDays");
+        if (tasksInp && data.dailyTasks !== undefined) tasksInp.value = data.dailyTasks;
+        if (daysInp && data.totalDays !== undefined) daysInp.value = data.totalDays;
+      } catch (e) {
+        console.error("Free trial load error:", e);
       }
     }
 
-    serialContainer.addEventListener("click", async (e) => {
-      const btn = e.target.closest("button[data-decision][data-doc-id]");
-      if (!btn || !isUnlocked) return;
+    function renderFreeTrialForm(root) {
+      root.innerHTML = `
+        <h3 style="margin:0 0 12px;color:#141517;">ফ্রি ট্রায়াল সেটিংস</h3>
+        <div class="tk-ft-card">
+          <div class="tk-ft-group">
+            <label for="tkFtDailyTasks" class="tk-ft-label">প্রতিদিন কয়টা কাজ</label>
+            <input type="number" id="tkFtDailyTasks" class="tk-ft-input" min="0" placeholder="যেমন: 5">
+          </div>
+          <div class="tk-ft-group">
+            <label for="tkFtTotalDays" class="tk-ft-label">কয়দিন চলবে</label>
+            <input type="number" id="tkFtTotalDays" class="tk-ft-input" min="0" placeholder="যেমন: 3">
+          </div>
+          <button type="button" id="tkFtSaveBtn" class="tk-ft-save">
+            <i class="fa-solid fa-floppy-disk"></i> ফ্রি ট্রায়াল সেটিংস সেভ করুন
+          </button>
+        </div>
+      `;
 
-      const docId = btn.getAttribute("data-doc-id");
-      const decision = btn.getAttribute("data-decision");
-      const item = cachedItems.find((r) => r.id === docId);
-      if (!item) return;
+      document.getElementById("tkFtSaveBtn").addEventListener("click", async () => {
+        const dailyTasks = Number(document.getElementById("tkFtDailyTasks").value);
+        const totalDays = Number(document.getElementById("tkFtTotalDays").value);
 
-      const rowEl = btn.closest(".tk-req-row");
-      const rowBtns = rowEl ? rowEl.querySelectorAll("button") : [];
-      rowBtns.forEach((b) => (b.disabled = true));
+        if (Number.isNaN(dailyTasks) || dailyTasks < 0 || Number.isNaN(totalDays) || totalDays < 0) {
+          alert("অনুগ্রহ করে সঠিক সংখ্যা দিন!");
+          return;
+        }
 
-      const isRecharge = viewMode === "recharge_pending";
+        try {
+          await setDoc(doc(db, "admin_settings", "free_trial"), {
+            dailyTasks,
+            totalDays
+          }, { merge: true });
+          alert("✅ ফ্রি ট্রায়ালের দৈনিক কাজ ও দিন সেভ হয়েছে!");
+        } catch (e) {
+          alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
+        }
+      });
 
-      try {
-        if (isRecharge) {
-          await updateDoc(doc(db, COLLECTIONS.recharge, docId), {
-            status: decision,
-            reviewedAt: new Date().toISOString()
-          });
+      loadFreeTrialSettings();
+    }
 
-          if (decision === "approved" && item.userId) {
-            const userRef = doc(db, "users", item.userId);
-            await runTransaction(db, async (tx) => {
-              const uSnap = await tx.get(userRef);
-              if (uSnap.exists()) {
-                const uData = uSnap.data() || {};
-                const prevRechargeCash = Number(uData.rechargeCash || uData.balance || 0);
-                tx.update(userRef, {
-                  rechargeCash: prevRechargeCash + Number(item.amount || 0)
-                });
-              }
-            });
-          }
+    function renderFreeTrialLock(root) {
+      root.innerHTML = `
+        <h3 style="margin:0 0 12px;color:#141517;">ফ্রি ট্রায়াল সেটিংস</h3>
+        <div class="tk-ft-lock-box">
+          <div class="tk-ft-lock-title">🔒 পাসওয়ার্ড প্রয়োজন</div>
+          <div class="tk-ft-lock-desc">এই সেকশনে প্রবেশ করতে সঠিক পাসওয়ার্ড দিন।</div>
+          <input type="password" id="tkFtPassInput" class="tk-ft-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off">
+          <button type="button" id="tkFtUnlockBtn" class="tk-ft-unlock-btn">প্রবেশ করুন</button>
+          <div id="tkFtPassError" class="tk-ft-lock-error"></div>
+        </div>
+      `;
+
+      const inputEl = document.getElementById("tkFtPassInput");
+      const btnEl = document.getElementById("tkFtUnlockBtn");
+      const errEl = document.getElementById("tkFtPassError");
+
+      const verifyPass = () => {
+        if (inputEl.value === TK_FT_PASS) {
+          tkFtUnlocked = true;
+          renderFreeTrialForm(root);
         } else {
-          await updateDoc(doc(db, COLLECTIONS.withdraw, docId), {
-            status: decision,
-            reviewedAt: new Date().toISOString()
-          });
-
-          // উইথড্র রিজেক্ট হলে কাটা মূল টাকা (deductedAmount) ইউজারের taskCash-এ ফেরত পাঠানো
-          if (decision === "rejected" && item.userId) {
-            const { deducted } = getWithdrawAmounts(item);
-            const userRef = doc(db, "users", item.userId);
-            await runTransaction(db, async (tx) => {
-              const uSnap = await tx.get(userRef);
-              if (uSnap.exists() && deducted > 0) {
-                const uData = uSnap.data() || {};
-                const prevTaskCash = Number(uData.taskCash || 0);
-                tx.update(userRef, {
-                  taskCash: Number((prevTaskCash + deducted).toFixed(2))
-                });
-              }
-            });
-          }
+          errEl.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
         }
+      };
 
-        // সাথে সাথে পেন্ডিং লিস্ট থেকে কার্ডটি সরিয়ে দেওয়া
-        cachedItems = cachedItems.filter((r) => r.id !== docId);
-        if (rowEl) {
-          rowEl.remove();
-        }
-        totalBadge.textContent = `${cachedItems.length}টি রিকোয়েস্ট`;
-        if (!cachedItems.length) {
-          serialContainer.innerHTML = `<div class="tk-empty-box">কোনো পেন্ডিং রিকোয়েস্ট নেই।</div>`;
-        }
+      btnEl.addEventListener("click", verifyPass);
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") verifyPass();
+      });
+    }
 
-        showBanner(
-          decision === "approved"
-            ? "✅ রিকোয়েস্টটি সফলভাবে অ্যাপ্রুভ করা হয়েছে!"
-            : "❌ রিকোয়েস্টটি রিজেক্ট করা হয়েছে!"
-        );
-      } catch (err) {
-        showBanner("আপডেট করতে সমস্যা হয়েছে: " + err.message, true);
-        rowBtns.forEach((b) => (b.disabled = false));
+    window.tkRegisterFeature({
+      id: "freeTrial",
+      title: "ফ্রি ট্রায়াল",
+      icon: "fa-gift",
+      badgeText: "নতুন",
+      renderRoom: (root) => {
+        tkFtRoot = root;
+        if (tkFtUnlocked) {
+          renderFreeTrialForm(root);
+        } else {
+          renderFreeTrialLock(root);
+        }
+      },
+      onOpen: () => {
+        if (tkFtUnlocked) {
+          loadFreeTrialSettings();
+        }
       }
     });
-
-    btnRechargeTab.addEventListener("click", () => loadViewData("recharge_pending"));
-    btnWithdrawTab.addEventListener("click", () => loadViewData("withdraw_pending"));
-    btnRechargeHistory.addEventListener("click", () => loadViewData("recharge_history"));
-    btnWithdrawHistory.addEventListener("click", () => loadViewData("withdraw_history"));
-    refreshBtn.addEventListener("click", () => loadViewData(viewMode));
   </script>
+
+
+
+
+
+
+<!-- ===== রেফার কমিশন ও প্যাকেজ রিফান্ড কন্ট্রোল - স্বতন্ত্র ব্লক ===== -->
+  <style>
+    .tk-rc-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 14px;
+    }
+    .tk-rc-section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #141517;
+      margin: 0 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f0f1f3;
+    }
+    .tk-rc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .tk-rc-field {
+      margin-bottom: 12px;
+    }
+    .tk-rc-grid .tk-rc-field {
+      margin-bottom: 0;
+    }
+    .tk-rc-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+    .tk-rc-field input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 13px;
+      background: #fafafa;
+      box-sizing: border-box;
+    }
+    .tk-rc-save-btn {
+      width: 100%;
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-rc-save-btn:hover { background: #15803d; }
+
+    .tk-rc-lock-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .tk-rc-lock-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: #141517;
+      margin: 0 0 6px;
+    }
+    .tk-rc-lock-desc {
+      font-size: 12px;
+      color: #4b5563;
+      margin: 0 0 12px;
+    }
+    .tk-rc-lock-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 14px;
+      background: #fafafa;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .tk-rc-unlock-btn {
+      width: 100%;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tk-rc-unlock-btn:hover { background: #1d4ed8; }
+    .tk-rc-lock-error {
+      color: #dc2626;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+  </style>
+
+  <script type="module">
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+    const REF_DOC_REF = doc(db, "admin_settings", "referral_commission");
+    const TK_RC_PASS = "Kawtha@36";
+    let tkRcUnlocked = false;
+    let tkRcRoot = null;
+
+    const DEFAULT_RC = {
+      packagePercent: 10,
+      packageRefundPercent: 80,
+      taskLevel1Percent: 10,
+      taskLevel2Percent: 4
+    };
+
+    async function loadReferralCommissionSettings() {
+      if (!tkRcUnlocked) return;
+      try {
+        const snap = await getDoc(REF_DOC_REF);
+        const data = snap.exists() ? snap.data() : {};
+
+        const pkgVal = (data.packagePercent !== undefined && !Number.isNaN(Number(data.packagePercent)))
+          ? Number(data.packagePercent)
+          : DEFAULT_RC.packagePercent;
+
+        const refundVal = (data.packageRefundPercent !== undefined && !Number.isNaN(Number(data.packageRefundPercent)))
+          ? Number(data.packageRefundPercent)
+          : DEFAULT_RC.packageRefundPercent;
+
+        const l1Val = (data.taskLevel1Percent !== undefined && !Number.isNaN(Number(data.taskLevel1Percent)))
+          ? Number(data.taskLevel1Percent)
+          : DEFAULT_RC.taskLevel1Percent;
+
+        const l2Val = (data.taskLevel2Percent !== undefined && !Number.isNaN(Number(data.taskLevel2Percent)))
+          ? Number(data.taskLevel2Percent)
+          : DEFAULT_RC.taskLevel2Percent;
+
+        const pkgInp = document.getElementById("tkRcPkgPercent");
+        const refundInp = document.getElementById("tkRcPkgRefundPercent");
+        const l1Inp = document.getElementById("tkRcTaskL1Percent");
+        const l2Inp = document.getElementById("tkRcTaskL2Percent");
+
+        if (pkgInp) pkgInp.value = pkgVal;
+        if (refundInp) refundInp.value = refundVal;
+        if (l1Inp) l1Inp.value = l1Val;
+        if (l2Inp) l2Inp.value = l2Val;
+      } catch (e) {
+        console.error("Referral commission settings load error:", e);
+      }
+    }
+        function renderReferralCommissionForm(root) {
+      root.innerHTML = `
+        <h3 style="margin:0 0 12px;color:#141517;">রেফার কমিশন ও রিফান্ড নিয়ন্ত্রণ (%)</h3>
+
+        <div class="tk-rc-card">
+          <div class="tk-rc-section-title">📦 প্যাকেজ রেফার কমিশন ও আপগ্রেড রিফান্ড</div>
+          <div class="tk-rc-grid">
+            <div class="tk-rc-field">
+              <label for="tkRcPkgPercent">প্যাকেজ রেফার কমিশন (%)</label>
+              <input type="number" id="tkRcPkgPercent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
+            </div>
+            <div class="tk-rc-field">
+              <label for="tkRcPkgRefundPercent">প্যাকেজ রিফান্ড (%)</label>
+              <input type="number" id="tkRcPkgRefundPercent" min="0" max="100" step="0.1" value="80" placeholder="যেমন: 80">
+            </div>
+          </div>
+        </div>
+
+        <div class="tk-rc-card">
+          <div class="tk-rc-section-title">⚙️ ডেইলি কাজের উপর রেফার কমিশন</div>
+          <div class="tk-rc-grid">
+            <div class="tk-rc-field">
+              <label for="tkRcTaskL1Percent">লেভেল ১ কমিশন (%)</label>
+              <input type="number" id="tkRcTaskL1Percent" min="0" max="100" step="0.1" value="10" placeholder="যেমন: 10">
+            </div>
+            <div class="tk-rc-field">
+              <label for="tkRcTaskL2Percent">লেভেল ২ কমিশন (%)</label>
+              <input type="number" id="tkRcTaskL2Percent" min="0" max="100" step="0.1" value="4" placeholder="যেমন: 4">
+            </div>
+          </div>
+          <button type="button" id="tkSaveReferralCommissionBtn" class="tk-rc-save-btn">
+            <i class="fa-solid fa-check"></i> কমিশন ও রিফান্ড সেভ করুন
+          </button>
+        </div>
+      `;
+
+      document.getElementById("tkSaveReferralCommissionBtn").addEventListener("click", async () => {
+        const packagePercent = Number(document.getElementById("tkRcPkgPercent").value);
+        const packageRefundPercent = Number(document.getElementById("tkRcPkgRefundPercent").value);
+        const taskLevel1Percent = Number(document.getElementById("tkRcTaskL1Percent").value);
+        const taskLevel2Percent = Number(document.getElementById("tkRcTaskL2Percent").value);
+
+        if (
+          Number.isNaN(packagePercent) || packagePercent < 0 || packagePercent > 100 ||
+          Number.isNaN(packageRefundPercent) || packageRefundPercent < 0 || packageRefundPercent > 100 ||
+          Number.isNaN(taskLevel1Percent) || taskLevel1Percent < 0 || taskLevel1Percent > 100 ||
+          Number.isNaN(taskLevel2Percent) || taskLevel2Percent < 0 || taskLevel2Percent > 100
+        ) {
+          alert("দয়া করে ০ থেকে ১০০-এর মধ্যে সঠিক শতাংশ সংখ্যা দিন!");
+          return;
+        }
+
+        try {
+          await setDoc(REF_DOC_REF, {
+            packagePercent,
+            packageRefundPercent,
+            taskLevel1Percent,
+            taskLevel2Percent
+          }, { merge: true });
+          alert("✅ প্যাকেজ কমিশন, রিফান্ড ও কাজের রেফার কমিশন সেভ হয়েছে!");
+        } catch (e) {
+          alert("সেভ করতে সমস্যা হয়েছে: " + e.message);
+        }
+      });
+
+      loadReferralCommissionSettings();
+    }
+
+    function renderReferralCommissionLock(root) {
+      root.innerHTML = `
+        <h3 style="margin:0 0 12px;color:#141517;">রেফার কমিশন ও রিফান্ড নিয়ন্ত্রণ (%)</h3>
+        <div class="tk-rc-lock-box">
+          <div class="tk-rc-lock-title">🔒 পাসওয়ার্ড প্রয়োজন</div>
+          <div class="tk-rc-lock-desc">এই সেকশনে প্রবেশ করতে সঠিক পাসওয়ার্ড দিন।</div>
+          <input type="password" id="tkRcPassInput" class="tk-rc-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off">
+          <button type="button" id="tkRcUnlockBtn" class="tk-rc-unlock-btn">প্রবেশ করুন</button>
+          <div id="tkRcPassError" class="tk-rc-lock-error"></div>
+        </div>
+      `;
+
+      const inputEl = document.getElementById("tkRcPassInput");
+      const btnEl = document.getElementById("tkRcUnlockBtn");
+      const errEl = document.getElementById("tkRcPassError");
+
+      const verifyPass = () => {
+        if (inputEl.value === TK_RC_PASS) {
+          tkRcUnlocked = true;
+          renderReferralCommissionForm(root);
+        } else {
+          errEl.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+        }
+      };
+
+      btnEl.addEventListener("click", verifyPass);
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") verifyPass();
+      });
+    }
+
+    window.tkRegisterFeature({
+      id: "referralCommission",
+      title: "রেফার কমিশন ও রিফান্ড",
+      icon: "fa-percent",
+      badgeText: "সিক্রেট",
+      renderRoom: (root) => {
+        tkRcRoot = root;
+        if (tkRcUnlocked) {
+          renderReferralCommissionForm(root);
+        } else {
+          renderReferralCommissionLock(root);
+        }
+      },
+      onOpen: () => {
+        if (tkRcUnlocked) {
+          loadReferralCommissionSettings();
+        }
+      }
+    });
+  </script>
+
+
+
+
+
+<!-- ===== অ্যাকাউন্ট ফ্রিজ ও আনফ্রিজ কন্ট্রোল (পাসওয়ার্ড লকসহ) - স্বতন্ত্র ব্লক ===== -->
+<style>
+  .tk-af-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 14px;
+  }
+  .tk-af-section-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #141517;
+    margin: 0 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f0f1f3;
+  }
+  .tk-af-field {
+    margin-bottom: 12px;
+  }
+  .tk-af-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 5px;
+  }
+  .tk-af-field input,
+  .tk-af-field textarea {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    font-size: 13px;
+    background: #fafafa;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+  .tk-af-row-btns {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+  .tk-af-search-btn {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tk-af-search-btn:hover { background: #1d4ed8; }
+
+  .tk-af-user-box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #1f2937;
+  }
+  .tk-af-user-meta {
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+  .tk-af-badge-frozen {
+    display: inline-block;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .tk-af-badge-active {
+    display: inline-block;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  .tk-af-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .tk-af-freeze-btn {
+    background: #dc2626;
+    color: #ffffff;
+    border: none;
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tk-af-freeze-btn:hover { background: #b91c1c; }
+
+  .tk-af-unfreeze-btn {
+    background: #16a34a;
+    color: #ffffff;
+    border: none;
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tk-af-unfreeze-btn:hover { background: #15803d; }
+
+  .tk-af-status-msg {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+
+  .tk-af-lock-box {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center;
+  }
+  .tk-af-lock-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #141517;
+    margin: 0 0 6px;
+  }
+  .tk-af-lock-desc {
+    font-size: 12px;
+    color: #4b5563;
+    margin: 0 0 12px;
+  }
+  .tk-af-lock-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    font-size: 14px;
+    background: #fafafa;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+  }
+  .tk-af-unlock-btn {
+    width: 100%;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tk-af-unlock-btn:hover { background: #1d4ed8; }
+  .tk-af-lock-error {
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+    min-height: 16px;
+  }
+</style>
+
+<script type="module">
+  import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    limit,
+    query,
+    setDoc,
+    where
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const { db } = window.tkFirebase;
+  const TK_AF_PASS = "Kawtha@36";
+  let tkAfUnlocked = false;
+  let tkAfSelectedUser = null;
+
+  async function findTargetUser(rawQuery) {
+    const val = (rawQuery || "").trim();
+    if (!val) return null;
+
+    const directSnap = await getDoc(doc(db, "users", val));
+    if (directSnap.exists()) {
+      return { id: directSnap.id, data: directSnap.data() };
+    }
+
+    const byEmail = await getDocs(
+      query(collection(db, "users"), where("email", "==", val), limit(1))
+    );
+    if (!byEmail.empty) {
+      const d = byEmail.docs[0];
+      return { id: d.id, data: d.data() };
+    }
+
+    const byPhone = await getDocs(
+      query(collection(db, "users"), where("phone", "==", val), limit(1))
+    );
+    if (!byPhone.empty) {
+      const d = byPhone.docs[0];
+      return { id: d.id, data: d.data() };
+    }
+
+    return null;
+  }
+
+  function renderUserInfo(container, userObj) {
+    if (!userObj) {
+      container.innerHTML = `<div style="color:#6b7280;">কোনো ইউজার সিলেক্ট করা হয়নি। UID, ইমেইল বা ফোন নম্বর দিয়ে খুঁজুন।</div>`;
+      return;
+    }
+
+    const d = userObj.data || {};
+    const isFrozen = d.isFrozen === true;
+    const displayName = d.name || d.fullName || d.displayName || "নাম নেই";
+    const email = d.email || "ইমেইল নেই";
+    const phone = d.phone || d.mobile || "ফোন নেই";
+    const reason = d.freezeReason || "—";
+
+    container.innerHTML = `
+      <div class="tk-af-user-meta">
+        <strong>নাম:</strong> ${displayName}<br>
+        <strong>UID:</strong> <code>${userObj.id}</code><br>
+        <strong>ইমেইল:</strong> ${email}<br>
+        <strong>ফোন:</strong> ${phone}
+      </div>
+      <div class="tk-af-user-meta">
+        <strong>স্ট্যাটাস:</strong>
+        ${isFrozen
+          ? `<span class="tk-af-badge-frozen">❄️ ফ্রিজ করা আছে</span>`
+          : `<span class="tk-af-badge-active">✅ সক্রিয়</span>`
+        }
+      </div>
+      <div class="tk-af-user-meta" style="margin-bottom:0;">
+        <strong>বর্তমান কারণ:</strong> ${reason}
+      </div>
+    `;
+  }
+
+  function renderAccountFreezeForm(root) {
+    tkAfSelectedUser = null;
+
+    root.innerHTML = `
+      <h3 style="margin:0 0 12px;color:#141517;">অ্যাকাউন্ট ফ্রিজ ও আনফ্রিজ নিয়ন্ত্রণ</h3>
+
+      <div class="tk-af-card">
+        <div class="tk-af-section-title">🔍 ইউজার খুঁজুন</div>
+        <div class="tk-af-field">
+          <label for="tkAfSearchInput">User UID / ইমেইল / ফোন নম্বর</label>
+          <div class="tk-af-row-btns">
+            <input type="text" id="tkAfSearchInput" placeholder="যেমন: uid অথবা user@mail.com">
+            <button type="button" id="tkAfSearchBtn" class="tk-af-search-btn">
+              <i class="fa-solid fa-magnifying-glass"></i> খুঁজুন
+            </button>
+          </div>
+        </div>
+        <div id="tkAfUserBox" class="tk-af-user-box"></div>
+        <div id="tkAfSearchStatus" class="tk-af-status-msg"></div>
+      </div>
+
+      <div class="tk-af-card">
+        <div class="tk-af-section-title">❄️ ফ্রিজ / আনফ্রিজ অ্যাকশন</div>
+        <div class="tk-af-field">
+          <label for="tkAfReasonInput">ফ্রিজ করার কারণ (ঐচ্ছিক)</label>
+          <textarea id="tkAfReasonInput" rows="2" placeholder="যেমন: সন্দেহজনক লেনদেন বা নিয়ম ভঙ্গ"></textarea>
+        </div>
+
+        <div class="tk-af-action-grid">
+          <button type="button" id="tkAfFreezeBtn" class="tk-af-freeze-btn">
+            <i class="fa-solid fa-snowflake"></i> অ্যাকাউন্ট ফ্রিজ করুন
+          </button>
+          <button type="button" id="tkAfUnfreezeBtn" class="tk-af-unfreeze-btn">
+            <i class="fa-solid fa-unlock"></i> অ্যাকাউন্ট আনফ্রিজ করুন
+          </button>
+        </div>
+
+        <div id="tkAfActionStatus" class="tk-af-status-msg"></div>
+      </div>
+    `;
+
+    const searchInput = document.getElementById("tkAfSearchInput");
+    const searchBtn = document.getElementById("tkAfSearchBtn");
+    const userBox = document.getElementById("tkAfUserBox");
+    const searchStatus = document.getElementById("tkAfSearchStatus");
+    const reasonInput = document.getElementById("tkAfReasonInput");
+    const freezeBtn = document.getElementById("tkAfFreezeBtn");
+    const unfreezeBtn = document.getElementById("tkAfUnfreezeBtn");
+    const actionStatus = document.getElementById("tkAfActionStatus");
+
+    renderUserInfo(userBox, null);
+
+    const handleSearch = async () => {
+      searchStatus.style.color = "#374151";
+      searchStatus.textContent = "খোঁজা হচ্ছে...";
+      actionStatus.textContent = "";
+
+      try {
+        const found = await findTargetUser(searchInput.value);
+        if (!found) {
+          tkAfSelectedUser = null;
+          renderUserInfo(userBox, null);
+          searchStatus.style.color = "#dc2626";
+          searchStatus.textContent = "এই তথ্য দিয়ে কোনো ইউজার পাওয়া যায়নি।";
+          return;
+        }
+
+        tkAfSelectedUser = found;
+        reasonInput.value = found.data.freezeReason || "";
+        renderUserInfo(userBox, tkAfSelectedUser);
+        searchStatus.style.color = "#15803d";
+        searchStatus.textContent = "ইউজার পাওয়া গেছে।";
+      } catch (err) {
+        searchStatus.style.color = "#dc2626";
+        searchStatus.textContent = "সার্চ করতে সমস্যা হয়েছে: " + err.message;
+      }
+    };
+
+    const updateFreezeState = async (freezeValue) => {
+      if (!tkAfSelectedUser) {
+        actionStatus.style.color = "#dc2626";
+        actionStatus.textContent = "আগে একটি ইউজার খুঁজুন ও সিলেক্ট করুন।";
+        return;
+      }
+
+      const reasonText = (reasonInput.value || "").trim();
+      actionStatus.style.color = "#374151";
+      actionStatus.textContent = "আপডেট হচ্ছে...";
+
+      try {
+        const payload = freezeValue
+          ? {
+              isFrozen: true,
+              freezeReason: reasonText || "অ্যাডমিন কর্তৃক অ্যাকাউন্ট ফ্রিজ করা হয়েছে",
+              frozenAt: new Date().toISOString()
+            }
+          : {
+              isFrozen: false,
+              freezeReason: "",
+              unfrozenAt: new Date().toISOString()
+            };
+
+        await setDoc(doc(db, "users", tkAfSelectedUser.id), payload, { merge: true });
+
+        tkAfSelectedUser.data = {
+          ...(tkAfSelectedUser.data || {}),
+          ...payload
+        };
+
+        renderUserInfo(userBox, tkAfSelectedUser);
+        actionStatus.style.color = "#15803d";
+        actionStatus.textContent = freezeValue
+          ? "✅ অ্যাকাউন্ট সফলভাবে ফ্রিজ করা হয়েছে!"
+          : "✅ অ্যাকাউন্ট সফলভাবে আনফ্রিজ করা হয়েছে!";
+      } catch (err) {
+        actionStatus.style.color = "#dc2626";
+        actionStatus.textContent = "আপডেট করতে সমস্যা হয়েছে: " + err.message;
+      }
+    };
+
+    searchBtn.addEventListener("click", handleSearch);
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleSearch();
+    });
+
+    freezeBtn.addEventListener("click", () => updateFreezeState(true));
+    unfreezeBtn.addEventListener("click", () => updateFreezeState(false));
+  }
+
+  function renderAccountFreezeLock(root) {
+    root.innerHTML = `
+      <h3 style="margin:0 0 12px;color:#141517;">অ্যাকাউন্ট ফ্রিজ ও আনফ্রিজ নিয়ন্ত্রণ</h3>
+      <div class="tk-af-lock-box">
+        <div class="tk-af-lock-title">🔒 পাসওয়ার্ড প্রয়োজন</div>
+        <div class="tk-af-lock-desc">এই সেকশনে প্রবেশ করতে সঠিক পাসওয়ার্ড দিন।</div>
+        <input type="password" id="tkAfPassInput" class="tk-af-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off">
+        <button type="button" id="tkAfUnlockBtn" class="tk-af-unlock-btn">প্রবেশ করুন</button>
+        <div id="tkAfPassError" class="tk-af-lock-error"></div>
+      </div>
+    `;
+
+    const inputEl = document.getElementById("tkAfPassInput");
+    const btnEl = document.getElementById("tkAfUnlockBtn");
+    const errEl = document.getElementById("tkAfPassError");
+
+    const verifyPass = () => {
+      if (inputEl.value === TK_AF_PASS) {
+        tkAfUnlocked = true;
+        renderAccountFreezeForm(root);
+      } else {
+        errEl.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+      }
+    };
+
+    btnEl.addEventListener("click", verifyPass);
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") verifyPass();
+    });
+  }
+
+  window.tkRegisterFeature({
+    id: "accountFreeze",
+    title: "অ্যাকাউন্ট ফ্রিজ",
+    icon: "fa-snowflake",
+    badgeText: "সিক্রেট",
+    renderRoom: (root) => {
+      if (tkAfUnlocked) {
+        renderAccountFreezeForm(root);
+      } else {
+        renderAccountFreezeLock(root);
+      }
+    }
+  });
+</script>
+
+
+
+
+
 </body>
 </html>
+
+    
+  
+  
+  
+  
