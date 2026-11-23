@@ -2515,7 +2515,7 @@
       id: "referralCommission",
       title: "রেফার কমিশন ও রিফান্ড",
       icon: "fa-percent",
-      badgeText: "নতুন",
+      badgeText: "সিক্রেট",
       renderRoom: (root) => {
         tkRcRoot = root;
         if (tkRcUnlocked) {
@@ -2531,6 +2531,440 @@
       }
     });
   </script>
+
+
+
+
+
+<!-- ===== অ্যাকাউন্ট ফ্রিজ ও আনফ্রিজ কন্ট্রোল (পাসওয়ার্ড লকসহ) - স্বতন্ত্র ব্লক ===== -->
+<style>
+  .tk-af-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 14px;
+  }
+  .tk-af-section-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #141517;
+    margin: 0 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f0f1f3;
+  }
+  .tk-af-field {
+    margin-bottom: 12px;
+  }
+  .tk-af-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 5px;
+  }
+  .tk-af-field input,
+  .tk-af-field textarea {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    font-size: 13px;
+    background: #fafafa;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+  .tk-af-row-btns {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+  .tk-af-search-btn {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tk-af-search-btn:hover { background: #1d4ed8; }
+
+  .tk-af-user-box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #1f2937;
+  }
+  .tk-af-user-meta {
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+  .tk-af-badge-frozen {
+    display: inline-block;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .tk-af-badge-active {
+    display: inline-block;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  .tk-af-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .tk-af-freeze-btn {
+    background: #dc2626;
+    color: #ffffff;
+    border: none;
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tk-af-freeze-btn:hover { background: #b91c1c; }
+
+  .tk-af-unfreeze-btn {
+    background: #16a34a;
+    color: #ffffff;
+    border: none;
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tk-af-unfreeze-btn:hover { background: #15803d; }
+
+  .tk-af-status-msg {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+
+  .tk-af-lock-box {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center;
+  }
+  .tk-af-lock-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #141517;
+    margin: 0 0 6px;
+  }
+  .tk-af-lock-desc {
+    font-size: 12px;
+    color: #4b5563;
+    margin: 0 0 12px;
+  }
+  .tk-af-lock-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    font-size: 14px;
+    background: #fafafa;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+  }
+  .tk-af-unlock-btn {
+    width: 100%;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tk-af-unlock-btn:hover { background: #1d4ed8; }
+  .tk-af-lock-error {
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+    min-height: 16px;
+  }
+</style>
+
+<script type="module">
+  import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    limit,
+    query,
+    setDoc,
+    where
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const { db } = window.tkFirebase;
+  const TK_AF_PASS = "Kawtha@36";
+  let tkAfUnlocked = false;
+  let tkAfSelectedUser = null;
+
+  async function findTargetUser(rawQuery) {
+    const val = (rawQuery || "").trim();
+    if (!val) return null;
+
+    const directSnap = await getDoc(doc(db, "users", val));
+    if (directSnap.exists()) {
+      return { id: directSnap.id, data: directSnap.data() };
+    }
+
+    const byEmail = await getDocs(
+      query(collection(db, "users"), where("email", "==", val), limit(1))
+    );
+    if (!byEmail.empty) {
+      const d = byEmail.docs[0];
+      return { id: d.id, data: d.data() };
+    }
+
+    const byPhone = await getDocs(
+      query(collection(db, "users"), where("phone", "==", val), limit(1))
+    );
+    if (!byPhone.empty) {
+      const d = byPhone.docs[0];
+      return { id: d.id, data: d.data() };
+    }
+
+    return null;
+  }
+
+  function renderUserInfo(container, userObj) {
+    if (!userObj) {
+      container.innerHTML = `<div style="color:#6b7280;">কোনো ইউজার সিলেক্ট করা হয়নি। UID, ইমেইল বা ফোন নম্বর দিয়ে খুঁজুন।</div>`;
+      return;
+    }
+
+    const d = userObj.data || {};
+    const isFrozen = d.isFrozen === true;
+    const displayName = d.name || d.fullName || d.displayName || "নাম নেই";
+    const email = d.email || "ইমেইল নেই";
+    const phone = d.phone || d.mobile || "ফোন নেই";
+    const reason = d.freezeReason || "—";
+
+    container.innerHTML = `
+      <div class="tk-af-user-meta">
+        <strong>নাম:</strong> ${displayName}<br>
+        <strong>UID:</strong> <code>${userObj.id}</code><br>
+        <strong>ইমেইল:</strong> ${email}<br>
+        <strong>ফোন:</strong> ${phone}
+      </div>
+      <div class="tk-af-user-meta">
+        <strong>স্ট্যাটাস:</strong>
+        ${isFrozen
+          ? `<span class="tk-af-badge-frozen">❄️ ফ্রিজ করা আছে</span>`
+          : `<span class="tk-af-badge-active">✅ সক্রিয়</span>`
+        }
+      </div>
+      <div class="tk-af-user-meta" style="margin-bottom:0;">
+        <strong>বর্তমান কারণ:</strong> ${reason}
+      </div>
+    `;
+  }
+
+  function renderAccountFreezeForm(root) {
+    tkAfSelectedUser = null;
+
+    root.innerHTML = `
+      <h3 style="margin:0 0 12px;color:#141517;">অ্যাকাউন্ট ফ্রিজ ও আনফ্রিজ নিয়ন্ত্রণ</h3>
+
+      <div class="tk-af-card">
+        <div class="tk-af-section-title">🔍 ইউজার খুঁজুন</div>
+        <div class="tk-af-field">
+          <label for="tkAfSearchInput">User UID / ইমেইল / ফোন নম্বর</label>
+          <div class="tk-af-row-btns">
+            <input type="text" id="tkAfSearchInput" placeholder="যেমন: uid অথবা user@mail.com">
+            <button type="button" id="tkAfSearchBtn" class="tk-af-search-btn">
+              <i class="fa-solid fa-magnifying-glass"></i> খুঁজুন
+            </button>
+          </div>
+        </div>
+        <div id="tkAfUserBox" class="tk-af-user-box"></div>
+        <div id="tkAfSearchStatus" class="tk-af-status-msg"></div>
+      </div>
+
+      <div class="tk-af-card">
+        <div class="tk-af-section-title">❄️ ফ্রিজ / আনফ্রিজ অ্যাকশন</div>
+        <div class="tk-af-field">
+          <label for="tkAfReasonInput">ফ্রিজ করার কারণ (ঐচ্ছিক)</label>
+          <textarea id="tkAfReasonInput" rows="2" placeholder="যেমন: সন্দেহজনক লেনদেন বা নিয়ম ভঙ্গ"></textarea>
+        </div>
+
+        <div class="tk-af-action-grid">
+          <button type="button" id="tkAfFreezeBtn" class="tk-af-freeze-btn">
+            <i class="fa-solid fa-snowflake"></i> অ্যাকাউন্ট ফ্রিজ করুন
+          </button>
+          <button type="button" id="tkAfUnfreezeBtn" class="tk-af-unfreeze-btn">
+            <i class="fa-solid fa-unlock"></i> অ্যাকাউন্ট আনফ্রিজ করুন
+          </button>
+        </div>
+
+        <div id="tkAfActionStatus" class="tk-af-status-msg"></div>
+      </div>
+    `;
+
+    const searchInput = document.getElementById("tkAfSearchInput");
+    const searchBtn = document.getElementById("tkAfSearchBtn");
+    const userBox = document.getElementById("tkAfUserBox");
+    const searchStatus = document.getElementById("tkAfSearchStatus");
+    const reasonInput = document.getElementById("tkAfReasonInput");
+    const freezeBtn = document.getElementById("tkAfFreezeBtn");
+    const unfreezeBtn = document.getElementById("tkAfUnfreezeBtn");
+    const actionStatus = document.getElementById("tkAfActionStatus");
+
+    renderUserInfo(userBox, null);
+
+    const handleSearch = async () => {
+      searchStatus.style.color = "#374151";
+      searchStatus.textContent = "খোঁজা হচ্ছে...";
+      actionStatus.textContent = "";
+
+      try {
+        const found = await findTargetUser(searchInput.value);
+        if (!found) {
+          tkAfSelectedUser = null;
+          renderUserInfo(userBox, null);
+          searchStatus.style.color = "#dc2626";
+          searchStatus.textContent = "এই তথ্য দিয়ে কোনো ইউজার পাওয়া যায়নি।";
+          return;
+        }
+
+        tkAfSelectedUser = found;
+        reasonInput.value = found.data.freezeReason || "";
+        renderUserInfo(userBox, tkAfSelectedUser);
+        searchStatus.style.color = "#15803d";
+        searchStatus.textContent = "ইউজার পাওয়া গেছে।";
+      } catch (err) {
+        searchStatus.style.color = "#dc2626";
+        searchStatus.textContent = "সার্চ করতে সমস্যা হয়েছে: " + err.message;
+      }
+    };
+
+    const updateFreezeState = async (freezeValue) => {
+      if (!tkAfSelectedUser) {
+        actionStatus.style.color = "#dc2626";
+        actionStatus.textContent = "আগে একটি ইউজার খুঁজুন ও সিলেক্ট করুন।";
+        return;
+      }
+
+      const reasonText = (reasonInput.value || "").trim();
+      actionStatus.style.color = "#374151";
+      actionStatus.textContent = "আপডেট হচ্ছে...";
+
+      try {
+        const payload = freezeValue
+          ? {
+              isFrozen: true,
+              freezeReason: reasonText || "অ্যাডমিন কর্তৃক অ্যাকাউন্ট ফ্রিজ করা হয়েছে",
+              frozenAt: new Date().toISOString()
+            }
+          : {
+              isFrozen: false,
+              freezeReason: "",
+              unfrozenAt: new Date().toISOString()
+            };
+
+        await setDoc(doc(db, "users", tkAfSelectedUser.id), payload, { merge: true });
+
+        tkAfSelectedUser.data = {
+          ...(tkAfSelectedUser.data || {}),
+          ...payload
+        };
+
+        renderUserInfo(userBox, tkAfSelectedUser);
+        actionStatus.style.color = "#15803d";
+        actionStatus.textContent = freezeValue
+          ? "✅ অ্যাকাউন্ট সফলভাবে ফ্রিজ করা হয়েছে!"
+          : "✅ অ্যাকাউন্ট সফলভাবে আনফ্রিজ করা হয়েছে!";
+      } catch (err) {
+        actionStatus.style.color = "#dc2626";
+        actionStatus.textContent = "আপডেট করতে সমস্যা হয়েছে: " + err.message;
+      }
+    };
+
+    searchBtn.addEventListener("click", handleSearch);
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleSearch();
+    });
+
+    freezeBtn.addEventListener("click", () => updateFreezeState(true));
+    unfreezeBtn.addEventListener("click", () => updateFreezeState(false));
+  }
+
+  function renderAccountFreezeLock(root) {
+    root.innerHTML = `
+      <h3 style="margin:0 0 12px;color:#141517;">অ্যাকাউন্ট ফ্রিজ ও আনফ্রিজ নিয়ন্ত্রণ</h3>
+      <div class="tk-af-lock-box">
+        <div class="tk-af-lock-title">🔒 পাসওয়ার্ড প্রয়োজন</div>
+        <div class="tk-af-lock-desc">এই সেকশনে প্রবেশ করতে সঠিক পাসওয়ার্ড দিন।</div>
+        <input type="password" id="tkAfPassInput" class="tk-af-lock-input" placeholder="পাসওয়ার্ড লিখুন" autocomplete="off">
+        <button type="button" id="tkAfUnlockBtn" class="tk-af-unlock-btn">প্রবেশ করুন</button>
+        <div id="tkAfPassError" class="tk-af-lock-error"></div>
+      </div>
+    `;
+
+    const inputEl = document.getElementById("tkAfPassInput");
+    const btnEl = document.getElementById("tkAfUnlockBtn");
+    const errEl = document.getElementById("tkAfPassError");
+
+    const verifyPass = () => {
+      if (inputEl.value === TK_AF_PASS) {
+        tkAfUnlocked = true;
+        renderAccountFreezeForm(root);
+      } else {
+        errEl.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+      }
+    };
+
+    btnEl.addEventListener("click", verifyPass);
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") verifyPass();
+    });
+  }
+
+  window.tkRegisterFeature({
+    id: "accountFreeze",
+    title: "অ্যাকাউন্ট ফ্রিজ",
+    icon: "fa-snowflake",
+    badgeText: "সিক্রেট",
+    renderRoom: (root) => {
+      if (tkAfUnlocked) {
+        renderAccountFreezeForm(root);
+      } else {
+        renderAccountFreezeLock(root);
+      }
+    }
+  });
+</script>
+
+
 
 
 
