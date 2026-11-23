@@ -1,0 +1,535 @@
+  <!-- ===== পার্ট ১.১: রিচার্জ রিকোয়েস্ট (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-rc-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #2563eb;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      font-size: 14px;
+      word-break: break-word;
+    }
+    .tk-rc-card p { margin: 5px 0; color: #374151; }
+    .tk-rc-btn-ok {
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .tk-rc-btn-no {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      margin-left: 6px;
+    }
+  </style>
+
+  <script type="module">
+    import { collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+
+    async function loadRechargeList() {
+      const box = document.getElementById("tkRechargeListBox");
+      if (!box) return;
+      box.innerHTML = "লোড হচ্ছে...";
+      try {
+        const snap = await getDocs(collection(db, "recharge_requests"));
+        if (snap.empty) {
+          box.innerHTML = `<div class="tk-rc-card">কোনো রিচার্জ রিকোয়েস্ট নেই।</div>`;
+          return;
+        }
+        let html = "";
+        let pendingCount = 0;
+        snap.forEach((d) => {
+          const data = d.data();
+          if (!data.status || data.status === "pending") {
+            pendingCount++;
+            html += `
+              <div class="tk-rc-card">
+                <p>ইউজার নাম: <strong>${data.userName || "N/A"}</strong></p>
+                <p>ফোন/ইমেইল: <strong>${data.userPhone || data.userEmail || "N/A"}</strong></p>
+                <p>পরিমাণ: <strong style="color:#16a34a;">৳ ${data.amount}</strong></p>
+                <p>মেথড: <strong>${data.method || ""}</strong></p>
+                <p>TrxID: <strong style="color:#2563eb;">${data.trxId || ""}</strong></p>
+                <p>স্ট্যাটাস: <em>${data.status || "pending"}</em></p>
+                <button type="button" class="tk-rc-btn-ok" data-rc-approve="${d.id}" data-uid="${data.userId}" data-amt="${data.amount}">এপ্রুভ</button>
+                <button type="button" class="tk-rc-btn-no" data-rc-reject="${d.id}">রিজেক্ট</button>
+              </div>
+            `;
+          }
+        });
+        box.innerHTML = pendingCount ? html : `<div class="tk-rc-card">কোনো পেন্ডিং রিচার্জ রিকোয়েস্ট নেই।</div>`;
+
+        box.querySelectorAll("[data-rc-approve]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-rc-approve");
+            const uid = btn.getAttribute("data-uid");
+            const amt = Number(btn.getAttribute("data-amt") || 0);
+            try {
+              await updateDoc(doc(db, "users", uid), { myCash: increment(amt) });
+              await updateDoc(doc(db, "recharge_requests", id), { status: "approved" });
+              alert("রিচার্জ সফলভাবে অনুমোদিত হয়েছে!");
+              loadRechargeList();
+            } catch (e) {
+              alert("সমস্যা হয়েছে!");
+            }
+          });
+        });
+
+        box.querySelectorAll("[data-rc-reject]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-rc-reject");
+            try {
+              await updateDoc(doc(db, "recharge_requests", id), { status: "rejected" });
+              alert("রিচার্জ রিকোয়েস্ট বাতিল করা হয়েছে।");
+              loadRechargeList();
+            } catch (e) {
+              alert("সমস্যা হয়েছে!");
+            }
+          });
+        });
+      } catch (e) {
+        box.innerHTML = `<div class="tk-rc-card" style="color:#dc2626;">ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "recharge",
+      title: "রিচার্জ রিকোয়েস্ট",
+      icon: "fa-wallet",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">রিচার্জ রিকোয়েস্ট তালিকা</h3>
+          <div id="tkRechargeListBox">লোড হচ্ছে...</div>
+        `;
+      },
+      onOpen: loadRechargeList
+    });
+  </script>
+
+  <!-- ===== পার্ট ১.২: উত্তোলন রিকোয়েস্ট (স্বতন্ত্র ব্লক) ===== -->
+  <style>
+    .tk-wd-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #d97706;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      font-size: 14px;
+      word-break: break-word;
+    }
+    .tk-wd-card p { margin: 5px 0; color: #374151; }
+    .tk-wd-btn-ok {
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .tk-wd-btn-no {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      margin-left: 6px;
+    }
+  </style>
+
+  <script type="module">
+    import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const { db } = window.tkFirebase;
+
+    async function loadWithdrawList() {
+      const box = document.getElementById("tkWithdrawListBox");
+      if (!box) return;
+      box.innerHTML = "লোড হচ্ছে...";
+      try {
+        const snap = await getDocs(collection(db, "withdrawals"));
+        if (snap.empty) {
+          box.innerHTML = `<div class="tk-wd-card">কোনো উত্তোলন রিকোয়েস্ট নেই।</div>`;
+          return;
+        }
+        let html = "";
+        let pendingCount = 0;
+        snap.forEach((d) => {
+          const data = d.data();
+          if (!data.status || data.status === "waiting" || data.status === "processing") {
+            pendingCount++;
+            const refundAmt = data.deductedAmount || data.amount;
+            html += `
+              <div class="tk-wd-card">
+                <p>ইউজার: <strong>${data.userEmail || data.userName || "N/A"}</strong></p>
+                <p>রিকোয়েস্ট পরিমাণ (ভ্যাট বাদে): <strong>৳ ${data.amount}</strong></p>
+                <p>কাটা হয়েছিল: <strong style="color:#d97706;">৳ ${refundAmt}</strong></p>
+                <p>মেথড: <strong>${data.method || ""}</strong> (${data.account || ""})</p>
+                <p>স্ট্যাটাস: <em>${data.status || "waiting"}</em></p>
+                <button type="button" class="tk-wd-btn-ok" data-wd-id="${d.id}" data-uid="${data.userId}" data-amt="${refundAmt}" data-act="approve">এপ্রুভ</button>
+                <button type="button" class="tk-wd-btn-no" data-wd-id="${d.id}" data-uid="${data.userId}" data-amt="${refundAmt}" data-act="reject">রিজেক্ট</button>
+              </div>
+            `;
+          }
+        });
+        box.innerHTML = pendingCount ? html : `<div class="tk-wd-card">কোনো পেন্ডিং উত্তোলন রিকোয়েস্ট নেই।</div>`;
+
+        box.querySelectorAll("[data-wd-id]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const wid = btn.getAttribute("data-wd-id");
+            const uid = btn.getAttribute("data-uid");
+            const amt = Number(btn.getAttribute("data-amt") || 0);
+            const act = btn.getAttribute("data-act");
+            try {
+              const wRef = doc(db, "withdrawals", wid);
+              const uRef = doc(db, "users", uid);
+              if (act === "approve") {
+                await updateDoc(wRef, { status: "approved" });
+                alert("উত্তোলন সফলভাবে অনুমোদিত হয়েছে!");
+              } else {
+                const uSnap = await getDoc(uRef);
+                if (!uSnap.exists()) {
+                  alert("ইউজার ডাটা পাওয়া যায়নি!");
+                  return;
+                }
+                const currentCash = uSnap.data().taskCash || 0;
+                await updateDoc(wRef, { status: "rejected" });
+                await updateDoc(uRef, { taskCash: currentCash + amt });
+                alert("উত্তোলন রিকোয়েস্ট বাতিল করা হয়েছে এবং টাকা ইউজারের অ্যাকাউন্টে ফেরত দেওয়া হয়েছে।");
+              }
+              loadWithdrawList();
+            } catch (e) {
+              alert("সমস্যা হয়েছে: " + (e.message || "আবার চেষ্টা করুন।"));
+            }
+          });
+        });
+      } catch (e) {
+        box.innerHTML = `<div class="tk-wd-card" style="color:#dc2626;">ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    window.tkRegisterFeature({
+      id: "withdraw",
+      title: "উত্তোলন রিকোয়েস্ট",
+      icon: "fa-money-bill-transfer",
+      renderRoom: (root) => {
+        root.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#141517;">উত্তোলন রিকোয়েস্ট তালিকা</h3>
+          <div id="tkWithdrawListBox">লোড হচ্ছে...</div>
+        `;
+      },
+      onOpen: loadWithdrawList
+    });
+  </script>
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDocs,
+      runTransaction,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // প্রয়োজনে এখানে নিজের পাসওয়ার্ড দিন
+    const STAFF_PASS = "TarekHasan@36";
+    const VAT_RATE = 0.10; // উইথড্রতে ১০% ভ্যাট
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+      authDomain: "taskora-b2b29.firebaseapp.com",
+      projectId: "taskora-b2b29",
+      storageBucket: "taskora-b2b29.firebasestorage.app",
+      messagingSenderId: "376297360134",
+      appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+      measurementId: "G-9803M7DPM5"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const db = (window.tkFirebase && window.tkFirebase.db) ? window.tkFirebase.db : getFirestore(app);
+
+    const COLLECTIONS = {
+      recharge: "recharge_requests",
+      withdraw: "withdrawals"
+    };
+
+    let currentTab = "recharge";
+    let cachedItems = [];
+    let isUnlocked = false;
+
+    const lockScreen = document.getElementById("tkLockScreen");
+    const mainPanel = document.getElementById("tkMainPanel");
+    const passInput = document.getElementById("tkStaffPassInput");
+    const unlockBtn = document.getElementById("tkStaffUnlockBtn");
+    const passErr = document.getElementById("tkStaffPassErr");
+
+    const btnRechargeTab = document.getElementById("btnRechargeTab");
+    const btnWithdrawTab = document.getElementById("btnWithdrawTab");
+    const refreshBtn = document.getElementById("tkRefreshBtn");
+    const sectionTitle = document.getElementById("tkSectionTitle");
+    const totalBadge = document.getElementById("tkTotalBadge");
+    const serialContainer = document.getElementById("tkSerialContainer");
+    const alertBanner = document.getElementById("tkStatusAlert");
+
+    function unlockPanel() {
+      if (passInput.value === STAFF_PASS) {
+        isUnlocked = true;
+        lockScreen.style.display = "none";
+        mainPanel.style.display = "block";
+        loadTabData(currentTab);
+      } else {
+        passErr.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+      }
+    }
+
+    unlockBtn.addEventListener("click", unlockPanel);
+    passInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") unlockPanel();
+    });
+
+    function showBanner(msg, isError = false) {
+      alertBanner.style.display = "block";
+      alertBanner.style.background = isError ? "#fef2f2" : "#f0fdf4";
+      alertBanner.style.color = isError ? "#b91c1c" : "#15803d";
+      alertBanner.style.border = isError ? "1px solid #fecaca" : "1px solid #bbf7d0";
+      alertBanner.textContent = msg;
+    }
+
+    function normalizeStatus(raw) {
+      const s = String(raw || "pending").toLowerCase();
+      if (s === "approved" || s === "approve" || s === "completed" || s === "success") {
+        return "approved";
+      }
+      if (s === "rejected" || s === "reject" || s === "cancelled" || s === "failed") {
+        return "rejected";
+      }
+      return "pending";
+    }
+
+    function renderStatusBadge(status) {
+      if (status === "approved") {
+        return `<span class="tk-status-tag st-approved">অ্যাপ্রুভড</span>`;
+      }
+      if (status === "rejected") {
+        return `<span class="tk-status-tag st-rejected">রিজেক্টেড</span>`;
+      }
+      return `<span class="tk-status-tag st-pending">পেন্ডিং / ওয়েটিং</span>`;
+    }
+
+    function getTimestampMs(row) {
+      const val = row.timestamp || row.createdAt || 0;
+      if (typeof val === "number") return val;
+      if (val && typeof val.toMillis === "function") return val.toMillis();
+      if (val && typeof val.seconds === "number") return val.seconds * 1000;
+      const parsed = Date.parse(val);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    function getWithdrawAmounts(item) {
+      const hasDeducted = item.deductedAmount !== undefined && item.deductedAmount !== null;
+      const rawAmt = Number(item.amount || 0);
+      const deducted = hasDeducted
+        ? Number(item.deductedAmount)
+        : Number((rawAmt / (1 - VAT_RATE)).toFixed(2));
+      const payable = hasDeducted
+        ? rawAmt
+        : Number((deducted * (1 - VAT_RATE)).toFixed(2));
+      const vatCut = Number((deducted - payable).toFixed(2));
+      return { deducted, payable, vatCut };
+    }
+
+    async function loadTabData(tabType) {
+      if (!isUnlocked) return;
+      currentTab = tabType;
+      btnRechargeTab.classList.toggle("active", tabType === "recharge");
+      btnWithdrawTab.classList.toggle("active", tabType === "withdraw");
+      sectionTitle.textContent = tabType === "recharge"
+        ? "রিচার্জ রিকোয়েস্ট সিরিয়াল"
+        : "উইথড্রো রিকোয়েস্ট সিরিয়াল";
+
+      serialContainer.innerHTML = `<div class="tk-empty-box">তথ্য লোড হচ্ছে...</div>`;
+
+      try {
+        const colName = COLLECTIONS[tabType];
+        const snap = await getDocs(collection(db, colName));
+        const list = [];
+
+        snap.forEach((docSnap) => {
+          list.push({
+            id: docSnap.id,
+            ...docSnap.data()
+          });
+        });
+
+        list.sort((a, b) => getTimestampMs(b) - getTimestampMs(a));
+        cachedItems = list;
+        totalBadge.textContent = `${list.length}টি রিকোয়েস্ট`;
+
+        if (!list.length) {
+          serialContainer.innerHTML = `<div class="tk-empty-box">কোনো রিকোয়েস্ট পাওয়া যায়নি।</div>`;
+          return;
+        }
+
+        serialContainer.innerHTML = list.map((item, index) => {
+          const serial = index + 1;
+          const status = normalizeStatus(item.status);
+          const userInfo = item.userName || item.userPhone || item.userEmail || item.userId || "ইউজার";
+          const method = item.method || "—";
+          const amount = item.amount ?? 0;
+
+          let extraLines = "";
+          if (tabType === "recharge") {
+            extraLines = `
+              <strong>পরিমাণ:</strong> ৳${amount}<br>
+              <strong>মাধ্যম:</strong> ${method}<br>
+              <strong>TrxID:</strong> ${item.trxId || "—"}<br>
+              <strong>ফোন / ইমেইল:</strong> ${item.userPhone || "—"} / ${item.userEmail || "—"}
+            `;
+          } else {
+            const { deducted, payable, vatCut } = getWithdrawAmounts(item);
+            extraLines = `
+              <strong>মোট কাটা (10% VAT সহ):</strong> ৳${deducted} (VAT: ৳${vatCut})<br>
+              <strong>প্রাপ্য পরিমাণ:</strong> ৳${payable}<br>
+              <strong>মাধ্যম ও নম্বর:</strong> ${method} — ${item.account || "—"}<br>
+              <strong>ইউজার:</strong> ${item.userEmail || item.userId || "—"}
+            `;
+          }
+
+          return `
+            <div class="tk-req-row" data-id="${item.id}">
+              <div class="tk-req-top">
+                <span class="tk-serial-num">#${serial} — ${userInfo}</span>
+                ${renderStatusBadge(status)}
+              </div>
+              <div class="tk-req-details">
+                ${extraLines}<br>
+                <strong>ID:</strong> <code>${item.id}</code>
+              </div>
+              <div class="tk-btn-pair">
+                <button
+                  type="button"
+                  class="tk-btn-approve"
+                  data-decision="approved"
+                  data-doc-id="${item.id}"
+                  ${status !== "pending" ? "disabled" : ""}
+                >
+                  <i class="fa-solid fa-check"></i> অ্যাপ্রুভ
+                </button>
+                <button
+                  type="button"
+                  class="tk-btn-reject"
+                  data-decision="rejected"
+                  data-doc-id="${item.id}"
+                  ${status !== "pending" ? "disabled" : ""}
+                >
+                  <i class="fa-solid fa-xmark"></i> রিজেক্ট
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        totalBadge.textContent = "০টি রিকোয়েস্ট";
+        serialContainer.innerHTML = `<div class="tk-empty-box" style="color:#b91c1c;">লোড করতে সমস্যা হয়েছে: ${err.message}</div>`;
+      }
+    }
+
+    serialContainer.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-decision][data-doc-id]");
+      if (!btn || !isUnlocked) return;
+
+      const docId = btn.getAttribute("data-doc-id");
+      const decision = btn.getAttribute("data-decision");
+      const item = cachedItems.find((r) => r.id === docId);
+      if (!item) return;
+
+      const rowEl = btn.closest(".tk-req-row");
+      const rowBtns = rowEl ? rowEl.querySelectorAll("button") : [];
+      rowBtns.forEach((b) => (b.disabled = true));
+
+      try {
+        if (currentTab === "recharge") {
+          await updateDoc(doc(db, COLLECTIONS.recharge, docId), {
+            status: decision,
+            reviewedAt: new Date().toISOString()
+          });
+
+          if (decision === "approved" && item.userId) {
+            const userRef = doc(db, "users", item.userId);
+            await runTransaction(db, async (tx) => {
+              const uSnap = await tx.get(userRef);
+              if (uSnap.exists()) {
+                const uData = uSnap.data() || {};
+                const prevRechargeCash = Number(uData.rechargeCash || uData.balance || 0);
+                tx.update(userRef, {
+                  rechargeCash: prevRechargeCash + Number(item.amount || 0)
+                });
+              }
+            });
+          }
+        } else {
+          await updateDoc(doc(db, COLLECTIONS.withdraw, docId), {
+            status: decision,
+            reviewedAt: new Date().toISOString()
+          });
+
+          // উইথড্র রিজেক্ট হলে কাটা মূল টাকা (deductedAmount) ইউজারের taskCash-এ ফেরত পাঠানো
+          if (decision === "rejected" && item.userId) {
+            const { deducted } = getWithdrawAmounts(item);
+            const userRef = doc(db, "users", item.userId);
+            await runTransaction(db, async (tx) => {
+              const uSnap = await tx.get(userRef);
+              if (uSnap.exists() && deducted > 0) {
+                const uData = uSnap.data() || {};
+                const prevTaskCash = Number(uData.taskCash || 0);
+                tx.update(userRef, {
+                  taskCash: Number((prevTaskCash + deducted).toFixed(2))
+                });
+              }
+            });
+          }
+        }
+
+        showBanner(
+          decision === "approved"
+            ? "✅ রিকোয়েস্টটি সফলভাবে অ্যাপ্রুভ করা হয়েছে!"
+            : "❌ রিকোয়েস্টটি রিজেক্ট করা হয়েছে!"
+        );
+
+        await loadTabData(currentTab);
+      } catch (err) {
+        showBanner("আপডেট করতে সমস্যা হয়েছে: " + err.message, true);
+        rowBtns.forEach((b) => (b.disabled = false));
+      }
+    });
+
+    btnRechargeTab.addEventListener("click", () => loadTabData("recharge"));
+    btnWithdrawTab.addEventListener("click", () => loadTabData("withdraw"));
+    refreshBtn.addEventListener("click", () => loadTabData(currentTab));
+  </script>
+</body>
+</html>
