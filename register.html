@@ -117,8 +117,8 @@
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
-      if (refCode) {
-        document.getElementById('refInput').value = refCode;
+      if (refCode && refCode.trim()) {
+        document.getElementById('refInput').value = refCode.trim();
       }
     };
 
@@ -132,9 +132,24 @@
       const refCode = document.getElementById('refInput').value.trim();
       const submitBtn = document.getElementById('submitBtn');
 
-      // বাংলা সংখ্যা ইংরেজিতে রূপান্তর এবং স্পেস রিমুভ করা
+      // বাংলা সংখ্যা ইংরেজিতে রূপান্তর এবং অপ্রয়োজনীয় স্পেস/ড্যাশ রিমুভ করা
       const bengaliDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};
-      phone = phone.replace(/[০-৯]/g, match => bengaliDigits[match]).replace(/\s+/g, '');
+      phone = phone.replace(/[০-৯]/g, match => bengaliDigits[match]).replace(/[\s-]/g, '');
+
+      if (!name) {
+        alert("দয়া করে আপনার নাম লিখুন!");
+        return;
+      }
+
+      if (!phone || phone.length < 10) {
+        alert("দয়া করে সঠিক ফোন নম্বর লিখুন!");
+        return;
+      }
+
+      if (!password || password.length < 6) {
+        alert("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে!");
+        return;
+      }
 
       // সরাসরি ফোন নম্বর দিয়ে ভার্চুয়াল ইমেল তৈরি
       const virtualEmail = `${phone}@taskora.app`;
@@ -147,34 +162,44 @@
         const userCredential = await createUserWithEmailAndPassword(auth, virtualEmail, password);
         const user = userCredential.user;
 
-        // ২. ফায়ারস্টোরে নতুন ইউজারের নিজস্ব ডাটা তৈরি (পাসওয়ার্ড ফিল্ড সহ)
+        const cleanRef = (refCode && refCode !== "none" && refCode !== user.uid) ? refCode : "none";
+
+        // ২. ফায়ারস্টোরে নতুন ইউজারের নিজস্ব ডাটা তৈরি
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           name: name,
           phone: phone,
-          password: password, // <--- এডমিন প্যানেল থেকে পাসওয়ার্ড কন্ট্রোল করার জন্য এটি যুক্ত করা হলো
+          password: password,
           taskCash: 0,
           myCash: 0,
-          totalEarnings: 0, 
+          totalEarnings: 0,
+          teamCommission: 0,
+          dailyTaskCount: 0,
+          dailyTaskIncome: 0,
+          luckySpinCount: 0,
           package: "none",
-          referredBy: refCode || "none",
+          referredBy: cleanRef,
           createdAt: serverTimestamp()
         });
 
         // ৩. রেফারার ডাটা আপডেট
-        if (refCode && refCode !== "none") {
-          const uplineRef = doc(db, "users", refCode);
-          const uplineSnap = await getDoc(uplineRef);
+        if (cleanRef !== "none") {
+          try {
+            const uplineRef = doc(db, "users", cleanRef);
+            const uplineSnap = await getDoc(uplineRef);
 
-          if (uplineSnap.exists()) {
-            await updateDoc(uplineRef, {
-              teamMembers: arrayUnion({
-                uid: user.uid,
-                name: name,
-                phone: phone,
-                joinedAt: new Date().toISOString()
-              })
-            });
+            if (uplineSnap.exists()) {
+              await updateDoc(uplineRef, {
+                teamMembers: arrayUnion({
+                  uid: user.uid,
+                  name: name,
+                  phone: phone,
+                  joinedAt: new Date().toISOString()
+                })
+              });
+            }
+          } catch (refErr) {
+            console.error("রেফারার আপডেট করতে সমস্যা:", refErr);
           }
         }
 
