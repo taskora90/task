@@ -4,18 +4,227 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>রিচার্জ রেকর্ড</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 15px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        .record-card { background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .record-card p { margin: 6px 0; color: #555; }
-        .status-pending { color: #d97706; font-weight: bold; background: #fef3c7; padding: 3px 8px; border-radius: 4px; display: inline-block; }
-        .status-approved { color: #16a34a; font-weight: bold; background: #dcfce7; padding: 3px 8px; border-radius: 4px; display: inline-block; }
-        .status-rejected { color: #dc2626; font-weight: bold; background: #fee2e2; padding: 3px 8px; border-radius: 4px; display: inline-block; }
-        .back-btn { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+        :root {
+            --page-bg: #252a34;
+            --panel-bg: #2e3440;
+            --ash-box: #3b4252;
+            --ash-box-hover: #434c5e;
+            --ash-inner: #2b303b;
+            --ash-border: #4c566a;
+            --text-main: #eceff4;
+            --text-soft: #d8dee9;
+            --text-muted: #aeb8c7;
+            --accent: #81a1c1;
+            --pending-bg: rgba(235, 203, 139, 0.16);
+            --pending-text: #ebcb8b;
+            --approved-bg: rgba(163, 190, 140, 0.18);
+            --approved-text: #b7d79b;
+            --rejected-bg: rgba(191, 97, 106, 0.18);
+            --rejected-text: #ff9aa4;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--page-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 620px;
+            margin: 0 auto;
+            background: var(--panel-bg);
+            border: 1px solid var(--ash-border);
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 14px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            background: var(--ash-box);
+            border: 1px solid var(--ash-border);
+            text-decoration: none;
+            color: var(--text-soft);
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--ash-box-hover);
+            color: #ffffff;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--text-main);
+            margin: 4px 0 20px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        #rechargeHistoryList {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .record-card {
+            background: var(--ash-box);
+            border: 1px solid var(--ash-border);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+            transition: transform 0.18s ease, background 0.18s ease;
+        }
+
+        .record-card:hover {
+            background: var(--ash-box-hover);
+            transform: translateY(-1px);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-bottom: 11px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--ash-border);
+        }
+
+        .time-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--ash-inner);
+            border: 1px solid var(--ash-border);
+            color: var(--text-soft);
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        .time-pill i {
+            color: var(--accent);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .detail-box {
+            background: var(--ash-inner);
+            border: 1px solid rgba(216, 222, 233, 0.1);
+            border-radius: 9px;
+            padding: 10px 12px;
+        }
+
+        .detail-label {
+            display: block;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+
+        .trx-value {
+            color: var(--accent);
+            font-family: monospace;
+            font-size: 13.5px;
+        }
+
+        .status-pending {
+            color: var(--pending-text);
+            background: var(--pending-bg);
+            border: 1px solid rgba(235, 203, 139, 0.35);
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-approved {
+            color: var(--approved-text);
+            background: var(--approved-bg);
+            border: 1px solid rgba(163, 190, 140, 0.35);
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-rejected {
+            color: var(--rejected-text);
+            background: var(--rejected-bg);
+            border: 1px solid rgba(191, 97, 106, 0.35);
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: var(--text-muted);
+            background: var(--ash-box);
+            border: 1px dashed var(--ash-border);
+            padding: 24px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .error-msg {
+            text-align: center;
+            color: var(--rejected-text);
+            background: var(--rejected-bg);
+            border: 1px solid rgba(191, 97, 106, 0.35);
+            padding: 18px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -25,7 +234,7 @@
         <h2>রিচার্জ রিকোয়েস্টের ইতিহাস</h2>
 
         <div id="rechargeHistoryList">
-            লোড হচ্ছে...
+            <div class="empty-msg">লোড হচ্ছে...</div>
         </div>
     </div>
 
@@ -49,65 +258,109 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
 
+      function getTimeMs(timeData) {
+        if (!timeData) return 0;
+        if (typeof timeData.toDate === "function") {
+          return timeData.toDate().getTime();
+        }
+        if (typeof timeData.seconds === "number") {
+          return timeData.seconds * 1000;
+        }
+        const parsed = new Date(timeData).getTime();
+        return Number.isNaN(parsed) ? 0 : parsed;
+      }
+
+      function formatDateTime(timeData) {
+        if (!timeData) return "N/A";
+        const dateObj = typeof timeData.toDate === "function"
+          ? timeData.toDate()
+          : new Date(timeData);
+
+        if (isNaN(dateObj.getTime())) return "N/A";
+
+        return dateObj.toLocaleString('bn-BD', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const listContainer = document.getElementById('rechargeHistoryList');
 
           try {
-            // শুধু বর্তমান লগইন করা ইউজারের রিচার্জ রিকোয়েস্টগুলো ফিল্টার করে আনা
             const q = query(collection(db, "recharge_requests"), where("userId", "==", user.uid));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-              listContainer.innerHTML = "<p style='text-align: center; color: #777;'>আপনার কোনো রিচার্জ রেকর্ড নেই।</p>";
+              listContainer.innerHTML = "<div class='empty-msg'>আপনার কোনো রিচার্জ রেকর্ড নেই।</div>";
               return;
             }
 
-            listContainer.innerHTML = "";
-            querySnapshot.forEach((doc) => {
-              const data = doc.data();
+            const records = [];
+            querySnapshot.forEach((docSnap) => {
+              records.push({ id: docSnap.id, ...docSnap.data() });
+            });
+
+            records.sort((a, b) => getTimeMs(b.createdAt || b.timestamp) - getTimeMs(a.createdAt || a.timestamp));
+
+            listContainer.innerHTML = records.map((data) => {
               let statusClass = "status-pending";
               let statusText = "পেন্ডিং (Pending)";
+              let statusIcon = "fa-hourglass-half";
 
               if (data.status === 'approved') {
-                  statusClass = "status-approved";
-                  statusText = "এপ্রুভড (Approved)";
+                statusClass = "status-approved";
+                statusText = "এপ্রুভড (Approved)";
+                statusIcon = "fa-circle-check";
               } else if (data.status === 'rejected') {
-                  statusClass = "status-rejected";
-                  statusText = "রিজেক্টেড (Rejected)";
+                statusClass = "status-rejected";
+                statusText = "রিজেক্টেড (Rejected)";
+                statusIcon = "fa-circle-xmark";
               }
 
-              // ফায়ারবেসের টাইমস্ট্যাম্প থেকে সঠিক তারিখ ও সময় বের করার লজিক
-              let formattedDate = "N/A";
               const timeData = data.createdAt || data.timestamp;
-              
-              if (timeData) {
-                  const dateObj = timeData.toDate ? timeData.toDate() : new Date(timeData);
-                  if (!isNaN(dateObj)) {
-                      formattedDate = dateObj.toLocaleString('bn-BD', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                      });
-                  }
-              }
+              const formattedDate = formatDateTime(timeData);
+              const amountText = data.amount !== undefined && data.amount !== null ? `৳ ${data.amount}` : "৳ 0";
+              const methodText = data.method || "N/A";
+              const trxText = data.trxId || "N/A";
 
-              listContainer.innerHTML += `
-                <div class="request-card">
-                  <p>তারিখ ও সময়: <strong style="color: #333;">${formattedDate}</strong></p>
-                  <p>পরিমাণ: <strong>৳ ${data.amount}</strong></p>
-                  <p>মেথড: <strong>${data.method || 'N/A'}</strong></p>
-                  <p>TrxID: <strong style="color: #007bff;">${data.trxId || 'N/A'}</strong></p>
-                  <p>স্ট্যাটাস: <span class="${statusClass}">${statusText}</span></p>
+              return `
+                <div class="record-card">
+                  <div class="card-top">
+                    <div class="time-pill">
+                      <i class="fa-regular fa-clock"></i>
+                      <span>${formattedDate}</span>
+                    </div>
+                    <span class="${statusClass}">
+                      <i class="fa-solid ${statusIcon}"></i> ${statusText}
+                    </span>
+                  </div>
+
+                  <div class="details-grid">
+                    <div class="detail-box">
+                      <span class="detail-label">পরিমাণ</span>
+                      <span class="detail-value">${amountText}</span>
+                    </div>
+                    <div class="detail-box">
+                      <span class="detail-label">মেথড</span>
+                      <span class="detail-value">${methodText}</span>
+                    </div>
+                    <div class="detail-box" style="grid-column: 1 / -1;">
+                      <span class="detail-label">TrxID</span>
+                      <span class="detail-value trx-value">${trxText}</span>
+                    </div>
+                  </div>
                 </div>
               `;
-            });
+            }).join("");
 
           } catch (error) {
             console.error("Error loading history:", error);
-            listContainer.innerHTML = "<p style='text-align: center; color: red;'>রেকর্ড লোড করতে সমস্যা হয়েছে।</p>";
+            listContainer.innerHTML = "<div class='error-msg'>রেকর্ড লোড করতে সমস্যা হয়েছে।</div>";
           }
         } else {
           window.location.href = "login.html";
