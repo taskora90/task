@@ -979,8 +979,19 @@
               currentUserData = userDoc.data();
               let userPackage = currentUserData.package;
 
-              const prevDayKey = currentUserData.lastTaskDayKey || currentUserData.lastTaskDate || "";
-              const isNewDay = prevDayKey !== trustedDayKey;
+                            const prevDayKey = currentUserData.lastTaskDayKey || "";
+              const prevLegacyDate = currentUserData.lastTaskDate || "";
+              let prevLegacyDayKey = "";
+
+              if (!prevDayKey && prevLegacyDate) {
+                const parsedLegacy = new Date(prevLegacyDate);
+                if (!Number.isNaN(parsedLegacy.getTime())) {
+                  prevLegacyDayKey = computeDhakaDayInfo(parsedLegacy).dayKey;
+                }
+              }
+
+              const effectivePrevDayKey = prevDayKey || prevLegacyDayKey;
+              const isNewDay = effectivePrevDayKey !== "" && effectivePrevDayKey !== trustedDayKey;
 
               if (isNewDay) {
                 await updateDoc(userDocRef, {
@@ -994,7 +1005,14 @@
                 currentUserData.dailyTaskIncome = 0;
                 currentUserData.completedTaskIdsToday = [];
                 currentUserData.lastTaskDayKey = trustedDayKey;
+              } else if (!prevDayKey) {
+                await updateDoc(userDocRef, {
+                  lastTaskDayKey: trustedDayKey,
+                  lastTaskDate: trustedNow.toDateString()
+                });
+                currentUserData.lastTaskDayKey = trustedDayKey;
               }
+
 
               const savedCount = Number(currentUserData.dailyTaskCount || 0);
               const savedIds = Array.isArray(currentUserData.completedTaskIdsToday)
