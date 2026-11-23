@@ -404,7 +404,7 @@
             </div>
         </div>
     </div>
-    <script type="module">
+   <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -584,8 +584,7 @@
                     <div id="tkSalaryWithdrawRequestsList"><div class="tk-no-data">উইথড্র রিকোয়েস্ট লোড হচ্ছে...</div></div>
                 </div>
             `;
-
-            document.getElementById("salarySettingsPage").innerHTML = `
+document.getElementById("salarySettingsPage").innerHTML = `
                 <div class="tk-subpage-header">
                     <button type="button" class="tk-back-btn" onclick="tkNavigatePage('salaryMainPage')">← স্যালারি পেজে ফিরুন</button>
                     <h2 class="tk-page-heading">⚙️ স্যালারি সেটিংস</h2>
@@ -640,6 +639,7 @@
                 </div>
             `;
         }
+
         async function getConfiguredLoanDays() {
             const parsedStateDays = parseInt(state.loanConfig?.durationDays, 10);
             if (!Number.isNaN(parsedStateDays) && parsedStateDays > 0) {
@@ -700,8 +700,7 @@
                 listEl.innerHTML = `<div class='tk-no-data'>লোন রিকোয়েস্ট লোড করা যায়নি: ${err.message || err}</div>`;
             }
         }
-
-        window.tkApproveLoan = async function(reqId, userId, amount, days, dailyInstallment) {
+window.tkApproveLoan = async function(reqId, userId, amount, days, dailyInstallment) {
             if (!confirm(`আপনি কি ৳ ${amount} লোন অ্যাপ্রুভ করতে চান?`)) return;
             try {
                 const configuredDays = await getConfiguredLoanDays();
@@ -836,6 +835,7 @@
                 alert("লোন সেটিংস সেভ করতে সমস্যা হয়েছে!");
             }
         };
+
         async function loadActiveLoansList() {
             const listEl = document.getElementById('tkActiveLoansList');
             if (!listEl) return;
@@ -923,8 +923,7 @@
             });
             listEl.innerHTML = html;
         }
-
-        window.tkFilterActiveLoans = function() {
+window.tkFilterActiveLoans = function() {
             const q = (document.getElementById('tkActiveLoanSearchInput')?.value || "").toLowerCase().trim();
             const filtered = state.activeLoans.filter(item =>
                 (item.userName || "").toLowerCase().includes(q) ||
@@ -1207,8 +1206,7 @@
                 console.error("Error resetting user salary:", err);
                 alert("রিসেট করতে সমস্যা হয়েছে।");
             }
-        };
-        window.tkOnManualScheduleEdit = function() {
+        };        window.tkOnManualScheduleEdit = function() {
             state.manualScheduleOverride = true;
         };
 
@@ -1284,7 +1282,7 @@
         };
 
         async function fetchSalaryWithdrawRequests() {
-            const snap = await getDocs(collection(db, "salary_withdraw_requests"));
+            const snap = await getDocs(collection(db, "salary_withdrawals"));
             const list = [];
             snap.forEach((dSnap) => list.push({ id: dSnap.id, ...dSnap.data() }));
             state.salaryRequests = list;
@@ -1313,7 +1311,7 @@
                             <p><strong>মাধ্যম:</strong> ${item.method || 'বিকাশ'} | <strong>নম্বর:</strong> ${item.account || item.accountNumber || ''}</p>
                             <p><strong>পরিমাণ:</strong> <span style="color:#16a34a; font-weight:700;">৳ ${item.amount || 0}</span></p>
                             <div style="margin-top:8px;">
-                                <button class="tk-btn-approve" onclick="tkApproveSalaryWithdraw('${item.id}', '${item.userId}', ${Number(item.amount || 0)})">অ্যাপ্রুভ</button>
+                                <button class="tk-btn-approve" onclick="tkApproveSalaryWithdraw('${item.id}', '${item.userId || ''}', ${Number(item.amount || 0)})">অ্যাপ্রুভ</button>
                                 <button class="tk-btn-reject" onclick="tkRejectSalaryWithdraw('${item.id}')">রিজেক্ট</button>
                             </div>
                         </div>
@@ -1363,13 +1361,11 @@
             }
         }
 
+        // মাসিক ভাতা উইথড্র অ্যাপ্রুভ করলে শুধু স্ট্যাটাস আপডেট হবে; কোনো ব্যালেন্সে টাকা যুক্ত হবে না
         window.tkApproveSalaryWithdraw = async function(reqId, userId, amount) {
             if (!confirm(`আপনি কি ৳ ${amount} মাসিক ভাতা উইথড্র অ্যাপ্রুভ করতে চান?`)) return;
             try {
-                await updateDoc(doc(db, "users", userId), {
-                    myCash: increment(Number(amount) || 0)
-                });
-                await updateDoc(doc(db, "salary_withdraw_requests", reqId), {
+                await updateDoc(doc(db, "salary_withdrawals", reqId), {
                     status: "approved",
                     approvedAt: new Date().toISOString()
                 });
@@ -1384,7 +1380,7 @@
         window.tkRejectSalaryWithdraw = async function(reqId) {
             if (!confirm("আপনি কি এই মাসিক ভাতা উইথড্র রিকোয়েস্ট রিজেক্ট করতে চান?")) return;
             try {
-                await updateDoc(doc(db, "salary_withdraw_requests", reqId), {
+                await updateDoc(doc(db, "salary_withdrawals", reqId), {
                     status: "rejected",
                     rejectedAt: new Date().toISOString()
                 });
