@@ -558,14 +558,17 @@
 
       let userDocRef = null;
       let activePackageRule = null;
-      let currentTaskCount = 0;
+      let completedTaskNumbers = []; // যে টাস্কগুলোর রিওয়ার্ড নেওয়া হয়ে গেছে তাদের সিরিয়াল নম্বর
       let currentUser = null;
       let currentUserData = null;
       let currentPackageLabel = "";
       let isHolidayToday = false;
-      let activeTaskIndex = null;
-      let activeTaskPhase = "idle"; // "idle" | "running" | "claim" | "processing"
-      let activeCountdownLeft = 0;
+      let trustedDayKey = "";
+      let trustedDayIndex = 0; // 0=sun ... 6=sat
+
+      // প্রতিটি টাস্কের আলাদা স্টেট: { [taskIndex]: { phase: "idle"|"running"|"claim"|"processing", endTime: number } }
+      const taskStatesMap = new Map();
+      const taskIntervalsMap = new Map();
 
       const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
       const DAY_BN = {
@@ -577,6 +580,11 @@
         fri: "শুক্রবার",
         sat: "শনিবার"
       };
+
+      const BN_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+      function toBnNum(num) {
+        return String(num).replace(/\d/g, d => BN_DIGITS[Number(d)]);
+      }
 
       const BLOCKED_PKG_IDS = new Set([
         "", "none", "free", "free_trial", "freetrial",
@@ -635,6 +643,104 @@
         return null;
       }
 
+      // ডিভাইসের ডেট/টাইম পরিবর্তন ঠেকাতে নেটওয়ার্ক/সার্ভার রেফারেন্স সময় সংগ্রহ
+      async function getTrustedNowDate() {
+        let baseMs = Date.now();
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2500);
+          const resp = await fetch(window.location.href, {
+            method: "HEAD",
+            cache: "no-store",
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          const dateHeader = resp.headers.get("date");
+          if (dateHeader) {
+            const parsedMs = Date.parse(dateHeader);
+            if (!Number.isNaN(parsedMs)) {
+              baseMs = parsedMs;
+            }
+          }
+        } catch (_) {
+          // অফলাইন বা হেডার না পাওয়া গেলে ডিভাইসের সময়ই ফলব্যাক হিসেবে ব্যবহৃত হবে
+        }
+        return new Date(baseMs);
+      }
+
+      function computeDhakaDayInfo(dateObj) {
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Dhaka",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          weekday: "short"
+        }).formatToParts(dateObj);
+
+        const y = parts.find(p => p.type === "year")?.value || "1970";
+        const m = parts.find(p => p.type === "month")?.value || "01";
+        const d = parts.find(p => p.type === "day")?.value || "01";
+        const wd = (parts.find(p => p.type === "weekday")?.value || "sun").toLowerCase().slice(0, 3);
+        const dayIndex = DAY_KEYS.indexOf(wd);
+
+        return {
+          dayKey: `${y}-${m}-${d}`,
+          dayIndex: dayIndex >= 0 ? dayIndex : 0
+        };
+      }
+
+      function getSessionStorageKey(uid, dayKey) {
+        return `taskora_task_states_${uid}_${dayKey}`;
+      }
+
+      function persistTaskStatesToSession() {
+        if (!currentUser || !trustedDayKey) return;
+        try {
+          const serializable = {};
+          taskStatesMap.forEach((val, key) => {
+            if (val && (val.phase === "running" || val.phase === "claim")) {
+              serializable[key] = {
+                phase: val.phase,
+                endTime: Number(val.endTime || 0)
+              };
+            }
+          });
+          sessionStorage.setItem(getSessionStorageKey(currentUser.uid, trustedDayKey), JSON.stringify(serializable));
+        } catch (_) {}
+      }
+
+      function restoreTaskStatesFromSession(nowMs) {
+        taskStatesMap.clear();
+        if (!currentUser || !trustedDayKey) return;
+        try {
+          const raw = sessionStorage.getItem(getSessionStorageKey(currentUser.uid, trustedDayKey));
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== "object") return;
+
+          Object.keys(parsed).forEach((k) => {
+            const taskNum = Number(k);
+            if (!taskNum || completedTaskNumbers.includes(taskNum)) return;
+            const entry = parsed[k];
+            if (!entry) return;
+
+            if (entry.phase === "claim") {
+              taskStatesMap.set(taskNum, { phase: "claim", endTime: 0 });
+              scheduleTaskCountdown(taskNum);
+            } else if (entry.phase === "running") {
+              const endTime = Number(entry.endTime || 0);
+              if (endTime > nowMs) {
+                taskStatesMap.set(taskNum, { phase: "running", endTime });
+                scheduleTaskCountdown(taskNum);
+              } else {
+                taskStatesMap.set(taskNum, { phase: "claim", endTime: 0 });
+                scheduleTaskCountdown(taskNum);
+              }
+            }
+          });
+          persistTaskStatesToSession();
+        } catch (_) {}
+      }
       async function getWorkOpenDays() {
         const defaultOpen = ["sun", "mon", "tue", "wed", "thu", "sat"];
         try {
@@ -686,30 +792,67 @@
         return defaultPercents;
       }
 
-      function updateTaskStatusBox(completedTasks, totalPackageTasks) {
+      function updateTaskStatusBox(completedCount, totalPackageTasks) {
         const ongoingBox = document.getElementById('task-ongoing-box');
         const finishedBox = document.getElementById('task-finished-box');
 
         if (!ongoingBox || !finishedBox) return;
 
-        if (completedTasks >= totalPackageTasks && totalPackageTasks > 0) {
-            ongoingBox.style.display = 'none';
-            finishedBox.style.display = 'block';
+        if (completedCount >= totalPackageTasks && totalPackageTasks > 0) {
+          ongoingBox.style.display = 'none';
+          finishedBox.style.display = 'block';
         } else {
-            ongoingBox.style.display = 'block';
-            finishedBox.style.display = 'none';
+          ongoingBox.style.display = 'block';
+          finishedBox.style.display = 'none';
         }
       }
 
       function updateCountersUI() {
         if (!activePackageRule) return;
         const total = Number(activePackageRule.maxTasks || 0);
-        const done = Math.min(currentTaskCount, total);
+        const done = Math.min(completedTaskNumbers.length, total);
         const left = Math.max(0, total - done);
 
         document.getElementById('totalTaskStat').innerText = `${total} টি`;
         document.getElementById('completedTaskStat').innerText = `${done} টি`;
         document.getElementById('remainingTaskStat').innerText = `${left} টি`;
+      }
+
+      function getTaskState(taskIndex) {
+        return taskStatesMap.get(taskIndex) || { phase: "idle", endTime: 0 };
+      }
+
+      function clearTaskInterval(taskIndex) {
+        const existing = taskIntervalsMap.get(taskIndex);
+        if (existing) {
+          clearInterval(existing);
+          taskIntervalsMap.delete(taskIndex);
+        }
+      }
+
+      function scheduleTaskCountdown(taskIndex) {
+        clearTaskInterval(taskIndex);
+        const st = getTaskState(taskIndex);
+        if (st.phase !== "running") return;
+
+        const intervalId = setInterval(() => {
+          const currentSt = getTaskState(taskIndex);
+          if (!currentSt || currentSt.phase !== "running") {
+            clearTaskInterval(taskIndex);
+            return;
+          }
+          const remSec = Math.ceil((Number(currentSt.endTime || 0) - Date.now()) / 1000);
+          if (remSec <= 0) {
+            clearTaskInterval(taskIndex);
+            taskStatesMap.set(taskIndex, { phase: "claim", endTime: 0 });
+            persistTaskStatesToSession();
+            renderSerialTaskButtons();
+          } else {
+            renderSerialTaskButtons();
+          }
+        }, 500);
+
+        taskIntervalsMap.set(taskIndex, intervalId);
       }
 
       function renderSerialTaskButtons() {
@@ -725,15 +868,25 @@
           return;
         }
 
+        const nowMs = Date.now();
+
         for (let i = 1; i <= totalTasks; i++) {
           const btn = document.createElement('button');
           btn.type = 'button';
 
-          const isDone = i <= currentTaskCount;
-          const isThisRunning = (activeTaskIndex === i && activeTaskPhase === "running");
-          const isThisClaim = (activeTaskIndex === i && activeTaskPhase === "claim");
-          const isThisProcessing = (activeTaskIndex === i && activeTaskPhase === "processing");
-          const isAnyTaskBusy = (activeTaskPhase !== "idle");
+          const isDone = completedTaskNumbers.includes(i);
+          const st = getTaskState(i);
+          let phase = isDone ? "completed" : st.phase;
+          let remSec = 0;
+
+          if (phase === "running") {
+            remSec = Math.max(0, Math.ceil((Number(st.endTime || 0) - nowMs) / 1000));
+            if (remSec <= 0) {
+              phase = "claim";
+              taskStatesMap.set(i, { phase: "claim", endTime: 0 });
+              persistTaskStatesToSession();
+            }
+          }
 
           let stateClass = "state-available";
           let statusLine = "ক্লিক করে কাজ শুরু করুন";
@@ -741,39 +894,41 @@
           let iconHtml = `<i class="fa-solid fa-play"></i>`;
           let disabled = false;
           let topTimerHtml = "";
+          let mainTitleText = "টাস্ক";
 
           if (isHolidayToday) {
             stateClass = "state-holiday";
+            mainTitleText = "ছুটির দিন";
             statusLine = "ছুটির দিন";
             iconHtml = `<i class="fa-solid fa-lock"></i>`;
             disabled = true;
           } else if (isDone) {
             stateClass = "state-completed";
+            mainTitleText = `টাস্ক #${toBnNum(i)}`;
             statusLine = "সম্পন্ন হয়েছে";
             iconHtml = `<i class="fa-solid fa-check"></i>`;
             disabled = true;
-          } else if (isThisRunning) {
+          } else if (phase === "running") {
             stateClass = "state-running";
-            statusLine = "ক্লিক করে কাজ শুরু করুন";
+            mainTitleText = "টাস্ক";
+            statusLine = "কাজ চলছে...";
             iconHtml = `<i class="fa-solid fa-hourglass-half"></i>`;
             disabled = true;
-            topTimerHtml = `<span class="top-center-red-timer">অপেক্ষা করুন ${activeCountdownLeft} সেকেন্ড</span>`;
-          } else if (isThisClaim) {
+            topTimerHtml = `<span class="top-center-red-timer">অপেক্ষা করুন ${remSec} সেকেন্ড</span>`;
+          } else if (phase === "claim") {
             stateClass = "state-claim";
+            mainTitleText = "টাস্ক";
             statusLine = "রিওয়ার্ড নিতে ক্লিক করুন";
             statusClass = "task-sub-status claim-red-text";
             iconHtml = `<i class="fa-solid fa-gift"></i>`;
             disabled = false;
-          } else if (isThisProcessing) {
+          } else if (phase === "processing") {
             stateClass = "state-running";
+            mainTitleText = "টাস্ক";
             statusLine = "প্রসেসিং হচ্ছে...";
             iconHtml = `<i class="fa-solid fa-spinner fa-spin"></i>`;
             disabled = true;
             topTimerHtml = `<span class="top-center-red-timer">অপেক্ষা করুন...</span>`;
-          } else if (isAnyTaskBusy) {
-            stateClass = "state-available";
-            statusLine = "ক্লিক করে কাজ শুরু করুন";
-            disabled = true;
           }
 
           btn.className = `serial-task-btn ${stateClass}`;
@@ -781,7 +936,6 @@
           btn.style.minHeight = "74px";
           btn.style.padding = "16px 14px";
 
-          const mainTitleText = isHolidayToday ? "ছুটির দিন" : "টাস্ক";
           btn.innerHTML = `
             ${topTimerHtml}
             <div class="task-btn-left">
@@ -798,13 +952,12 @@
           `;
 
           if (!disabled) {
-            if (isThisClaim) {
+            if (phase === "claim") {
               btn.onclick = () => claimReward(i);
             } else {
               btn.onclick = () => startTimer(10, i);
             }
           }
-
           listEl.appendChild(btn);
         }
       }
@@ -815,24 +968,48 @@
           userDocRef = doc(db, "users", user.uid);
           try {
             await loadAdminSmartLink();
+            const trustedNow = await getTrustedNowDate();
+            const dayInfo = computeDhakaDayInfo(trustedNow);
+            trustedDayKey = dayInfo.dayKey;
+            trustedDayIndex = dayInfo.dayIndex;
+
             const userDoc = await getDoc(userDocRef);
 
             if (userDoc.exists()) {
               currentUserData = userDoc.data();
               let userPackage = currentUserData.package;
 
-              const todayStr = new Date().toDateString();
-              if (currentUserData.lastTaskDate !== todayStr) {
+              const prevDayKey = currentUserData.lastTaskDayKey || currentUserData.lastTaskDate || "";
+              const isNewDay = prevDayKey !== trustedDayKey;
+
+              if (isNewDay) {
                 await updateDoc(userDocRef, {
                   dailyTaskCount: 0,
                   dailyTaskIncome: 0,
-                  lastTaskDate: todayStr
+                  completedTaskIdsToday: [],
+                  lastTaskDayKey: trustedDayKey,
+                  lastTaskDate: trustedNow.toDateString()
                 });
                 currentUserData.dailyTaskCount = 0;
                 currentUserData.dailyTaskIncome = 0;
+                currentUserData.completedTaskIdsToday = [];
+                currentUserData.lastTaskDayKey = trustedDayKey;
               }
 
-              currentTaskCount = currentUserData.dailyTaskCount || 0;
+              const savedCount = Number(currentUserData.dailyTaskCount || 0);
+              const savedIds = Array.isArray(currentUserData.completedTaskIdsToday)
+                ? currentUserData.completedTaskIdsToday.map(Number).filter(n => n > 0)
+                : [];
+
+              if (savedIds.length > 0) {
+                completedTaskNumbers = Array.from(new Set(savedIds)).sort((a, b) => a - b);
+              } else if (savedCount > 0) {
+                completedTaskNumbers = Array.from({ length: savedCount }, (_, idx) => idx + 1);
+              } else {
+                completedTaskNumbers = [];
+              }
+
+              restoreTaskStatesFromSession(trustedNow.getTime());
 
               let pkgRule = null;
               let displayName = userPackage;
@@ -852,21 +1029,24 @@
               if (!hasActivePaidPackage) {
                 const trialConfig = await getFreeTrialConfig();
                 let createdAt = currentUserData.createdAt;
-                let regDate = new Date();
+                let regDate = trustedNow;
 
                 if (createdAt && typeof createdAt.toDate === 'function') {
                   regDate = createdAt.toDate();
                 } else if (createdAt) {
                   regDate = new Date(createdAt);
-                } else {
+                } else if (user.metadata && user.metadata.creationTime) {
                   regDate = new Date(user.metadata.creationTime);
                 }
 
-                const regDateOnly = new Date(regDate.getFullYear(), regDate.getMonth(), regDate.getDate());
-                const todayDateOnly = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+                const regInfo = computeDhakaDayInfo(regDate);
+                const regParts = regInfo.dayKey.split("-").map(Number);
+                const nowParts = trustedDayKey.split("-").map(Number);
 
-                const diffTime = todayDateOnly.getTime() - regDateOnly.getTime();
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                const regUtc = Date.UTC(regParts[0], regParts[1] - 1, regParts[2]);
+                const nowUtc = Date.UTC(nowParts[0], nowParts[1] - 1, nowParts[2]);
+
+                const diffDays = Math.floor((nowUtc - regUtc) / (1000 * 60 * 60 * 24)) + 1;
 
                 if (diffDays > trialConfig.totalDays) {
                   document.getElementById('taskCard').style.display = 'none';
@@ -896,7 +1076,7 @@
               updateCountersUI();
 
               const openWorkDays = await getWorkOpenDays();
-              const todayKey = DAY_KEYS[new Date().getDay()];
+              const todayKey = DAY_KEYS[trustedDayIndex];
               const todayBn = DAY_BN[todayKey];
 
               if (!openWorkDays.includes(todayKey)) {
@@ -909,15 +1089,15 @@
                 const ongoingBox = document.getElementById('task-ongoing-box');
                 const finishedBox = document.getElementById('task-finished-box');
                 if (ongoingBox && finishedBox) {
-                    ongoingBox.style.display = 'none';
-                    finishedBox.style.display = 'block';
-                    finishedBox.innerHTML = `
-                        <div style="font-size: 22px; margin-bottom: 5px;">🏖️</div>
-                        <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #dc3545; font-weight: bold;">আজকে (${todayBn}) ছুটির দিন</h4>
-                        <p style="margin: 0; font-size: 11px; color: #aaaaaa; line-height: 1.4;">
-                            আজ ${todayBn} সাপ্তাহিক ছুটির কারণে কাজ বন্ধ রয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
-                        </p>
-                    `;
+                  ongoingBox.style.display = 'none';
+                  finishedBox.style.display = 'block';
+                  finishedBox.innerHTML = `
+                    <div style="font-size: 22px; margin-bottom: 5px;">🏖️</div>
+                    <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #dc3545; font-weight: bold;">আজকে (${todayBn}) ছুটির দিন</h4>
+                    <p style="margin: 0; font-size: 11px; color: #aaaaaa; line-height: 1.4;">
+                      আজ ${todayBn} সাপ্তাহিক ছুটির কারণে কাজ বন্ধ রয়েছে। আগামীকাল নতুন টাস্কের জন্য প্রস্তুত থাকুন!
+                    </p>
+                  `;
                 }
 
                 renderSerialTaskButtons();
@@ -926,7 +1106,7 @@
 
               isHolidayToday = false;
               document.getElementById('dynamic-status-box').style.display = 'block';
-              updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
+              updateTaskStatusBox(completedTaskNumbers.length, activePackageRule.maxTasks);
 
               document.getElementById('userInfoBox').style.display = 'grid';
               document.getElementById('taskCard').style.display = 'block';
@@ -942,7 +1122,9 @@
         }
       });
       function startTimer(duration, taskIndex) {
-        if (isHolidayToday || activeTaskPhase !== "idle") return;
+        if (isHolidayToday || completedTaskNumbers.includes(taskIndex)) return;
+        const currentSt = getTaskState(taskIndex);
+        if (currentSt.phase !== "idle") return;
 
         // ১. অ্যাডমিন প্যানেল থেকে সেভ করা স্মার্ট লিংক (না পেলে ব্যাকআপ লিংক) ওপেন হবে
         const targetSmartLink = isValidSmartLink(activeSmartLinkUrl) ? activeSmartLinkUrl : BACKUP_SMART_LINK;
@@ -962,45 +1144,57 @@
           console.log("Interstitial ad error:", e);
         }
 
-        activeTaskIndex = taskIndex;
-        activeTaskPhase = "running";
-        activeCountdownLeft = duration;
+        const endTime = Date.now() + (duration * 1000);
+        taskStatesMap.set(taskIndex, { phase: "running", endTime });
+        persistTaskStatesToSession();
         renderSerialTaskButtons();
-
-        const countdown = setInterval(() => {
-          if (activeCountdownLeft <= 1) {
-            clearInterval(countdown);
-            activeCountdownLeft = 0;
-            activeTaskPhase = "claim";
-            renderSerialTaskButtons();
-          } else {
-            activeCountdownLeft--;
-            renderSerialTaskButtons();
-          }
-        }, 1000);
+        scheduleTaskCountdown(taskIndex);
       }
 
       async function claimReward(clickedTaskIndex) {
-        if (activeTaskPhase !== "claim") return;
+        const st = getTaskState(clickedTaskIndex);
+        if (!st || st.phase !== "claim" || completedTaskNumbers.includes(clickedTaskIndex)) return;
 
-        activeTaskPhase = "processing";
+        clearTaskInterval(clickedTaskIndex);
+        taskStatesMap.set(clickedTaskIndex, { phase: "processing", endTime: 0 });
         renderSerialTaskButtons();
 
         try {
+          const freshSnap = await getDoc(userDocRef);
+          const freshData = freshSnap.exists() ? freshSnap.data() : (currentUserData || {});
+          const maxAllowed = Number(activePackageRule.maxTasks || 0);
+          const existingCount = Number(freshData.dailyTaskCount || completedTaskNumbers.length || 0);
+          const existingIds = Array.isArray(freshData.completedTaskIdsToday)
+            ? freshData.completedTaskIdsToday.map(Number)
+            : completedTaskNumbers;
+
+          if (existingIds.includes(clickedTaskIndex) || existingCount >= maxAllowed) {
+            completedTaskNumbers = Array.from(new Set([...completedTaskNumbers, ...existingIds, clickedTaskIndex])).sort((a, b) => a - b);
+            taskStatesMap.delete(clickedTaskIndex);
+            persistTaskStatesToSession();
+            updateCountersUI();
+            updateTaskStatusBox(completedTaskNumbers.length, maxAllowed);
+            renderSerialTaskButtons();
+            alert("এই টাস্কটির রিওয়ার্ড ইতিমধ্যে সম্পন্ন হয়েছে বা আজকের সীমা পূর্ণ হয়েছে।");
+            return;
+          }
+
           const rewardAmount = activePackageRule.reward;
-          const completedTaskSerial = currentTaskCount + 1;
+          const updatedIds = Array.from(new Set([...existingIds, clickedTaskIndex])).sort((a, b) => a - b);
+          const taskNumberLabel = `#${toBnNum(clickedTaskIndex)}`;
 
           await updateDoc(userDocRef, {
             dailyTaskCount: increment(1),
             dailyTaskIncome: increment(rewardAmount),
             taskCash: increment(rewardAmount),
-            totalEarnings: increment(rewardAmount)
+            totalEarnings: increment(rewardAmount),
+            completedTaskIdsToday: updatedIds
           });
 
           await addDoc(collection(db, "users", currentUser.uid, "taskHistory"), {
             type: "task_complete",
-            taskNumber: completedTaskSerial,
-            title: `টাস্ক #${completedTaskSerial}`,
+            taskNumber: clickedTaskIndex,
+            title: `টাস্ক #${clickedTaskIndex}`,
             desc: `ডেইলি বিজ্ঞাপন টাস্ক সম্পন্ন হয়েছে`,
             amount: rewardAmount,
             timestamp: serverTimestamp()
@@ -1096,20 +1290,21 @@
             }
           }
 
-          currentTaskCount = completedTaskSerial;
-          activeTaskIndex = null;
-          activeTaskPhase = "idle";
+          completedTaskNumbers = updatedIds;
+          taskStatesMap.delete(clickedTaskIndex);
+          persistTaskStatesToSession();
 
           updateCountersUI();
-          updateTaskStatusBox(currentTaskCount, activePackageRule.maxTasks);
+          updateTaskStatusBox(completedTaskNumbers.length, activePackageRule.maxTasks);
           renderSerialTaskButtons();
 
-          alert(`অভিনন্দন! টাস্ক #${completedTaskSerial} কমপ্লিট হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
+          alert(`অভিনন্দন! টাস্ক ${taskNumberLabel} কমপ্লিট হয়েছে এবং ৳ ${rewardAmount} আপনার অ্যাকাউন্টে যোগ হয়েছে।`);
 
         } catch (error) {
           console.error("এরর:", error);
           alert("সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।");
-          activeTaskPhase = "claim";
+          taskStatesMap.set(clickedTaskIndex, { phase: "claim", endTime: 0 });
+          persistTaskStatesToSession();
           renderSerialTaskButtons();
         }
       }
