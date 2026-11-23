@@ -585,3 +585,480 @@
       </div>
     </div>
   </div>
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDocs,
+      addDoc,
+      query,
+      orderBy,
+      serverTimestamp,
+      onSnapshot,
+      runTransaction,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const STAFF_PASS = "Kawtha@36";
+    const VAT_RATE = 0.10; // উইথড্রতে ১০% ভ্যাট
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+      authDomain: "taskora-b2b29.firebaseapp.com",
+      projectId: "taskora-b2b29",
+      storageBucket: "taskora-b2b29.firebasestorage.app",
+      messagingSenderId: "376297360134",
+      appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+      measurementId: "G-9803M7DPM5"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const db = (window.tkFirebase && window.tkFirebase.db) ? window.tkFirebase.db : getFirestore(app);
+    window.tkFirebase = Object.assign({}, window.tkFirebase || {}, { app, db });
+
+    const COLLECTIONS = {
+      recharge: "recharge_requests",
+      withdraw: "withdrawals"
+    };
+
+    // viewMode: "recharge_pending" | "withdraw_pending" | "recharge_history" | "withdraw_history" | "live_chat"
+    let viewMode = "recharge_pending";
+    let cachedItems = [];
+    let isUnlocked = false;
+
+    // Live Chat State
+    let tkActiveChatUid = null;
+    let tkChatUnsub = null;
+
+    const lockScreen = document.getElementById("tkLockScreen");
+    const mainPanel = document.getElementById("tkMainPanel");
+    const passInput = document.getElementById("tkStaffPassInput");
+    const unlockBtn = document.getElementById("tkStaffUnlockBtn");
+    const passErr = document.getElementById("tkStaffPassErr");
+
+    const btnLiveChatTab = document.getElementById("btnLiveChatTab");
+    const btnRechargeTab = document.getElementById("btnRechargeTab");
+    const btnWithdrawTab = document.getElementById("btnWithdrawTab");
+    const btnRechargeHistory = document.getElementById("btnRechargeHistory");
+    const btnWithdrawHistory = document.getElementById("btnWithdrawHistory");
+
+    const refreshBtn = document.getElementById("tkRefreshBtn");
+    const sectionTitle = document.getElementById("tkSectionTitle");
+    const totalBadge = document.getElementById("tkTotalBadge");
+    const serialContainer = document.getElementById("tkSerialContainer");
+    const alertBanner = document.getElementById("tkStatusAlert");
+
+    function stopChatListener() {
+      if (tkChatUnsub) {
+        tkChatUnsub();
+        tkChatUnsub = null;
+      }
+    }
+
+    function unlockPanel() {
+      if (passInput.value === STAFF_PASS) {
+        isUnlocked = true;
+        lockScreen.style.display = "none";
+        mainPanel.style.display = "block";
+        loadViewData(viewMode);
+      } else {
+        passErr.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+      }
+    }
+
+    unlockBtn.addEventListener("click", unlockPanel);
+    passInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") unlockPanel();
+    });
+
+    function showBanner(msg, isError = false) {
+      alertBanner.style.display = "block";
+      alertBanner.style.background = isError ? "#fef2f2" : "#f0fdf4";
+      alertBanner.style.color = isError ? "#b91c1c" : "#15803d";
+      alertBanner.style.border = isError ? "1px solid #fecaca" : "1px solid #bbf7d0";
+      alertBanner.textContent = msg;
+    }
+
+    function normalizeStatus(raw) {
+      const s = String(raw || "pending").toLowerCase();
+      if (s === "approved" || s === "approve" || s === "completed" || s === "success") {
+        return "approved";
+      }
+      if (s === "rejected" || s === "reject" || s === "cancelled" || s === "failed") {
+        return "rejected";
+      }
+      return "pending";
+    }
+
+    function renderStatusBadge(status) {
+      if (status === "approved") {
+        return `<span class="tk-status-tag st-approved">অ্যাপ্রুভড</span>`;
+      }
+      if (status === "rejected") {
+        return `<span class="tk-status-tag st-rejected">রিজেক্টেড</span>`;
+      }
+      return `<span class="tk-status-tag st-pending">পেন্ডিং / ওয়েটিং</span>`;
+    }
+
+    function getTimestampMs(row) {
+      const val = row.reviewedAt || row.timestamp || row.createdAt || 0;
+      if (typeof val === "number") return val;
+      if (val && typeof val.toMillis === "function") return val.toMillis();
+      if (val && typeof val.seconds === "number") return val.seconds * 1000;
+      const parsed = Date.parse(val);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    function getWithdrawAmounts(item) {
+      const hasDeducted = item.deductedAmount !== undefined && item.deductedAmount !== null;
+      const rawAmt = Number(item.amount || 0);
+      const deducted = hasDeducted
+        ? Number(item.deductedAmount)
+        : Number((rawAmt / (1 - VAT_RATE)).toFixed(2));
+      const payable = hasDeducted
+        ? rawAmt
+        : Number((deducted * (1 - VAT_RATE)).toFixed(2));
+      const vatCut = Number((deducted - payable).toFixed(2));
+      return { deducted, payable, vatCut };
+    }
+
+    function updateModeUI(mode) {
+      btnLiveChatTab.classList.toggle("active", mode === "live_chat");
+      btnRechargeTab.classList.toggle("active", mode === "recharge_pending");
+      btnWithdrawTab.classList.toggle("active", mode === "withdraw_pending");
+      btnRechargeHistory.classList.toggle("active", mode === "recharge_history");
+      btnWithdrawHistory.classList.toggle("active", mode === "withdraw_history");
+
+      if (mode === "live_chat") {
+        sectionTitle.textContent = "ইউজার সাপোর্ট লাইভ চ্যাট";
+      } else if (mode === "recharge_pending") {
+        sectionTitle.textContent = "রিচার্জ রিকোয়েস্ট (পেন্ডিং)";
+      } else if (mode === "withdraw_pending") {
+        sectionTitle.textContent = "উইথড্রো রিকোয়েস্ট (পেন্ডিং)";
+      } else if (mode === "recharge_history") {
+        sectionTitle.textContent = "রিচার্জ হিস্টোরি (অ্যাপ্রুভড ও রিজেক্টেড)";
+      } else {
+        sectionTitle.textContent = "উইথড্রো হিস্টোরি (অ্যাপ্রুভড ও রিজেক্টেড)";
+      }
+    }
+
+    function listenChatRoom(uid, label) {
+      tkActiveChatUid = uid;
+      const room = document.getElementById("tkScRoom");
+      const head = document.getElementById("tkScActiveName");
+      const msgsBox = document.getElementById("tkScMessages");
+      if (!room || !head || !msgsBox) return;
+
+      room.style.display = "flex";
+      head.textContent = "চ্যাট: " + label;
+
+      stopChatListener();
+
+      const q = query(collection(db, "support_chats", uid, "messages"), orderBy("timestamp", "asc"));
+      tkChatUnsub = onSnapshot(q, (snap) => {
+        msgsBox.innerHTML = "";
+        if (snap.empty) {
+          msgsBox.innerHTML = `<div style="color:#6b7280;text-align:center;margin:auto;font-size:12px;">কোনো মেসেজ নেই।</div>`;
+          return;
+        }
+        snap.forEach((d) => {
+          const m = d.data() || {};
+          const isAdmin = m.sender === "admin";
+          const div = document.createElement("div");
+          div.className = "tk-sc-bubble " + (isAdmin ? "admin" : "user");
+          div.innerHTML = `
+            <div style="font-size:10px;opacity:0.75;font-weight:700;margin-bottom:2px;">${isAdmin ? "অ্যাডমিন (আপনি)" : "ইউজার"}</div>
+            <div>${m.text || ""}</div>
+          `;
+          msgsBox.appendChild(div);
+        });
+        msgsBox.scrollTop = msgsBox.scrollHeight;
+      });
+    }
+
+    async function loadChatUsers() {
+      const sidebar = document.getElementById("tkScUserList");
+      if (!sidebar) return;
+      sidebar.innerHTML = `<div style="color:#6b7280;font-size:12px;text-align:center;margin-top:16px;">লোড হচ্ছে...</div>`;
+
+      try {
+        const snap = await getDocs(collection(db, "support_chats"));
+        totalBadge.textContent = `${snap.size}টি চ্যাট`;
+
+        if (snap.empty) {
+          sidebar.innerHTML = `<div style="color:#6b7280;font-size:12px;text-align:center;margin-top:16px;">কোনো চ্যাট রিকোয়েস্ট নেই।</div>`;
+          return;
+        }
+
+        sidebar.innerHTML = "";
+        snap.forEach((docSnap) => {
+          const uid = docSnap.id;
+          const data = docSnap.data() || {};
+          const label = data.userPhone || data.userEmail || data.userName || ("ID: " + uid.substring(0, 8));
+          const item = document.createElement("div");
+          item.className = "tk-sc-user-item" + (tkActiveChatUid === uid ? " active" : "");
+          item.innerHTML = `
+            <div style="font-weight:700;color:#141517;"><i class="fa-solid fa-user-shield"></i> ${label}</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:2px;word-break:break-all;">${uid}</div>
+          `;
+          item.addEventListener("click", () => {
+            sidebar.querySelectorAll(".tk-sc-user-item").forEach((el) => el.classList.remove("active"));
+            item.classList.add("active");
+            listenChatRoom(uid, label);
+          });
+          sidebar.appendChild(item);
+        });
+      } catch (e) {
+        totalBadge.textContent = "০টি চ্যাট";
+        sidebar.innerHTML = `<div style="color:#dc2626;font-size:12px;text-align:center;margin-top:16px;">লোড করতে সমস্যা হয়েছে।</div>`;
+      }
+    }
+
+    function renderLiveChatRoom() {
+      tkActiveChatUid = null;
+      stopChatListener();
+      totalBadge.textContent = "Live";
+
+      serialContainer.innerHTML = `
+        <div class="tk-sc-layout">
+          <div id="tkScUserList" class="tk-sc-sidebar">লোড হচ্ছে...</div>
+          <div id="tkScRoom" class="tk-sc-room">
+            <div id="tkScActiveName" class="tk-sc-head">ইউজার সিলেক্ট করুন</div>
+            <div id="tkScMessages" class="tk-sc-msgs"></div>
+            <div class="tk-sc-bar">
+              <input type="text" id="tkScReplyInput" class="tk-sc-input" placeholder="উত্তর লিখুন...">
+              <button type="button" id="tkScSendBtn" class="tk-sc-send">পাঠান</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const sendMsg = async () => {
+        const inp = document.getElementById("tkScReplyInput");
+        const txt = inp ? inp.value.trim() : "";
+        if (!txt || !tkActiveChatUid) return;
+        try {
+          await addDoc(collection(db, "support_chats", tkActiveChatUid, "messages"), {
+            sender: "admin",
+            text: txt,
+            timestamp: serverTimestamp()
+          });
+          inp.value = "";
+        } catch (e) {
+          showBanner("মেসেজ পাঠাতে সমস্যা হয়েছে: " + e.message, true);
+        }
+      };
+
+      const sendBtn = document.getElementById("tkScSendBtn");
+      const replyInp = document.getElementById("tkScReplyInput");
+      if (sendBtn) sendBtn.addEventListener("click", sendMsg);
+      if (replyInp) {
+        replyInp.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") sendMsg();
+        });
+      }
+
+      loadChatUsers();
+    }
+
+    async function loadViewData(mode = viewMode) {
+      if (!isUnlocked) return;
+      viewMode = mode;
+      updateModeUI(mode);
+
+      if (mode === "live_chat") {
+        renderLiveChatRoom();
+        return;
+      }
+
+      stopChatListener();
+
+      const isRecharge = mode === "recharge_pending" || mode === "recharge_history";
+      const isHistory = mode === "recharge_history" || mode === "withdraw_history";
+      const colName = isRecharge ? COLLECTIONS.recharge : COLLECTIONS.withdraw;
+
+      serialContainer.innerHTML = `<div class="tk-empty-box">তথ্য লোড হচ্ছে...</div>`;
+
+      try {
+        const snap = await getDocs(collection(db, colName));
+        const list = [];
+
+        snap.forEach((docSnap) => {
+          const data = docSnap.data() || {};
+          const status = normalizeStatus(data.status);
+          const matchesMode = isHistory ? status !== "pending" : status === "pending";
+          if (matchesMode) {
+            list.push({
+              id: docSnap.id,
+              ...data
+            });
+          }
+        });
+
+        list.sort((a, b) => getTimestampMs(b) - getTimestampMs(a));
+        cachedItems = list;
+        totalBadge.textContent = `${list.length}টি রিকোয়েস্ট`;
+
+        if (!list.length) {
+          serialContainer.innerHTML = isHistory
+            ? `<div class="tk-empty-box">কোনো হিস্টোরি রেকর্ড পাওয়া যায়নি।</div>`
+            : `<div class="tk-empty-box">কোনো পেন্ডিং রিকোয়েস্ট নেই।</div>`;
+          return;
+        }
+
+        serialContainer.innerHTML = list.map((item, index) => {
+          const serial = index + 1;
+          const status = normalizeStatus(item.status);
+          const userInfo = item.userName || item.userPhone || item.userEmail || item.userId || "ইউজার";
+          const method = item.method || "—";
+          const amount = item.amount ?? 0;
+
+          let extraLines = "";
+          if (isRecharge) {
+            extraLines = `
+              <strong>পরিমাণ:</strong> ৳${amount}<br>
+              <strong>মাধ্যম:</strong> ${method}<br>
+              <strong>TrxID:</strong> ${item.trxId || "—"}<br>
+              <strong>ফোন / ইমেইল:</strong> ${item.userPhone || "—"} / ${item.userEmail || "—"}
+            `;
+          } else {
+            const { deducted, payable, vatCut } = getWithdrawAmounts(item);
+            extraLines = `
+              <strong>মোট কাটা (10% VAT সহ):</strong> ৳${deducted} (VAT: ৳${vatCut})<br>
+              <strong>প্রাপ্য পরিমাণ:</strong> ৳${payable}<br>
+              <strong>মাধ্যম ও নম্বর:</strong> ${method} — ${item.account || "—"}<br>
+              <strong>ইউজার:</strong> ${item.userEmail || item.userId || "—"}
+            `;
+          }
+
+          const actionButtons = !isHistory
+            ? `
+              <div class="tk-btn-pair">
+                <button
+                  type="button"
+                  class="tk-btn-approve"
+                  data-decision="approved"
+                  data-doc-id="${item.id}"
+                >
+                  <i class="fa-solid fa-check"></i> অ্যাপ্রুভ
+                </button>
+                <button
+                  type="button"
+                  class="tk-btn-reject"
+                  data-decision="rejected"
+                  data-doc-id="${item.id}"
+                >
+                  <i class="fa-solid fa-xmark"></i> রিজেক্ট
+                </button>
+              </div>
+            `
+            : "";
+
+          return `
+            <div class="tk-req-row" data-id="${item.id}">
+              <div class="tk-req-top">
+                <span class="tk-serial-num">#${serial} — ${userInfo}</span>
+                ${renderStatusBadge(status)}
+              </div>
+              <div class="tk-req-details">
+                ${extraLines}<br>
+                <strong>ID:</strong> <code>${item.id}</code>
+              </div>
+              ${actionButtons}
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        totalBadge.textContent = "০টি রিকোয়েস্ট";
+        serialContainer.innerHTML = `<div class="tk-empty-box" style="color:#b91c1c;">লোড করতে সমস্যা হয়েছে: ${err.message}</div>`;
+      }
+    }
+
+    serialContainer.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-decision][data-doc-id]");
+      if (!btn || !isUnlocked) return;
+
+      const docId = btn.getAttribute("data-doc-id");
+      const decision = btn.getAttribute("data-decision");
+      const item = cachedItems.find((r) => r.id === docId);
+      if (!item) return;
+
+      const rowEl = btn.closest(".tk-req-row");
+      const rowBtns = rowEl ? rowEl.querySelectorAll("button") : [];
+      rowBtns.forEach((b) => (b.disabled = true));
+
+      const isRecharge = viewMode === "recharge_pending";
+
+      try {
+        if (isRecharge) {
+          await updateDoc(doc(db, COLLECTIONS.recharge, docId), {
+            status: decision,
+            reviewedAt: new Date().toISOString()
+          });
+
+          if (decision === "approved" && item.userId) {
+            const userRef = doc(db, "users", item.userId);
+            await runTransaction(db, async (tx) => {
+              const uSnap = await tx.get(userRef);
+              if (uSnap.exists()) {
+                const uData = uSnap.data() || {};
+                const prevRechargeCash = Number(uData.rechargeCash || uData.balance || 0);
+                tx.update(userRef, {
+                  rechargeCash: prevRechargeCash + Number(item.amount || 0)
+                });
+              }
+            });
+          }
+        } else {
+          await updateDoc(doc(db, COLLECTIONS.withdraw, docId), {
+            status: decision,
+            reviewedAt: new Date().toISOString()
+          });
+
+          if (decision === "rejected" && item.userId) {
+            const { deducted } = getWithdrawAmounts(item);
+            const userRef = doc(db, "users", item.userId);
+            await runTransaction(db, async (tx) => {
+              const uSnap = await tx.get(userRef);
+              if (uSnap.exists() && deducted > 0) {
+                const uData = uSnap.data() || {};
+                const prevTaskCash = Number(uData.taskCash || 0);
+                tx.update(userRef, {
+                  taskCash: Number((prevTaskCash + deducted).toFixed(2))
+                });
+              }
+            });
+          }
+        }
+
+        cachedItems = cachedItems.filter((r) => r.id !== docId);
+        if (rowEl) {
+          rowEl.remove();
+        }
+        totalBadge.textContent = `${cachedItems.length}টি রিকোয়েস্ট`;
+        if (!cachedItems.length) {
+          serialContainer.innerHTML = `<div class="tk-empty-box">কোনো পেন্ডিং রিকোয়েস্ট নেই।</div>`;
+        }
+
+        showBanner(
+          decision === "approved"
+            ? "✅ রিকোয়েস্টটি সফলভাবে অ্যাপ্রুভ করা হয়েছে!"
+            : "❌ রিকোয়েস্টটি রিজেক্ট করা হয়েছে!"
+        );
+      } catch (err) {
+        showBanner("আপডেট করতে সমস্যা হয়েছে: " + err.message, true);
+        rowBtns.forEach((b) => (b.disabled = false));
+      }
+    });
+
+    btnLiveChatTab.addEventListener("click", () => loadViewData("live_chat"));
+    btnRechargeTab.addEventListener("click", () => loadViewData("recharge_pending"));
+    btnWithdrawTab.addEventListener("click", () => loadViewData("withdraw_pending"));
+    btnRechargeHistory.addEventListener("click", () => loadViewData("recharge_history"));
+    btnWithdrawHistory.addEventListener("click", () => loadViewData("withdraw_history"));
+    refreshBtn.addEventListener("click", () => loadViewData(viewMode));
+  </script>
+</body>
+</html>
