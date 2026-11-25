@@ -6,30 +6,246 @@
     <title>টাকা উত্তোলন</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #dcdcdc; margin: 0; padding: 20px; color: #333; }
-        .withdraw-container { max-width: 450px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .header { text-align: center; margin-bottom: 20px; color: #2b2d42; }
-        .notice-box { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; text-align: center; border: 1px solid #ffeeba; }
-        .balance-box { background: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 16px; font-weight: bold; }
+        * {
+            box-sizing: border-box;
+        }
 
-        .profile-setup-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px dashed #007bff; margin-bottom: 20px; }
-        .profile-setup-box h3 { margin-top: 0; color: #007bff; font-size: 16px; text-align: center; margin-bottom: 12px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #e9eef5 0%, #f5f7fa 100%);
+            margin: 0;
+            padding: 18px 14px 36px;
+            color: #2e3440;
+            min-height: 100vh;
+        }
 
-        .payment-methods { display: flex; gap: 15px; margin-bottom: 20px; }
-        .method-box { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; text-align: center; background: #eef2f5; color: #333; }
+        .withdraw-container {
+            max-width: 450px;
+            margin: 8px auto 0;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 18px;
+            box-shadow: 0 12px 28px rgba(46, 52, 64, 0.10), 0 2px 6px rgba(46, 52, 64, 0.05);
+            border: 1px solid #dce3ec;
+        }
 
-        .amount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .amount-btn { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-weight: bold; cursor: pointer; background: #fbfbfb; transition: 0.3s; }
-        .amount-btn.active { background-color: #28a745; color: white; border-color: #28a745; }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 0 18px 0;
+            padding: 14px 16px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #3b4252 0%, #4c566a 100%);
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: 0 6px 14px rgba(59, 66, 82, 0.22);
+        }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #eef2f5; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #007bff; }
+        .notice-box {
+            background: #fff8e6;
+            color: #7c5800;
+            padding: 13px 14px;
+            border-radius: 11px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            text-align: center;
+            border: 1px solid #f4dc9a;
+            border-left: 4px solid #e0a800;
+            line-height: 1.55;
+            font-weight: 600;
+        }
 
-        .submit-btn { width: 100%; background: #28a745; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .submit-btn:hover { background-color: #218838; }
-        .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        .balance-box {
+            background: linear-gradient(135deg, #3b4252 0%, #5e81ac 100%);
+            color: #ffffff;
+            padding: 15px 16px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            text-align: center;
+            font-size: 15.5px;
+            font-weight: 700;
+            box-shadow: 0 6px 14px rgba(59, 66, 82, 0.18);
+        }
+
+        .balance-box strong {
+            color: #ffffff;
+            font-size: 18px;
+            letter-spacing: 0.3px;
+        }
+
+        .profile-setup-box {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 13px;
+            border: 1.5px dashed #5e81ac;
+            margin-bottom: 18px;
+        }
+
+        .profile-setup-box h3 {
+            margin-top: 0;
+            color: #3b4252;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 14px;
+            font-weight: 700;
+        }
+
+        #mainWithdrawSection h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: #3b4252;
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .method-box {
+            flex: 1;
+            padding: 12px 14px;
+            border: 1.5px solid #cfd8e3;
+            border-radius: 11px;
+            font-weight: 700;
+            text-align: center;
+            background: #f8fafc;
+            color: #2e3440;
+            box-shadow: 0 2px 6px rgba(46, 52, 64, 0.04);
+        }
+
+        .amount-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+            margin-bottom: 18px;
+        }
+
+        .amount-btn {
+            padding: 11px 8px;
+            border: 1.5px solid #d5dde7;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            background: #f8fafc;
+            color: #3b4252;
+            transition: all 0.18s ease;
+            box-shadow: 0 1px 3px rgba(46, 52, 64, 0.04);
+        }
+
+        .amount-btn:hover {
+            border-color: #5e81ac;
+            background: #eff4fa;
+            transform: translateY(-1px);
+        }
+
+        .amount-btn.active {
+            background: linear-gradient(135deg, #3b4252 0%, #5e81ac 100%);
+            color: #ffffff;
+            border-color: #3b4252;
+            box-shadow: 0 4px 10px rgba(59, 66, 82, 0.22);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 700;
+            font-size: 13.5px;
+            color: #3b4252;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #cfd8e3;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 15px;
+            color: #2e3440;
+            background-color: #f8fafc;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4c566a;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(76, 86, 106, 0.14);
+        }
+
+        .form-group input[readonly] {
+            background-color: #eef2f6 !important;
+            color: #4c566a;
+            font-weight: 700;
+        }
+
+        #saveProfileBtn {
+            background: linear-gradient(135deg, #3b4252 0%, #5e81ac 100%) !important;
+            box-shadow: 0 6px 14px rgba(59, 66, 82, 0.22);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15.5px;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+            box-shadow: 0 6px 14px rgba(16, 185, 129, 0.25);
+        }
+
+        .submit-btn:hover {
+            opacity: 0.96;
+            box-shadow: 0 8px 18px rgba(16, 185, 129, 0.32);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .submit-btn:disabled {
+            background: #b8c2ce;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .ad-banner-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-profile-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 18px;
+            text-decoration: none;
+            color: #4c566a;
+            font-size: 13.5px;
+            font-weight: 700;
+        }
+
+        .back-profile-link:hover {
+            color: #2e3440;
+        }
     </style>
 </head>
 <body>
@@ -43,7 +259,7 @@
         </div>
 
         <div class="balance-box">
-            বর্তমান মাই ক্যাশ: <strong id="availableTaskCash" style="color: #007bff;">৳ 0</strong>
+            বর্তমান মাই ক্যাশ: <strong id="availableTaskCash">৳ 0</strong>
         </div>
 
         <!-- ১. উইথড্র প্রোফাইল তৈরির সেকশন -->
@@ -60,7 +276,7 @@
                 <label>অ্যাকাউন্ট নাম্বার দিন</label>
                 <input type="text" id="setupAccountNo" placeholder="আপনার বিকাশ/নগদ নম্বর দিন">
             </div>
-            <button class="submit-btn" id="saveProfileBtn" style="background-color: #007bff;">প্রোফাইল সেভ করুন</button>
+            <button class="submit-btn" id="saveProfileBtn">প্রোফাইল সেভ করুন</button>
         </div>
 
         <!-- ২. মূল উইথড্র সেকশন -->
@@ -72,28 +288,26 @@
 
             <h3>উত্তোলনের পরিমাণ সিলেক্ট করুন:</h3>
             <div class="amount-grid">
-                <button class="amount-btn" onclick="selectAmount(500)">500</button>
-                <button class="amount-btn" onclick="selectAmount(1000)">1000</button>
-                <button class="amount-btn" onclick="selectAmount(1500)">1500</button>
-                <button class="amount-btn" onclick="selectAmount(2000)">2000</button>
-                <button class="amount-btn" onclick="selectAmount(2500)">2500</button>
-                <button class="amount-btn" onclick="selectAmount(3000)">3000</button>
+                <button type="button" class="amount-btn" onclick="selectAmount(500, this)">500</button>
+                <button type="button" class="amount-btn" onclick="selectAmount(1000, this)">1000</button>
+                <button type="button" class="amount-btn" onclick="selectAmount(1500, this)">1500</button>
+                <button type="button" class="amount-btn" onclick="selectAmount(2000, this)">2000</button>
+                <button type="button" class="amount-btn" onclick="selectAmount(2500, this)">2500</button>
+                <button type="button" class="amount-btn" onclick="selectAmount(3000, this)">3000</button>
             </div>
 
             <div class="form-group" style="position: relative;">
                 <label>নির্বাচিত পরিমাণ (৳)</label>
                 <input type="number" id="withdrawAmount" placeholder="উপরের বাটন থেকে সিলেক্ট করুন" readonly>
-                <small id="vatNotice" style="display: none; color: red; font-size: 12px; margin-top: 4px; display: block; font-weight: bold;">VAT -১০%</small>
+                <small id="vatNotice" style="display: none; color: #dc2626; font-size: 12px; margin-top: 5px; font-weight: 700;">VAT -১০%</small>
             </div>
             <div class="form-group">
                 <label>রিসিভ করার অ্যাকাউন্ট নম্বর (লক করা)</label>
-                <input type="text" id="displayAccountNo" readonly style="background-color: #e9ecef; color: #6c757d;">
+                <input type="text" id="displayAccountNo" readonly>
             </div>
 
-            <button class="btn submit-btn" id="withdrawBtn">উত্তোলন রিকোয়েস্ট পাঠান</button>
+            <button type="button" class="submit-btn" id="withdrawBtn">উত্তোলন রিকোয়েস্ট পাঠান</button>
         </div>
-
-        <br><br>
 
         <!-- ব্যানার স্লট ২ -->
         <div class="ad-banner-container">
@@ -110,8 +324,7 @@
             <script src="https://bauval.org/22/ef70bb41c6b9c54cf3d9448db4f94f11"></script>
         </div>
 
-        <br><br>
-        <a href="profile.html" style="text-decoration: none; color: #6c757d;"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
+        <a href="profile.html" class="back-profile-link"><i class="fa-solid fa-arrow-left"></i> প্রোফাইলে ফিরে যান</a>
     </div>
 
     <!-- Firebase ও উইথড্র লজিক -->
@@ -136,7 +349,7 @@
 
       let currentTaskCash = 0;
       let currentUser = null;
-      let selectedAmount = 0; 
+      let selectedAmount = 0;
       let userWithdrawMethod = "";
       let userWithdrawAccount = "";
 
@@ -222,10 +435,18 @@
       function formatMinutes12h(totalMins) {
         const h24 = Math.floor(totalMins / 60) % 24;
         const mins = totalMins % 60;
-        const period = h24 >= 12 ? "বিকাল/রাত" : "সকাল";
+        let period = "সকাল";
+        if (h24 >= 12 && h24 < 15) {
+          period = "দুপুর";
+        } else if (h24 >= 15 && h24 < 18) {
+          period = "বিকেল";
+        } else if (h24 >= 18) {
+          period = "রাত";
+        }
         const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
         return `${h12}:${String(mins).padStart(2, "0")} ${period}`;
       }
+
       async function loadWithdrawScheduleFromAdmin() {
         try {
           const snap = await getDoc(doc(db, "admin_settings", "holiday_rules"));
@@ -256,13 +477,14 @@
         }
       }
 
-      window.selectAmount = function(amount) {
-        selectedAmount = amount; 
+      window.selectAmount = function(amount, btnEl) {
+        selectedAmount = amount;
         let amountAfterVat = amount - (amount * 0.10);
 
         document.querySelectorAll('.amount-grid .amount-btn').forEach(btn => btn.classList.remove('active'));
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('active');
+        const targetBtn = btnEl || (typeof event !== "undefined" && event?.currentTarget) || null;
+        if (targetBtn) {
+          targetBtn.classList.add('active');
         }
 
         document.getElementById('withdrawAmount').value = amountAfterVat;
@@ -279,7 +501,6 @@
 
           if (userDoc.exists()) {
             currentTaskCash = userDoc.data().taskCash || 0;
-            // দশমিক সমস্যা সমাধান করে সুন্দর ফিগার দেখানোর জন্য .toFixed(2) দেওয়া হয়েছে
             document.getElementById('availableTaskCash').innerText = `৳ ${Number(currentTaskCash).toFixed(2)}`;
           }
 
@@ -348,8 +569,8 @@
       };
 
       document.getElementById('withdrawBtn').onclick = async () => {
-        const fullAmountToDeduct = selectedAmount; 
-        const finalRequestAmount = selectedAmount - (selectedAmount * 0.10); 
+        const fullAmountToDeduct = selectedAmount;
+        const finalRequestAmount = selectedAmount - (selectedAmount * 0.10);
 
         await loadWithdrawScheduleFromAdmin();
 
@@ -408,22 +629,25 @@
             return timeB - timeA;
           });
 
-          let todayCount = todayRequests.length;
-          let latestReq = todayCount > 0 ? todayRequests[0] : null;
-          let rejectedCount = todayRequests.filter((r) => r.status === "rejected").length;
-          let adminMaxPerDay = withdrawScheduleConfig.maxPerDay || 1;
+          const todayCount = todayRequests.length;
+          const latestReq = todayCount > 0 ? todayRequests[0] : null;
+          const rejectedCount = todayRequests.filter((r) => r.status === "rejected").length;
+          const adminMaxPerDay = withdrawScheduleConfig.maxPerDay || 1;
 
           // ১. ওয়েটিং বা পেন্ডিং থাকলে নতুন রিকোয়েস্ট দেওয়া যাবে না
           if (latestReq && (latestReq.status === "waiting" || latestReq.status === "pending")) {
             throw new Error("⚠️ আপনার একটি উইথড্র রিকোয়েস্ট বর্তমানে পেন্ডিং অবস্থায় আছে। নতুন করে উইথড্র করা যাবে না।");
           }
 
-          // ২. রিজেক্ট হলে অতিরিক্ত ১ বার সুযোগ (স্থায়ী নিয়ম)
+          // ২. রিজেক্ট হলে সর্বোচ্চ ১ বারই অতিরিক্ত সুযোগ পাবে; এরপরও রিজেক্ট হলে আর করতে পারবে না
           if (rejectedCount >= 2) {
-            throw new Error("⚠️ আজকের দিনে আপনার উইথড্র কোটা শেষ। আগামী কাল নতুন করে চেষ্টা করুন।");
+            throw new Error("⚠️ আজকের দিনে আর উইথড্র করা যাবে না।");
           }
 
-          if (rejectedCount === 0 && todayCount >= adminMaxPerDay) {
+          const extraRejectAllowance = rejectedCount === 1 ? 1 : 0;
+          const maxAllowedToday = adminMaxPerDay + extraRejectAllowance;
+
+          if (todayCount >= maxAllowedToday) {
             throw new Error("⚠️ আজকের উইথড্র লিমিট শেষ! দিনে নির্ধারিত বারের বেশি উইথড্র করা যাবে না।");
           }
 
@@ -458,8 +682,8 @@
           await addDoc(collection(db, "withdrawals"), {
             userId: currentUser.uid,
             userEmail: userIdentifier,
-            amount: finalRequestAmount, 
-            deductedAmount: fullAmountToDeduct, 
+            amount: finalRequestAmount,
+            deductedAmount: fullAmountToDeduct,
             method: userWithdrawMethod,
             account: userWithdrawAccount,
             status: "waiting",
@@ -478,7 +702,6 @@
       };
     </script>
 
-
       <!-- ব্যানার স্লট ১ -->
       <div class="ad-banner-container">
         <script>
@@ -496,9 +719,6 @@
 
 <!-- Adsterra Popunder Script -->
 <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
-
-
-
 
   <script type="module" src="./freeze-guard.js"></script>
 </body>
