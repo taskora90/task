@@ -309,7 +309,7 @@
           return;
         }
 
-        const trxId = document.getElementById('trxId').value.trim();
+        const trxId = document.getElementById('trxId').value.replace(/\s+/g, '').toUpperCase();
 
         if (!trxId || trxId.length < 4) {
           alert("দয়া করে সঠিক ট্রানজেকশন আইডি (TrxID) লিখুন।");
