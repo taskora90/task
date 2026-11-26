@@ -1156,7 +1156,34 @@
         alert("10 সেকেন্ড অপেক্ষা না করার কারণে আবার কাজ করুন");
       }
 
+           function handleEarlyReturnCheck() {
+        if (activePopupTaskIndex === null) return;
+        const elapsedMs = Date.now() - popupOpenedAt;
+        const runningTask = activePopupTaskIndex;
+
+        // পপ-আপ খোলার ঠিক পরপরই (200ms এর মধ্যে) আসা প্রাথমিক ইভেন্ট উপেক্ষা করা
+        if (elapsedMs < 200) return;
+
+        activePopupTaskIndex = null;
+        popupOpenedAt = 0;
+
+        if (elapsedMs < 10000) {
+          cancelTaskDueToEarlyReturn(runningTask);
+        }
+      }
+
       document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          handleEarlyReturnCheck();
+        }
+      });
+
+      window.addEventListener("focus", () => {
+        handleEarlyReturnCheck();
+      });
+ 
+
+document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible" && activePopupTaskIndex !== null) {
           const elapsedMs = Date.now() - popupOpenedAt;
           const runningTask = activePopupTaskIndex;
