@@ -1130,7 +1130,7 @@
               document.getElementById('taskCard').style.display = 'block';
               document.getElementById('noPackageMsg').style.display = 'none';
 
-              renderSerialTaskButtons();
+                            renderSerialTaskButtons();
             }
           } catch (error) {
             console.error("ডাটা আনতে সমস্যা হয়েছে:", error);
@@ -1139,6 +1139,49 @@
           window.location.href = "login.html";
         }
       });
+
+      let activePopupTaskIndex = null;
+      let popupOpenedAt = 0;
+
+      function cancelTaskDueToEarlyReturn(taskIndex) {
+        if (taskIndex === null || taskIndex === undefined) return;
+        const st = getTaskState(taskIndex);
+        if (!st || st.phase !== "running") return;
+
+        clearTaskInterval(taskIndex);
+        taskStatesMap.delete(taskIndex);
+        persistTaskStatesToSession();
+        renderSerialTaskButtons();
+
+        alert("10 সেকেন্ড অপেক্ষা না করার কারণে আবার কাজ করুন");
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && activePopupTaskIndex !== null) {
+          const elapsedMs = Date.now() - popupOpenedAt;
+          const runningTask = activePopupTaskIndex;
+          activePopupTaskIndex = null;
+          popupOpenedAt = 0;
+
+          if (elapsedMs < 10000) {
+            cancelTaskDueToEarlyReturn(runningTask);
+          }
+        }
+      });
+
+      window.addEventListener("focus", () => {
+        if (activePopupTaskIndex !== null) {
+          const elapsedMs = Date.now() - popupOpenedAt;
+          const runningTask = activePopupTaskIndex;
+          activePopupTaskIndex = null;
+          popupOpenedAt = 0;
+
+          if (elapsedMs < 10000) {
+            cancelTaskDueToEarlyReturn(runningTask);
+          }
+        }
+      });
+
       function startTimer(duration, taskIndex) {
         if (isHolidayToday || completedTaskNumbers.includes(taskIndex)) return;
         const currentSt = getTaskState(taskIndex);
@@ -1162,12 +1205,17 @@
           console.log("Interstitial ad error:", e);
         }
 
-        const endTime = Date.now() + (duration * 1000);
+        const now = Date.now();
+        const endTime = now + (duration * 1000);
+        activePopupTaskIndex = taskIndex;
+        popupOpenedAt = now;
+
         taskStatesMap.set(taskIndex, { phase: "running", endTime });
         persistTaskStatesToSession();
         renderSerialTaskButtons();
         scheduleTaskCountdown(taskIndex);
       }
+
 
       async function claimReward(clickedTaskIndex) {
         const st = getTaskState(clickedTaskIndex);
