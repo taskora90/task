@@ -1118,7 +1118,7 @@
                   `;
                 }
 
-                renderSerialTaskButtons();
+                                renderSerialTaskButtons();
                 return;
               }
 
@@ -1180,33 +1180,6 @@
 
       window.addEventListener("focus", () => {
         handleEarlyReturnCheck();
-      });
- 
-
-document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && activePopupTaskIndex !== null) {
-          const elapsedMs = Date.now() - popupOpenedAt;
-          const runningTask = activePopupTaskIndex;
-          activePopupTaskIndex = null;
-          popupOpenedAt = 0;
-
-          if (elapsedMs < 10000) {
-            cancelTaskDueToEarlyReturn(runningTask);
-          }
-        }
-      });
-
-      window.addEventListener("focus", () => {
-        if (activePopupTaskIndex !== null) {
-          const elapsedMs = Date.now() - popupOpenedAt;
-          const runningTask = activePopupTaskIndex;
-          activePopupTaskIndex = null;
-          popupOpenedAt = 0;
-
-          if (elapsedMs < 10000) {
-            cancelTaskDueToEarlyReturn(runningTask);
-          }
-        }
       });
 
       function startTimer(duration, taskIndex) {
