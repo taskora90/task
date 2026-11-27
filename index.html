@@ -526,7 +526,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   function openAlertModal() {
-    if (!alertConfig.enabled) return;
+    if (!alertConfig.enabled || !modal) return;
     titleEl.textContent = alertConfig.title;
     msgEl.textContent = alertConfig.message;
     downloadBtn.href = alertConfig.downloadUrl || FALLBACK_URL;
@@ -534,32 +534,44 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeAlertModal() {
-    modal.style.display = "none";
+    if (modal) modal.style.display = "none";
   }
 
-  cancelBtn.addEventListener("click", closeAlertModal);
+  if (cancelBtn) cancelBtn.addEventListener("click", closeAlertModal);
 
-  downloadBtn.addEventListener("click", (e) => {
-    const url = alertConfig.downloadUrl || FALLBACK_URL;
-    downloadBtn.href = url;
-    const tempLink = document.createElement("a");
-    tempLink.href = url;
-    tempLink.setAttribute("download", "TaskOra.apk");
-    tempLink.rel = "noopener noreferrer";
-    document.body.appendChild(tempLink);
-    tempLink.click();
-    document.body.removeChild(tempLink);
-  });
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", () => {
+      const url = alertConfig.downloadUrl || FALLBACK_URL;
+      downloadBtn.href = url;
+      const tempLink = document.createElement("a");
+      tempLink.href = url;
+      tempLink.setAttribute("download", "TaskOra.apk");
+      tempLink.rel = "noopener noreferrer";
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      document.body.removeChild(tempLink);
+    });
+  }
+
+  function resolveDb() {
+    if (window.tkFirebase && window.tkFirebase.db) return window.tkFirebase.db;
+    if (window.db) return window.db;
+    const cfg = window.firebaseConfig || {
+      apiKey: "AIzaSyBITIN70jLaM8XCXhCjYKbg2uhdG6yFOS4",
+      authDomain: "taskora-b2b29.firebaseapp.com",
+      projectId: "taskora-b2b29",
+      storageBucket: "taskora-b2b29.firebasestorage.app",
+      messagingSenderId: "376297360134",
+      appId: "1:376297360134:web:ba6ab17055df42a8e36c87",
+      measurementId: "G-9803M7DPM5"
+    };
+    const app = getApps().length ? getApps()[0] : initializeApp(cfg);
+    return getFirestore(app);
+  }
 
   async function fetchUpdateConfig() {
     try {
-      let db = window.db;
-      if (!db && window.firebaseConfig) {
-        const app = getApps().length ? getApps()[0] : initializeApp(window.firebaseConfig);
-        db = getFirestore(app);
-      }
-      if (!db) return;
-
+      const db = resolveDb();
       const snap = await getDoc(doc(db, "appSettings", "updateAlert"));
       if (snap.exists()) {
         const data = snap.data();
@@ -576,7 +588,7 @@ window.addEventListener('DOMContentLoaded', () => {
         openAlertModal();
       }
     } catch (e) {
-      // সাইলেন্টলি ইগনোর করা হয়েছে যাতে ইউজার পেজ লোডে সমস্যা না হয়
+      // পেজ লোডে সমস্যা না করতে এরর গোপন রাখা হয়েছে
     }
   }
 
@@ -587,7 +599,6 @@ window.addEventListener('DOMContentLoaded', () => {
     openAlertModal();
   }
 
-  // অ্যাপ/পেজ থেকে বের হওয়ার সময় (ব্যাক/হোম/ট্যাব বন্ধ বা সরে গেলে) একবার দেখাবে
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
       triggerExitAlertOnce();
@@ -600,8 +611,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener("DOMContentLoaded", fetchUpdateConfig);
 </script>
-
-
 
 
 
