@@ -3319,6 +3319,235 @@
 
 
 
+<!-- ==================== APP UPDATE ALERT ADMIN BLOCK ==================== -->
+<div id="tkUpdateAdminBlock" class="tk-update-card">
+  <div class="tk-update-header">
+    <h3>অ্যাপ আপডেট অ্যালার্ট কন্ট্রোল</h3>
+    <span class="tk-update-badge">Latest Release Sync</span>
+  </div>
+
+  <div class="tk-update-row">
+    <label class="tk-update-switch-label">
+      <input type="checkbox" id="tkUpdateEnabled">
+      <span>ইন্ডেক্স পেজে আপডেট অ্যালার্ট চালু রাখুন</span>
+    </label>
+  </div>
+
+  <div class="tk-update-field">
+    <label for="tkUpdateTitle">অ্যালার্ট শিরোনাম</label>
+    <input type="text" id="tkUpdateTitle" value="নতুন ভার্সন আপডেট এসেছে!">
+  </div>
+
+  <div class="tk-update-field">
+    <label for="tkUpdateMessage">আপডেট বার্তা</label>
+    <textarea id="tkUpdateMessage" rows="2">অ্যাপটির নতুন ভার্সন প্রকাশ করা হয়েছে। ভালো অভিজ্ঞতার জন্য আপডেট করে নিন।</textarea>
+  </div>
+
+  <div class="tk-update-field">
+    <label for="tkUpdateDownloadUrl">লেটেস্ট ডাউনলোড লিংক (APK)</label>
+    <input type="url" id="tkUpdateDownloadUrl" value="https://github.com/taskora90/task/releases/latest/download/TaskOra.apk">
+  </div>
+
+  <div class="tk-update-actions">
+    <button type="button" id="tkSaveUpdateBtn" class="tk-btn-save">সেভ ও লাইভ করুন</button>
+    <button type="button" id="tkReloadUpdateBtn" class="tk-btn-ghost">বর্তমান সেটিংস লোড</button>
+  </div>
+
+  <div id="tkUpdateStatus" class="tk-update-status"></div>
+</div>
+
+<style>
+  #tkUpdateAdminBlock.tk-update-card {
+    background: #3b4252;
+    color: #eceff4;
+    border: 1px solid #4c566a;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+    font-family: inherit;
+  }
+  #tkUpdateAdminBlock .tk-update-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #4c566a;
+    padding-bottom: 10px;
+  }
+  #tkUpdateAdminBlock .tk-update-header h3 {
+    margin: 0;
+    font-size: 17px;
+    color: #eceff4;
+  }
+  #tkUpdateAdminBlock .tk-update-badge {
+    font-size: 11px;
+    background: #4c566a;
+    color: #d8dee9;
+    padding: 4px 8px;
+    border-radius: 999px;
+  }
+  #tkUpdateAdminBlock .tk-update-row {
+    margin-bottom: 12px;
+  }
+  #tkUpdateAdminBlock .tk-update-switch-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  #tkUpdateAdminBlock input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #88c0d0;
+    cursor: pointer;
+  }
+  #tkUpdateAdminBlock .tk-update-field {
+    margin-bottom: 12px;
+  }
+  #tkUpdateAdminBlock .tk-update-field label {
+    display: block;
+    font-size: 13px;
+    color: #d8dee9;
+    margin-bottom: 6px;
+  }
+  #tkUpdateAdminBlock input[type="text"],
+  #tkUpdateAdminBlock input[type="url"],
+  #tkUpdateAdminBlock textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: #2e3440;
+    color: #eceff4;
+    border: 1px solid #4c566a;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    outline: none;
+  }
+  #tkUpdateAdminBlock input:focus,
+  #tkUpdateAdminBlock textarea:focus {
+    border-color: #88c0d0;
+  }
+  #tkUpdateAdminBlock .tk-update-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  #tkUpdateAdminBlock .tk-btn-save {
+    background: #4c566a;
+    color: #ffffff;
+    border: 1px solid #88c0d0;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #tkUpdateAdminBlock .tk-btn-save:hover {
+    background: #5e81ac;
+  }
+  #tkUpdateAdminBlock .tk-btn-ghost {
+    background: transparent;
+    color: #d8dee9;
+    border: 1px solid #4c566a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  #tkUpdateAdminBlock .tk-update-status {
+    margin-top: 10px;
+    font-size: 13px;
+    min-height: 18px;
+    color: #a3be8c;
+  }
+</style>
+
+<script type="module">
+  import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const DEFAULT_APK_URL = "https://github.com/taskora90/task/releases/latest/download/TaskOra.apk";
+  const enabledEl = document.getElementById("tkUpdateEnabled");
+  const titleEl = document.getElementById("tkUpdateTitle");
+  const msgEl = document.getElementById("tkUpdateMessage");
+  const urlEl = document.getElementById("tkUpdateDownloadUrl");
+  const saveBtn = document.getElementById("tkSaveUpdateBtn");
+  const reloadBtn = document.getElementById("tkReloadUpdateBtn");
+  const statusEl = document.getElementById("tkUpdateStatus");
+
+  function getFirestoreInstance() {
+    if (window.db) return window.db;
+    if (window.firestoreDb) return window.firestoreDb;
+    throw new Error("উপরের পেজে Firebase Firestore (window.db) পাওয়া যায়নি।");
+  }
+
+  function getUpdateDocRef(db) {
+    return doc(db, "appSettings", "updateAlert");
+  }
+
+  async function loadUpdateSettings() {
+    statusEl.style.color = "#d8dee9";
+    statusEl.textContent = "সেটিংস লোড হচ্ছে...";
+    try {
+      const db = getFirestoreInstance();
+      const snap = await getDoc(getUpdateDocRef(db));
+      if (snap.exists()) {
+        const data = snap.data();
+        enabledEl.checked = Boolean(data.enabled);
+        titleEl.value = data.title || "নতুন ভার্সন আপডেট এসেছে!";
+        msgEl.value = data.message || "অ্যাপটির নতুন ভার্সন প্রকাশ করা হয়েছে। আপডেট করে নিন।";
+        urlEl.value = data.downloadUrl || DEFAULT_APK_URL;
+      } else {
+        urlEl.value = DEFAULT_APK_URL;
+      }
+      statusEl.style.color = "#a3be8c";
+      statusEl.textContent = "বর্তমান সেটিংস লোড হয়েছে।";
+    } catch (err) {
+      statusEl.style.color = "#bf616a";
+      statusEl.textContent = "লোড করতে সমস্যা: " + err.message;
+    }
+  }
+
+  async function saveUpdateSettings() {
+    saveBtn.disabled = true;
+    statusEl.style.color = "#d8dee9";
+    statusEl.textContent = "সেভ হচ্ছে...";
+    try {
+      const db = getFirestoreInstance();
+      const downloadUrl = (urlEl.value || "").trim() || DEFAULT_APK_URL;
+      const payload = {
+        enabled: Boolean(enabledEl.checked),
+        title: (titleEl.value || "").trim() || "নতুন ভার্সন আপডেট এসেছে!",
+        message: (msgEl.value || "").trim() || "নতুন ভার্সন এসেছে, দয়া করে আপডেট করুন।",
+        downloadUrl: downloadUrl,
+        updatedAt: Date.now()
+      };
+      await setDoc(getUpdateDocRef(db), payload, { merge: true });
+      statusEl.style.color = "#a3be8c";
+      statusEl.textContent = payload.enabled
+        ? "সেভ হয়েছে! ইউজারদের ইন্ডেক্স পেজে আপডেট অ্যালার্ট চালু করা হয়েছে।"
+        : "সেভ হয়েছে! ইউজারদের ইন্ডেক্স পেজে আপডেট অ্যালার্ট বন্ধ করা হয়েছে।";
+    } catch (err) {
+      statusEl.style.color = "#bf616a";
+      statusEl.textContent = "সেভ করতে সমস্যা: " + err.message;
+    } finally {
+      saveBtn.disabled = false;
+    }
+  }
+
+  saveBtn.addEventListener("click", saveUpdateSettings);
+  reloadBtn.addEventListener("click", loadUpdateSettings);
+  window.addEventListener("DOMContentLoaded", () => {
+    setTimeout(loadUpdateSettings, 400);
+  });
+</script>
+
+
+
+
+
 </body>
 </html>
 
