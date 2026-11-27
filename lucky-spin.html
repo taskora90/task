@@ -180,18 +180,13 @@
       display: flex;
       justify-content: center;
     }
+
+    .ads-wrapper,
+    .ad-banner-container,
+    .taskora-banner-320x250 {
+      pointer-events: none;
+    }
   </style>
-
-
-
-.ads-wrapper,
-.ad-banner-container,
-.taskora-banner-320x250 {
-  pointer-events: none;
-}
-
-
-
 </head>
 <body>
 
@@ -232,11 +227,10 @@
         <div class="item item-0 try-again-text">Try<br>Again</div>
         <div class="item item-1 money-text">৳ 50</div>
         <div class="item item-2 money-text">৳ 100</div>
-        <div class="item item-3 money-text">৳ 10</div>
+        <div class="item item-3 try-again-text">Try<br>Again</div>
         <div class="item item-4 money-text">৳ 150</div>
         <div class="item item-5 money-text">৳ 20</div>
       </div>
-
       <!-- মাঝের শুরু বাটন -->
       <div class="spin-btn" id="spinBtn" onclick="spinWheel()">শুরু</div>
     </div>
@@ -280,11 +274,12 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // ৬টি আইটেম (২টি Try Again + ৪টি টাকা)
     const items = [
       { name: "Try Again", amount: 0 },
       { name: "৳ 50", amount: 50 },
       { name: "৳ 100", amount: 100 },
-      { name: "৳ 10", amount: 10 },
+      { name: "Try Again", amount: 0 },
       { name: "৳ 150", amount: 150 },
       { name: "৳ 20", amount: 20 }
     ];
@@ -406,10 +401,12 @@
       const prize = items[selectedIndex];
 
       const degreesPerItem = 360 / items.length;
+      const desiredAngle = (360 - (selectedIndex * degreesPerItem)) % 360;
+      const currentMod = ((currentRotation % 360) + 360) % 360;
+      const deltaAngle = (desiredAngle - currentMod + 360) % 360;
       const extraRounds = 360 * 5;
-      const targetDegree = extraRounds + (360 - (selectedIndex * degreesPerItem));
 
-      currentRotation += targetDegree;
+      currentRotation += extraRounds + deltaAngle;
       const wheel = document.getElementById('wheel');
       wheel.style.transform = `rotate(${currentRotation}deg)`;
 
