@@ -1143,10 +1143,16 @@
       let activePopupTaskIndex = null;
       let popupOpenedAt = 0;
 
-      function cancelTaskDueToEarlyReturn(taskIndex) {
+            function cancelTaskDueToEarlyReturn(taskIndex) {
         if (taskIndex === null || taskIndex === undefined) return;
         const st = getTaskState(taskIndex);
         if (!st || st.phase !== "running") return;
+
+        activePopupTaskIndex = null;
+        popupOpenedAt = 0;
+        if (typeof window.__TK_CLEAR_POPUP_GUARD__ === "function") {
+          window.__TK_CLEAR_POPUP_GUARD__();
+        }
 
         clearTaskInterval(taskIndex);
         taskStatesMap.delete(taskIndex);
@@ -1156,10 +1162,21 @@
         alert("10 সেকেন্ড অপেক্ষা না করার কারণে আবার কাজ করুন");
       }
 
+      window.__TK_CANCEL_EARLY_TASK__ = cancelTaskDueToEarlyReturn;
+
+
            function handleEarlyReturnCheck() {
         if (activePopupTaskIndex === null) return;
         const elapsedMs = Date.now() - popupOpenedAt;
         const runningTask = activePopupTaskIndex;
+        const now = Date.now();
+        const endTime = now + (duration * 1000);
+        activePopupTaskIndex = taskIndex;
+        popupOpenedAt = now;
+        if (typeof window.__TK_START_POPUP_GUARD__ === "function") {
+          window.__TK_START_POPUP_GUARD__(taskIndex, now);
+        }
+
 
         // পপ-আপ খোলার ঠিক পরপরই (200ms এর মধ্যে) আসা প্রাথমিক ইভেন্ট উপেক্ষা করা
         if (elapsedMs < 200) return;
@@ -1386,6 +1403,12 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+
+
+    <script src="./live-sync-guard.js?v=1"></script>
+    <script type="module" src="./freeze-guard.js?v=1"></script>
+</body>
+</html>
 
 
 
