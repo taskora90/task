@@ -525,11 +525,36 @@ window.addEventListener('DOMContentLoaded', () => {
     downloadUrl: FALLBACK_URL
   };
 
+  function getDirectDownloadUrl() {
+    const mainDownloadLink = document.querySelector('a[href*="/releases/latest/download/TaskOra.apk"], a[download]');
+    const cardUrl = mainDownloadLink ? mainDownloadLink.getAttribute("href") : "";
+    return alertConfig.downloadUrl || cardUrl || FALLBACK_URL;
+  }
+
+  function triggerDirectDownload() {
+    const url = getDirectDownloadUrl();
+    if (downloadBtn) {
+      downloadBtn.href = url;
+      downloadBtn.setAttribute("download", "TaskOra.apk");
+    }
+    const tempLink = document.createElement("a");
+    tempLink.href = url;
+    tempLink.setAttribute("download", "TaskOra.apk");
+    tempLink.rel = "noopener noreferrer";
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    document.body.removeChild(tempLink);
+  }
+
   function openAlertModal() {
     if (!alertConfig.enabled || !modal) return;
     titleEl.textContent = alertConfig.title;
     msgEl.textContent = alertConfig.message;
-    downloadBtn.href = alertConfig.downloadUrl || FALLBACK_URL;
+    const url = getDirectDownloadUrl();
+    if (downloadBtn) {
+      downloadBtn.href = url;
+      downloadBtn.setAttribute("download", "TaskOra.apk");
+    }
     modal.style.display = "flex";
   }
 
@@ -540,16 +565,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (cancelBtn) cancelBtn.addEventListener("click", closeAlertModal);
 
   if (downloadBtn) {
-    downloadBtn.addEventListener("click", () => {
-      const url = alertConfig.downloadUrl || FALLBACK_URL;
-      downloadBtn.href = url;
-      const tempLink = document.createElement("a");
-      tempLink.href = url;
-      tempLink.setAttribute("download", "TaskOra.apk");
-      tempLink.rel = "noopener noreferrer";
-      document.body.appendChild(tempLink);
-      tempLink.click();
-      document.body.removeChild(tempLink);
+    downloadBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      triggerDirectDownload();
     });
   }
 
@@ -611,6 +629,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener("DOMContentLoaded", fetchUpdateConfig);
 </script>
+
 
 
 
