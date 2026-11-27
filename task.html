@@ -2,8 +2,12 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskOra টাস্ক</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
@@ -1140,10 +1144,10 @@
         }
       });
 
-      let activePopupTaskIndex = null;
+            let activePopupTaskIndex = null;
       let popupOpenedAt = 0;
 
-            function cancelTaskDueToEarlyReturn(taskIndex) {
+      function cancelTaskDueToEarlyReturn(taskIndex) {
         if (taskIndex === null || taskIndex === undefined) return;
         const st = getTaskState(taskIndex);
         if (!st || st.phase !== "running") return;
@@ -1164,19 +1168,10 @@
 
       window.__TK_CANCEL_EARLY_TASK__ = cancelTaskDueToEarlyReturn;
 
-
-           function handleEarlyReturnCheck() {
+      function handleEarlyReturnCheck() {
         if (activePopupTaskIndex === null) return;
         const elapsedMs = Date.now() - popupOpenedAt;
         const runningTask = activePopupTaskIndex;
-        const now = Date.now();
-        const endTime = now + (duration * 1000);
-        activePopupTaskIndex = taskIndex;
-        popupOpenedAt = now;
-        if (typeof window.__TK_START_POPUP_GUARD__ === "function") {
-          window.__TK_START_POPUP_GUARD__(taskIndex, now);
-        }
-
 
         // পপ-আপ খোলার ঠিক পরপরই (200ms এর মধ্যে) আসা প্রাথমিক ইভেন্ট উপেক্ষা করা
         if (elapsedMs < 200) return;
@@ -1226,6 +1221,9 @@
         const endTime = now + (duration * 1000);
         activePopupTaskIndex = taskIndex;
         popupOpenedAt = now;
+        if (typeof window.__TK_START_POPUP_GUARD__ === "function") {
+          window.__TK_START_POPUP_GUARD__(taskIndex, now);
+        }
 
         taskStatesMap.set(taskIndex, { phase: "running", endTime });
         persistTaskStatesToSession();
@@ -1396,21 +1394,7 @@
     <!-- Adsterra Popunder Script -->
     <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
 
-    <script type="module" src="./freeze-guard.js"></script>
-
-
-
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-
-
     <script src="./live-sync-guard.js?v=1"></script>
     <script type="module" src="./freeze-guard.js?v=1"></script>
-</body>
-</html>
-
-
-
 </body>
 </html>
