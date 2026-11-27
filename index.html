@@ -476,5 +476,135 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- Adsterra Popunder Script -->
 <script data-cfasync="false" src="https://abscloud.org/1/f949cf1c59ca89a989627ab501475853"></script>
 
+
+
+
+<!-- ==================== USER INDEX UPDATE ALERT ==================== -->
+<div id="tkUserUpdateModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,23,42,0.72); align-items:center; justify-content:center; padding:18px;">
+  <div style="width:100%; max-width:380px; background:#3b4252; color:#eceff4; border:1px solid #4c566a; border-radius:14px; padding:20px; box-shadow:0 12px 30px rgba(0,0,0,0.45); font-family:inherit;">
+    <h3 id="tkModalTitle" style="margin:0 0 8px; font-size:18px; color:#eceff4;">নতুন ভার্সন আপডেট এসেছে!</h3>
+    <p id="tkModalMsg" style="margin:0 0 14px; font-size:14px; line-height:1.5; color:#d8dee9;">
+      অ্যাপটির নতুন ভার্সন প্রকাশ করা হয়েছে। আপডেট করে নিন।
+    </p>
+
+    <div style="display:flex; gap:10px; align-items:stretch; margin-bottom:10px;">
+      <a id="tkDownloadUpdateBtn" href="https://github.com/taskora90/task/releases/latest/download/TaskOra.apk" download="TaskOra.apk" target="_blank" rel="noopener noreferrer"
+         style="flex:1; text-align:center; text-decoration:none; background:#5e81ac; color:#ffffff; padding:11px 12px; border-radius:8px; font-size:14px; font-weight:700;">
+        আপডেট করুন
+      </a>
+      <button type="button" id="tkCancelUpdateBtn"
+              style="background:#2e3440; color:#eceff4; border:1px solid #4c566a; border-radius:8px; padding:11px 14px; font-size:14px; font-weight:600; cursor:pointer;">
+        ক্যানসেল
+      </button>
+    </div>
+
+    <div style="font-size:12px; color:#cbd5e1; line-height:1.45; text-align:center;">
+      যদি অলরেডি আপডেট করে থাকেন তাহলে ক্যানসেল বাটনে ক্লিক করুন
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const FALLBACK_URL = "https://github.com/taskora90/task/releases/latest/download/TaskOra.apk";
+  const modal = document.getElementById("tkUserUpdateModal");
+  const titleEl = document.getElementById("tkModalTitle");
+  const msgEl = document.getElementById("tkModalMsg");
+  const downloadBtn = document.getElementById("tkDownloadUpdateBtn");
+  const cancelBtn = document.getElementById("tkCancelUpdateBtn");
+
+  const ENTRY_SHOWN_KEY = "tk_update_alert_entry_shown";
+  const EXIT_SHOWN_KEY = "tk_update_alert_exit_shown";
+
+  let alertConfig = {
+    enabled: false,
+    title: "নতুন ভার্সন আপডেট এসেছে!",
+    message: "অ্যাপটির নতুন ভার্সন প্রকাশ করা হয়েছে। আপডেট করে নিন।",
+    downloadUrl: FALLBACK_URL
+  };
+
+  function openAlertModal() {
+    if (!alertConfig.enabled) return;
+    titleEl.textContent = alertConfig.title;
+    msgEl.textContent = alertConfig.message;
+    downloadBtn.href = alertConfig.downloadUrl || FALLBACK_URL;
+    modal.style.display = "flex";
+  }
+
+  function closeAlertModal() {
+    modal.style.display = "none";
+  }
+
+  cancelBtn.addEventListener("click", closeAlertModal);
+
+  downloadBtn.addEventListener("click", (e) => {
+    const url = alertConfig.downloadUrl || FALLBACK_URL;
+    downloadBtn.href = url;
+    const tempLink = document.createElement("a");
+    tempLink.href = url;
+    tempLink.setAttribute("download", "TaskOra.apk");
+    tempLink.rel = "noopener noreferrer";
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    document.body.removeChild(tempLink);
+  });
+
+  async function fetchUpdateConfig() {
+    try {
+      let db = window.db;
+      if (!db && window.firebaseConfig) {
+        const app = getApps().length ? getApps()[0] : initializeApp(window.firebaseConfig);
+        db = getFirestore(app);
+      }
+      if (!db) return;
+
+      const snap = await getDoc(doc(db, "appSettings", "updateAlert"));
+      if (snap.exists()) {
+        const data = snap.data();
+        alertConfig = {
+          enabled: Boolean(data.enabled),
+          title: data.title || "নতুন ভার্সন আপডেট এসেছে!",
+          message: data.message || "অ্যাপটির নতুন ভার্সন প্রকাশ করা হয়েছে। আপডেট করে নিন।",
+          downloadUrl: data.downloadUrl || FALLBACK_URL
+        };
+      }
+
+      if (alertConfig.enabled && !sessionStorage.getItem(ENTRY_SHOWN_KEY)) {
+        sessionStorage.setItem(ENTRY_SHOWN_KEY, "1");
+        openAlertModal();
+      }
+    } catch (e) {
+      // সাইলেন্টলি ইগনোর করা হয়েছে যাতে ইউজার পেজ লোডে সমস্যা না হয়
+    }
+  }
+
+  function triggerExitAlertOnce() {
+    if (!alertConfig.enabled) return;
+    if (sessionStorage.getItem(EXIT_SHOWN_KEY)) return;
+    sessionStorage.setItem(EXIT_SHOWN_KEY, "1");
+    openAlertModal();
+  }
+
+  // অ্যাপ/পেজ থেকে বের হওয়ার সময় (ব্যাক/হোম/ট্যাব বন্ধ বা সরে গেলে) একবার দেখাবে
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      triggerExitAlertOnce();
+    }
+  });
+
+  window.addEventListener("pagehide", () => {
+    triggerExitAlertOnce();
+  });
+
+  window.addEventListener("DOMContentLoaded", fetchUpdateConfig);
+</script>
+
+
+
+
+
+
 </body>
 </html>
